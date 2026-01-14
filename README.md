@@ -23,6 +23,7 @@ This toolkit provides automated security verification scripts aligned with feder
 | `check-mac-addresses.sh` | SC-8 | IEEE 802.3 MAC address detection |
 | `check-host-security.sh` | CM-6 | Host OS security posture verification |
 | `run-all-scans.sh` | - | Run all scans with consolidated report |
+| `generate-compliance.sh` | - | Generate security compliance statement PDF |
 
 ## Usage
 
@@ -58,6 +59,20 @@ if [ -x "$SECURITY_REPO/scripts/run-all-scans.sh" ]; then
 fi
 ```
 
+### Generate Compliance Documentation
+
+Generate a formal security compliance statement PDF for a project:
+
+```bash
+# Generate PDF and place in project directory
+./scripts/generate-compliance.sh /path/to/project
+
+# Specify custom output location
+./scripts/generate-compliance.sh /path/to/project /path/to/output
+```
+
+See [COMPLIANCE.md](COMPLIANCE.md) for detailed documentation on the compliance workflow.
+
 ## Prerequisites
 
 - **ClamAV** - Required for malware scanning
@@ -67,6 +82,15 @@ fi
 
   # Ubuntu/Debian
   sudo apt install clamav
+  ```
+
+- **pdflatex** - Required for compliance PDF generation (TeX Live or MiKTeX)
+  ```bash
+  # macOS
+  brew install --cask mactex-no-gui
+
+  # Ubuntu/Debian
+  sudo apt install texlive-latex-base texlive-latex-recommended
   ```
 
 - **grep** - Standard grep with extended regex support (included in macOS/Linux)

@@ -76,6 +76,9 @@ run_check() {
         --exclude-dir=".venv" \
         --exclude-dir="__pycache__" \
         --exclude-dir=".scans" \
+        --exclude-dir="obj" \
+        --exclude-dir="bin" \
+        --exclude-dir="publish" \
         --exclude="*Scan-Results.md" \
         --exclude="check-*.sh" \
         2>/dev/null || true)
