@@ -202,7 +202,7 @@ sed -i.bak \
     -e "s/\\\\newcommand{\\\\MACScanChecksum}{N\\/A}/\\\\newcommand{\\\\MACScanChecksum}{$MAC_SCAN_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\HostSecurityScanChecksum}{N\\/A}/\\\\newcommand{\\\\HostSecurityScanChecksum}{$HOST_SECURITY_SCAN_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\ReportChecksum}{N\\/A}/\\\\newcommand{\\\\ReportChecksum}{$REPORT_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{0000000000000000000000000000000000000000000000000000000000000000}/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{$CHECKSUMS_MD_CHECKSUM_FULL}/g" \
+    -e "s/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{CHECKSUMS_MD_FULL_PLACEHOLDER}/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{$CHECKSUMS_MD_CHECKSUM_FULL}/g" \
     "$PDF_BUILD_DIR/scan_attestation.tex"
 
 # Function to build allowlist entries for LaTeX (output to file for \input)
