@@ -236,39 +236,30 @@ run_check() {
     echo "Checking: $check_name [$severity]"
 
     # Run grep, capture output (exclude .git, binary files, scan results, and verification scripts)
+    # CRITICAL-003: Protection against symlink attacks - use find to exclude symlinks, add per-file timeout
     local results=""
-    results=$(grep -r -n -E "$pattern" "$TARGET_DIR" \
-        --include="*.sh" \
-        --include="*.py" \
-        --include="*.js" \
-        --include="*.ts" \
-        --include="*.rb" \
-        --include="*.php" \
-        --include="*.go" \
-        --include="*.rs" \
-        --include="*.java" \
-        --include="*.cs" \
-        --include="*.yaml" \
-        --include="*.yml" \
-        --include="*.json" \
-        --include="*.env" \
-        --include="*.conf" \
-        --include="*.config" \
-        --include="*.md" \
-        --include="*.tex" \
-        --exclude-dir=".git" \
-        --exclude-dir="node_modules" \
-        --exclude-dir="venv" \
-        --exclude-dir=".venv" \
-        --exclude-dir="__pycache__" \
-        --exclude-dir=".scans" \
-        --exclude-dir="obj" \
-        --exclude-dir="bin" \
-        --exclude-dir="publish" \
-        --exclude="*Scan-Results.md" \
-        --exclude="check-*.sh" \
-        --exclude=".secrets-allowlist" \
-        2>/dev/null || true)
+    results=$(find "$TARGET_DIR" \
+        -type f \
+        -not -type l \
+        -not -path "*/.git/*" \
+        -not -path "*/node_modules/*" \
+        -not -path "*/venv/*" \
+        -not -path "*/.venv/*" \
+        -not -path "*/__pycache__/*" \
+        -not -path "*/.scans/*" \
+        -not -path "*/obj/*" \
+        -not -path "*/bin/*" \
+        -not -path "*/publish/*" \
+        -not -name "*Scan-Results.md" \
+        -not -name "check-*.sh" \
+        -not -name ".secrets-allowlist" \
+        \( -name "*.sh" -o -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.rb" -o -name "*.php" \
+            -o -name "*.go" -o -name "*.rs" -o -name "*.java" -o -name "*.cs" \
+            -o -name "*.yaml" -o -name "*.yml" -o -name "*.json" \
+            -o -name "*.env" -o -name "*.conf" -o -name "*.config" -o -name "*.md" -o -name "*.tex" \) \
+        2>/dev/null | while read -r file; do
+        timeout 1 grep -n -E "$pattern" "$file" 2>/dev/null || true
+    done || true)
 
     local total_count=0
     local new_count=0

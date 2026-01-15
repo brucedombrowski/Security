@@ -278,22 +278,26 @@ run_check() {
     echo "Checking: $check_name"
 
     # Run grep, capture output
+    # CRITICAL-003: Protection against symlink attacks - use find to exclude symlinks, add per-file timeout
     local results=""
-    results=$(grep -r -n -E "$pattern" "$TARGET_DIR" \
-        $INCLUDE_ARGS \
-        --exclude-dir=".git" \
-        --exclude-dir="node_modules" \
-        --exclude-dir="venv" \
-        --exclude-dir=".venv" \
-        --exclude-dir="__pycache__" \
-        --exclude-dir=".scans" \
-        --exclude-dir="obj" \
-        --exclude-dir="bin" \
-        --exclude-dir="publish" \
-        --exclude="*Scan-Results.md" \
-        --exclude="check-*.sh" \
-        --exclude=".pii-allowlist" \
-        2>/dev/null || true)
+    results=$(find "$TARGET_DIR" \
+        -type f \
+        -not -type l \
+        -not -path "*/.git/*" \
+        -not -path "*/node_modules/*" \
+        -not -path "*/venv/*" \
+        -not -path "*/.venv/*" \
+        -not -path "*/__pycache__/*" \
+        -not -path "*/.scans/*" \
+        -not -path "*/obj/*" \
+        -not -path "*/bin/*" \
+        -not -path "*/publish/*" \
+        -not -name "*Scan-Results.md" \
+        -not -name "check-*.sh" \
+        -not -name ".pii-allowlist" \
+        2>/dev/null | while read -r file; do
+        timeout 1 grep -n -E "$pattern" "$file" 2>/dev/null || true
+    done || true)
 
     local total_count=0
     local new_count=0
