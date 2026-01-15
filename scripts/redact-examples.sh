@@ -44,9 +44,9 @@ generate_banner() {
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    $source_checksum  #
+#  Source SHA256:    ${source_checksum:0:16}...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
-#  Script SHA256:    $SCRIPT_CHECKSUM  #
+#  Script SHA256:    ${SCRIPT_CHECKSUM:0:16}...                                       #
 #  Redacted:         $REDACTION_TIMESTAMP                                       #
 #                                                                              #
 ################################################################################
@@ -106,7 +106,7 @@ redact_file() {
     sed -E 's/SHA256:[[:space:]]*[a-f0-9]{64}/SHA256: [REDACTED]/g' | \
     sed -E 's/[a-f0-9]{64}/[CHECKSUM_REDACTED]/g' | \
     # Redact Homebrew package versions (format: "    package-name version")
-    sed -E 's/^(    [a-zA-Z0-9_@.-]+)[[:space:]]+[0-9]+(\.[0-9]+)*([._-][a-zA-Z0-9]+)?$/\1 [VERSION]/g' > "$temp_redacted"
+    sed -E 's/^(    [a-zA-Z0-9_@.-]+)[[:space:]]+[0-9]+(\.[0-9]+)*([._-][a-zA-Z0-9]+)?$/\1 [REDACTED]/g' > "$temp_redacted"
 
     # Combine banner and redacted content
     generate_banner "$source_checksum" > "$output"
