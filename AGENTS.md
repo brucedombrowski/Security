@@ -1,5 +1,14 @@
 # Security - AI Agent Instructions
 
+## Core Values
+
+This toolkit is built on TIA principles:
+
+- **Transparency** - All scan findings, exceptions, and decisions are documented clearly
+- **Inspectability** - Output includes file:line references enabling verification of any finding
+- **Accountability** - Each allowlist entry requires reviewer justification with SHA256 integrity hash
+- **Traceability** - Host inventory checksums, toolkit version, and commit hashes link every attestation to its source
+
 ## Project Purpose
 
 This repository contains security analysis and compliance documentation tools for scanning software projects against federal security standards (NIST 800-53, FIPS).
@@ -163,6 +172,15 @@ Potential additions to the toolkit:
 3. **Static code analysis**
    - Language-specific security linters
    - OWASP pattern detection
+
+4. **Agentic AI-Driven Compliance Orchestration** (Long-term Vision)
+   - **End-to-end workflow automation**: Agentic AI orchestrates the complete compliance pipeline from scanning through attestation and submission
+   - **PDFSigner integration**: Automatically digitally signs compliance statements with proper X.509 certificates
+   - **Distributed ledger submission**: Uploads signed compliance attestations to blockchain or distributed ledger systems for immutability
+   - **Automated compliance verification**: Triggers upstream compliance checks against submitted attestations
+   - **Cryptographic integrity**: Leverages digital signatures + distributed ledgers to create tamper-proof audit trails
+   - **Real-time compliance status**: Enables continuous compliance monitoring and automated status updates to governance systems
+   - **Requirements**: Sophisticated AI agent with organizational trust, certificate management capabilities, and blockchain integration
 
 ## Dependencies
 
