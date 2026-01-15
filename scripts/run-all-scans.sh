@@ -68,12 +68,98 @@ FILE_TIMESTAMP=$(date -u "+%Y-%m-%d-T%H%M%SZ")
 # Get hostname for attestation
 TARGET_HOST=$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo "unknown")
 
+# Function to validate scan directory path (CRITICAL-002: rm -rf safety)
+# Prevents deletion of dangerous directories through path traversal or validation bypass
+# Returns: 0 (safe) or 1 (unsafe)
+validate_scan_directory() {
+    local target_path="$1"
+    
+    # Check if target path is empty
+    if [ -z "$target_path" ]; then
+        echo "Error: Target path is empty" >&2
+        return 1
+    fi
+    
+    # Check if path is absolute (prevents relative path traversal)
+    if [[ "$target_path" != /* ]]; then
+        echo "Error: Target path must be absolute" >&2
+        return 1
+    fi
+    
+    # Check if target directory exists
+    if [ ! -d "$target_path" ]; then
+        echo "Error: Target directory does not exist: $target_path" >&2
+        return 1
+    fi
+    
+    # Prevent deletion of critical system directories
+    # Check if .scans path would be in a system location
+    local scans_path="$target_path/.scans"
+    case "$scans_path" in
+        "/.scans"|"/etc/.scans"|"/var/.scans"|"/bin/.scans"|"/sbin/.scans"|"/boot/.scans"|"/usr/.scans"|"/root/.scans")
+            echo "Error: Cannot delete .scans in critical system directory: $scans_path" >&2
+            return 1
+            ;;
+    esac
+    
+    # Detect if .scans is a symlink (would delete linked content instead)
+    if [ -L "$target_path/.scans" ]; then
+        echo "Error: .scans is a symlink, refusing to delete" >&2
+        return 1
+    fi
+    
+    return 0
+}
+
 # Create .scans directory for output (delete previous results first)
 SCANS_DIR="$TARGET_DIR/.scans"
-if [ -d "$SCANS_DIR" ]; then
-    echo "Removing previous scan results: $SCANS_DIR"
-    rm -rf "$SCANS_DIR"
+
+# Validate directory before deletion
+if ! validate_scan_directory "$TARGET_DIR"; then
+    echo "Fatal: Invalid target directory - cannot proceed with scans" >&2
+    exit 2
 fi
+
+# Delete previous scan results with safety checks
+if [ -d "$SCANS_DIR" ]; then
+    if [ "$INTERACTIVE" -eq 1 ]; then
+        # Interactive mode: show preview and require confirmation
+        echo "Previous scan results found at:"
+        echo "  $SCANS_DIR"
+        echo ""
+        
+        # Show file preview (first 20 files)
+        local file_count=$(find "$SCANS_DIR" -type f 2>/dev/null | wc -l)
+        if [ "$file_count" -gt 0 ]; then
+            echo "Files to be deleted (showing first 20):"
+            find "$SCANS_DIR" -type f 2>/dev/null | head -20 | while read -r file; do
+                echo "  - ${file#$SCANS_DIR/}"
+            done
+            if [ "$file_count" -gt 20 ]; then
+                echo "  ... and $((file_count - 20)) more files"
+            fi
+        fi
+        echo ""
+        
+        # Require explicit confirmation
+        read -p "Delete previous scan results? Type 'yes' to confirm: " confirm
+        if [ "$confirm" != "yes" ]; then
+            echo "Preserving existing scan results. Exiting."
+            exit 0
+        fi
+    fi
+    
+    # Safe deletion: use find + rm instead of rm -rf
+    echo "Removing previous scan results: $SCANS_DIR"
+    find "$SCANS_DIR" -type f -delete 2>/dev/null
+    find "$SCANS_DIR" -type d -delete 2>/dev/null
+    
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to remove previous scan results" >&2
+        exit 1
+    fi
+fi
+
 mkdir -p "$SCANS_DIR"
 
 # Consolidated report file (using FILE_TIMESTAMP for unique UTC-timestamped filenames)
