@@ -26,6 +26,8 @@
 #   MAC_FINDINGS        MAC address scan findings text
 #   HOST_RESULT         Host security scan result
 #   HOST_FINDINGS       Host security scan findings text
+#   VULN_RESULT         Vulnerability scan result (PASS/FAIL/SKIP)
+#   VULN_FINDINGS       Vulnerability scan findings text
 #   OVERALL_STATUS      Overall scan status (PASS/FAIL)
 #   PASS_COUNT          Number of passed scans
 #   FAIL_COUNT          Number of failed scans
@@ -101,6 +103,7 @@ MALWARE_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/malware-scan-$FILE_TIMESTAMP.t
 SECRETS_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/secrets-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
 MAC_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/mac-address-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
 HOST_SECURITY_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/host-security-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+VULN_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/vulnerability-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
 REPORT_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/security-scan-report-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
 # Full checksums.md checksum for verification chain
 CHECKSUMS_MD_CHECKSUM_FULL=$(shasum -a 256 "$SCANS_DIR/checksums.md" 2>/dev/null | awk '{print $1}' || echo "N/A")
@@ -133,14 +136,20 @@ if [ -f "$SECRETS_ALLOWLIST_FILE" ]; then
     fi
 fi
 
+# Set default vulnerability scan result if not provided
+VULN_RESULT="${VULN_RESULT:-SKIP}"
+VULN_FINDINGS="${VULN_FINDINGS:-Not run}"
+
 # Recalculate pass/fail counts after applying EXCEPT status
 # EXCEPT counts as PASS for the summary (reviewed and accepted)
+# SKIP doesn't count towards pass/fail totals
 PASS_COUNT=0
 FAIL_COUNT=0
-for result in "$PII_RESULT" "$MALWARE_RESULT" "$SECRETS_RESULT" "$MAC_RESULT" "$HOST_RESULT"; do
+for result in "$PII_RESULT" "$MALWARE_RESULT" "$SECRETS_RESULT" "$MAC_RESULT" "$HOST_RESULT" "$VULN_RESULT"; do
     case "$result" in
         PASS|EXCEPT) PASS_COUNT=$((PASS_COUNT + 1)) ;;
         FAIL) FAIL_COUNT=$((FAIL_COUNT + 1)) ;;
+        SKIP) ;; # Don't count SKIP towards totals
     esac
 done
 
@@ -189,6 +198,8 @@ sed -i.bak \
     -e "s/\\\\newcommand{\\\\MACScanFindings}{No MAC addresses detected}/\\\\newcommand{\\\\MACScanFindings}{$MAC_FINDINGS}/g" \
     -e "s/\\\\newcommand{\\\\HostSecurityResult}{PASS}/\\\\newcommand{\\\\HostSecurityResult}{$HOST_RESULT}/g" \
     -e "s/\\\\newcommand{\\\\HostSecurityFindings}{All checks passed}/\\\\newcommand{\\\\HostSecurityFindings}{$HOST_FINDINGS}/g" \
+    -e "s/\\\\newcommand{\\\\VulnScanResult}{SKIP}/\\\\newcommand{\\\\VulnScanResult}{$VULN_RESULT}/g" \
+    -e "s/\\\\newcommand{\\\\VulnScanFindings}{Not run}/\\\\newcommand{\\\\VulnScanFindings}{$VULN_FINDINGS}/g" \
     -e "s/\\\\newcommand{\\\\OverallResult}{PASS}/\\\\newcommand{\\\\OverallResult}{$OVERALL_STATUS}/g" \
     -e "s/\\\\newcommand{\\\\PassCount}{5}/\\\\newcommand{\\\\PassCount}{$PASS_COUNT}/g" \
     -e "s/\\\\newcommand{\\\\FailCount}{0}/\\\\newcommand{\\\\FailCount}{$FAIL_COUNT}/g" \
@@ -201,6 +212,7 @@ sed -i.bak \
     -e "s/\\\\newcommand{\\\\SecretsScanChecksum}{N\\/A}/\\\\newcommand{\\\\SecretsScanChecksum}{$SECRETS_SCAN_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\MACScanChecksum}{N\\/A}/\\\\newcommand{\\\\MACScanChecksum}{$MAC_SCAN_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\HostSecurityScanChecksum}{N\\/A}/\\\\newcommand{\\\\HostSecurityScanChecksum}{$HOST_SECURITY_SCAN_CHECKSUM}/g" \
+    -e "s/\\\\newcommand{\\\\VulnScanChecksum}{N\\/A}/\\\\newcommand{\\\\VulnScanChecksum}{$VULN_SCAN_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\ReportChecksum}{N\\/A}/\\\\newcommand{\\\\ReportChecksum}{$REPORT_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{CHECKSUMS_MD_FULL_PLACEHOLDER}/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{$CHECKSUMS_MD_CHECKSUM_FULL}/g" \
     "$PDF_BUILD_DIR/scan_attestation.tex"

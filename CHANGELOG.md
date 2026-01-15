@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-01-15
+
+### Added
+
+- **Vulnerability Scanning Script**
+  - New `scan-vulnerabilities.sh` for comprehensive vulnerability assessment
+  - Nmap network scanning with port discovery and service detection
+  - Lynis system security auditing and configuration review
+  - Quick mode (`-q`) for fast localhost scans without sudo
+  - NIST SP 800-53 controls: RA-5 (Vulnerability Scanning), SI-2 (Flaw Remediation), SI-4 (System Monitoring), CA-2 (Control Assessments)
+  - NIST SP 800-171 controls: 3.11.1, 3.11.2, 3.11.3, 3.12.1, 3.12.3, 3.14.1, 3.14.6, 3.14.7
+
+- **Vulnerability Scan in PDF Attestation**
+  - Scan attestation now includes vulnerability scan results
+  - New RA-5, SI-2, SI-4 controls in NIST Control Mapping table
+  - Vulnerability scan row in Scan Results table with PASS/FAIL/SKIP status
+  - Vulnerability scan checksum in Scan Output Checksums table
+  - SKIP status for when vulnerability scan was not run
+
+### Removed
+
+- Removed `examples/` directory - examples are generated dynamically during scans
+
+### Changed
+
+- Updated AGENTS.md with vulnerability scanning documentation
+- OpenVAS documented as future consideration due to infrastructure requirements
+
 ## [1.11.0] - 2026-01-15
 
 ### Added
@@ -241,6 +269,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
+[1.12.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.12.0
 [1.11.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.11.0
 [1.10.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.10.0
 [1.9.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.9.0

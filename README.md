@@ -113,24 +113,26 @@ See [COMPLIANCE.md](COMPLIANCE.md) for detailed documentation on the compliance 
 Run comprehensive vulnerability assessments using open-source tools:
 
 ```bash
-# Full vulnerability scan (Nmap + Lynis)
-./scripts/scan-vulnerabilities.sh
+# Quick scan mode (recommended for localhost without sudo)
+./scripts/scan-vulnerabilities.sh -q
+
+# Lynis system audit only (fast, no network scan)
+./scripts/scan-vulnerabilities.sh -l
+
+# Full scan with elevated privileges (recommended for comprehensive results)
+sudo ./scripts/scan-vulnerabilities.sh
 
 # Scan specific network target
 ./scripts/scan-vulnerabilities.sh 192.168.1.0/24
 
-# Quick scan mode
+# Quick scan of specific host
 ./scripts/scan-vulnerabilities.sh -q 10.0.0.1
 
 # Nmap network scan only
 ./scripts/scan-vulnerabilities.sh -n 192.168.1.1
-
-# Lynis system audit only
-./scripts/scan-vulnerabilities.sh -l
-
-# Full scan with elevated privileges (recommended)
-sudo ./scripts/scan-vulnerabilities.sh
 ```
+
+**Note:** Unprivileged Nmap scans of localhost may show "Strange read error" messages - this is a known Nmap issue with TCP connect scans. Use `-q` (quick) mode or run with `sudo` for best results.
 
 **NIST Controls Assessed:**
 - RA-5: Vulnerability Monitoring and Scanning

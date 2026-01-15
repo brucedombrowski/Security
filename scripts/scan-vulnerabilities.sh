@@ -255,7 +255,7 @@ check_dependencies() {
         optional_tools+=("nmap")
         RUN_NMAP=false
     else
-        log_success "nmap: $(nmap --version 2>/dev/null | head -1)"
+        log_success "nmap: found"
     fi
 
     # OpenVAS/GVM check
@@ -275,7 +275,7 @@ check_dependencies() {
         optional_tools+=("lynis")
         RUN_LYNIS=false
     else
-        log_success "lynis: $(lynis --version 2>/dev/null || echo 'installed')"
+        log_success "lynis: found"
     fi
 
     echo ""
@@ -358,15 +358,27 @@ run_nmap_scan() {
     echo ""
 
     local nmap_args=""
+    local is_localhost=false
+
+    # Check if target is localhost
+    if [ "$target" = "127.0.0.1" ] || [ "$target" = "localhost" ] || [ "$target" = "::1" ]; then
+        is_localhost=true
+    fi
 
     if [ "$SCAN_MODE" = "quick" ]; then
         # Quick scan: Top 100 ports, no scripts
         nmap_args="-sV -T4 --top-ports 100"
         log_info "Running quick Nmap scan (top 100 ports)..."
     else
-        # Full scan: All ports, version detection, scripts
-        nmap_args="-sV -sC -T4 -p-"
-        log_info "Running comprehensive Nmap scan (all ports)..."
+        # Full scan: version detection, common ports
+        # Note: -p- (all ports) is too slow for unprivileged localhost scans
+        if $is_localhost && [[ $EUID -ne 0 ]]; then
+            nmap_args="-sV -T4 --top-ports 1000"
+            log_info "Running Nmap scan (top 1000 ports - localhost unprivileged mode)..."
+        else
+            nmap_args="-sV -sC -T4 -p-"
+            log_info "Running comprehensive Nmap scan (all ports)..."
+        fi
     fi
 
     # Check if we can run privileged scans
@@ -376,6 +388,17 @@ run_nmap_scan() {
     else
         nmap_args="$nmap_args -sT"  # TCP connect scan
         log_warning "Running unprivileged scan (TCP connect only)"
+        if $is_localhost; then
+            log_warning "Localhost TCP connect scan may show 'Strange read error' - this is a known Nmap issue"
+        fi
+    fi
+
+    # Add timeout for scans to prevent hanging (5 minutes for quick, 15 for full)
+    # Add progress updates every 30 seconds for full scans
+    if [ "$SCAN_MODE" = "quick" ]; then
+        nmap_args="$nmap_args --host-timeout 300s"
+    else
+        nmap_args="$nmap_args --host-timeout 900s --stats-every 10s"
     fi
 
     # Run Nmap
@@ -579,10 +602,10 @@ run_lynis_audit() {
     echo "  - System and Information Integrity (SI)"
     echo ""
 
-    local lynis_args="--quick --no-colors"
+    local lynis_args="--quick --no-colors --no-wait"
 
     if [ "$SCAN_MODE" = "full" ]; then
-        lynis_args="--no-colors"
+        lynis_args="--no-colors --no-wait"
         log_info "Running comprehensive Lynis audit..."
     else
         log_info "Running quick Lynis audit..."

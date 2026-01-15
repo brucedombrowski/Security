@@ -43,6 +43,9 @@
 \newcommand{\MACScanFindings}{No MAC addresses detected}
 \newcommand{\HostSecurityResult}{PASS}
 \newcommand{\HostSecurityFindings}{All checks passed}
+\newcommand{\VulnScanResult}{SKIP}
+\newcommand{\VulnScanFindings}{Not run}
+\newcommand{\VulnScanRan}{false}
 \newcommand{\OverallResult}{PASS}
 \newcommand{\PassCount}{5}
 \newcommand{\FailCount}{0}
@@ -62,6 +65,7 @@
 \newcommand{\MACScanChecksum}{N/A}
 \newcommand{\HostSecurityScanChecksum}{N/A}
 \newcommand{\ReportChecksum}{N/A}
+\newcommand{\VulnScanChecksum}{N/A}
 \newcommand{\ChecksumsMdChecksumFull}{CHECKSUMS_MD_FULL_PLACEHOLDER}
 
 % ============================================================================
@@ -109,7 +113,8 @@
 \newcommand{\passmark}{\textcolor{green!60!black}{\textbf{PASS}}}
 \newcommand{\passexceptmark}{\textcolor{green!60!black}{\textbf{PASS w/ exceptions}}}
 \newcommand{\failmark}{\textcolor{red}{\textbf{FAIL}}}
-\newcommand{\resultcell}[1]{\ifnum\pdfstrcmp{#1}{PASS}=0 \passmark\else\ifnum\pdfstrcmp{#1}{EXCEPT}=0 \passexceptmark\else\failmark\fi\fi}
+\newcommand{\skipmark}{\textcolor{gray}{\textbf{SKIP}}}
+\newcommand{\resultcell}[1]{\ifnum\pdfstrcmp{#1}{PASS}=0 \passmark\else\ifnum\pdfstrcmp{#1}{EXCEPT}=0 \passexceptmark\else\ifnum\pdfstrcmp{#1}{SKIP}=0 \skipmark\else\failmark\fi\fi\fi}
 
 % ============================================================================
 % BEGIN DOCUMENT
@@ -181,9 +186,12 @@ The following NIST SP 800-53 Rev 5 controls were verified:
 \midrule
 CM-6 & Configuration Management & Host security posture \\
 CM-8 & Configuration Management & Host inventory collection \\
+RA-5 & Risk Assessment & Vulnerability scanning (Nmap/Lynis) \\
 SA-11 & System \& Services Acquisition & Secrets and credential scanning \\
 SC-8 & System \& Comms Protection & MAC address detection \\
+SI-2 & System \& Info Integrity & Flaw remediation assessment \\
 SI-3 & System \& Info Integrity & ClamAV malware scanning \\
+SI-4 & System \& Info Integrity & System monitoring (port scan) \\
 SI-12 & System \& Info Integrity & PII pattern detection \\
 \bottomrule
 \end{tabular}
@@ -197,6 +205,7 @@ SI-12 & System \& Info Integrity & PII pattern detection \\
 \textbf{Scan} & \textbf{NIST Control} & \textbf{Result} & \textbf{Findings} \\
 \midrule
 Host Security & CM-6 & \resultcell{\HostSecurityResult} & \HostSecurityFindings \\
+Vulnerability Scan & RA-5 & \resultcell{\VulnScanResult} & \VulnScanFindings \\
 Secrets Scan & SA-11 & \resultcell{\SecretsScanResult} & \SecretsScanFindings \\
 MAC Address Scan & SC-8 & \resultcell{\MACScanResult} & \MACScanFindings \\
 Malware Scan & SI-3 & \resultcell{\MalwareScanResult} & \MalwareScanFindings \\
@@ -284,6 +293,7 @@ mac-address-scan & \texttt{\MACScanChecksum} \\
 malware-scan & \texttt{\MalwareScanChecksum} \\
 pii-scan & \texttt{\PIIScanChecksum} \\
 secrets-scan & \texttt{\SecretsScanChecksum} \\
+vulnerability-scan & \texttt{\VulnScanChecksum} \\
 security-scan-report & \texttt{\ReportChecksum} \\
 \bottomrule
 \end{tabular}

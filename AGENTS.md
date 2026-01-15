@@ -265,7 +265,13 @@ Potential additions to the toolkit:
    - Language-specific security linters
    - OWASP pattern detection
 
-4. **Agentic AI-Driven Compliance Orchestration** (Long-term Vision)
+4. **OpenVAS/GVM full integration**
+   - Currently documented but marked optional due to infrastructure requirements
+   - OpenVAS requires: PostgreSQL database, Redis cache, multiple daemon services
+   - Full integration would provide comprehensive CVE vulnerability detection
+   - Consider for environments with dedicated security scanning infrastructure
+
+5. **Agentic AI-Driven Compliance Orchestration** (Long-term Vision)
    - **End-to-end workflow automation**: Agentic AI orchestrates the complete compliance pipeline from scanning through attestation and submission
    - **PDFSigner integration**: Automatically digitally signs compliance statements with proper X.509 certificates
    - **Distributed ledger submission**: Uploads signed compliance attestations to blockchain or distributed ledger systems for immutability
