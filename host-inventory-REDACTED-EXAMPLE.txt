@@ -1,0 +1,80 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                 CONTROLLED UNCLASSIFIED INFORMATION (CUI)                  //
+//                                                                            //
+//  CUI Category: CTI (Controlled Technical Information)                      //
+//  Dissemination: FEDCON - Federal Contractors                               //
+//  Safeguarding: Per NIST SP 800-171                                         //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Host System Inventory (REDACTED EXAMPLE)
+========================================
+Generated: [REDACTED]
+Hostname: [REDACTED]
+Toolkit: Security Verification Toolkit v1.8.0-5-gdfce110 (dfce110)
+Source: https://github.com/brucedombrowski/Security
+
+HANDLING NOTICE:
+  This document contains Controlled Unclassified Information (CUI).
+  Contents include MAC addresses, serial numbers, and system inventory.
+  - Do not post to public repositories or websites
+  - Limit distribution to authorized personnel
+  - Store on encrypted media or systems
+  - Destroy securely when no longer needed
+
+Operating System Information:
+-----------------------------
+  Platform: macOS
+  OS Version: [REDACTED]
+  Build: [REDACTED]
+  Kernel: [REDACTED]
+  Architecture: arm64
+  Hardware Model: [REDACTED]
+  Serial Number: [REDACTED]
+
+Network Interfaces:
+-------------------
+  [REDACTED]:
+    MAC Address: [REDACTED]
+    Status: [REDACTED]
+    Media: [REDACTED]
+  ...
+
+Installed Software Packages:
+----------------------------
+  Homebrew Packages:
+    abseil 20250814.1
+    aom 3.13.1
+    ...
+  Homebrew Casks:
+    basictex 2025.0308
+    wireshark-app 4.6.2
+  Applications (/Applications):
+    Audacity: 2.4.2.0
+    Backup and Sync from Google 2: 3.56
+    ...
+
+Security-Relevant Software:
+---------------------------
+  ClamAV: ClamAV 1.5.1/27881/[REDACTED]
+  OpenSSL: LibreSSL 3.3.6
+  SSH: OpenSSH_10.0p2, LibreSSL 3.3.6
+  GPG: gpg (GnuPG) 2.4.9
+  Git: git version 2.39.2 (Apple Git-143)
+  Python: Python 3.14.0
+  Node.js: v25.2.1
+  Java: java version "17.0.8" 2023-07-18 LTS
+  .NET: 10.0.101
+
+=====================
+Inventory collection complete.
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                 CONTROLLED UNCLASSIFIED INFORMATION (CUI)                  //
+//                                                                            //
+//  Reference: 32 CFR Part 2002, NIST SP 800-171                              //
+//  Unauthorized disclosure subject to administrative/civil penalties         //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
