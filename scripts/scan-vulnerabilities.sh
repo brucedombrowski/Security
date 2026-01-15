@@ -81,6 +81,10 @@
 #     IP address, hostname, or CIDR range for network scans
 #     Default: localhost (127.0.0.1)
 #
+#   NOTE: Currently defaults to localhost only. Future enhancement will add
+#   -a|--all-interfaces to auto-detect and scan all network interfaces.
+#   See AGENTS.md "Future Enhancements" for details.
+#
 
 set -e
 

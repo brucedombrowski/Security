@@ -271,7 +271,14 @@ Potential additions to the toolkit:
    - Full integration would provide comprehensive CVE vulnerability detection
    - Consider for environments with dedicated security scanning infrastructure
 
-5. **Agentic AI-Driven Compliance Orchestration** (Long-term Vision)
+5. **Multi-interface vulnerability scanning**
+   - Currently scans localhost (127.0.0.1) only for development testing
+   - Future: Auto-detect all network interfaces with IP addresses
+   - Scan all interfaces + loopback for comprehensive coverage
+   - Support for `-a|--all-interfaces` flag
+   - Consider network segmentation (scan internal vs external interfaces separately)
+
+6. **Agentic AI-Driven Compliance Orchestration** (Long-term Vision)
    - **End-to-end workflow automation**: Agentic AI orchestrates the complete compliance pipeline from scanning through attestation and submission
    - **PDFSigner integration**: Automatically digitally signs compliance statements with proper X.509 certificates
    - **Distributed ledger submission**: Uploads signed compliance attestations to blockchain or distributed ledger systems for immutability
