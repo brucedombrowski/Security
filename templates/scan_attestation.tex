@@ -1,0 +1,191 @@
+\documentclass[11pt,letterpaper]{article}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage[margin=1in, top=1.5in, headheight=85pt]{geometry}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+% ============================================================================
+% DOCUMENT VARIABLES - These are replaced by the generation script
+% ============================================================================
+\newcommand{\UniqueID}{SCAN-YYYY-NNN}
+\newcommand{\DocumentDate}{January 15, 2026}
+\newcommand{\ScanTimestamp}{2026-01-15 08:00:00}
+\newcommand{\TargetName}{ProjectName}
+\newcommand{\TargetPath}{/path/to/project}
+\newcommand{\SecurityToolkitVersion}{v1.0.0}
+\newcommand{\SecurityToolkitCommit}{abc1234}
+\newcommand{\SecurityToolkitURL}{https://github.com/brucedombrowski/Security}
+
+% Scan results (PASS/FAIL)
+\newcommand{\PIIScanResult}{PASS}
+\newcommand{\PIIScanFindings}{No PII detected}
+\newcommand{\MalwareScanResult}{PASS}
+\newcommand{\MalwareScanFindings}{No malware detected}
+\newcommand{\SecretsScanResult}{PASS}
+\newcommand{\SecretsScanFindings}{No secrets detected}
+\newcommand{\MACScanResult}{PASS}
+\newcommand{\MACScanFindings}{No MAC addresses detected}
+\newcommand{\HostSecurityResult}{PASS}
+\newcommand{\HostSecurityFindings}{All checks passed}
+\newcommand{\OverallResult}{PASS}
+\newcommand{\PassCount}{5}
+\newcommand{\FailCount}{0}
+
+% ============================================================================
+% DOCUMENT CONFIGURATION
+% ============================================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    pdfborder={0 0 0}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\setlist[enumerate]{leftmargin=0.5in, labelwidth=0.25in, labelsep=0.1in, align=left, itemsep=12pt, topsep=12pt}
+\setlist[enumerate,1]{label=\arabic*.}
+\setlist[itemize]{leftmargin=0.5in, itemsep=3pt, topsep=6pt}
+
+% ============================================================================
+% HEADER AND FOOTER CONFIGURATION
+% ============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyhead[L]{%
+    \raisebox{-0.5\height}{\includegraphics[height=0.9in]{logo.png}}%
+}
+\fancyhead[R]{%
+    \parbox[b]{3.5in}{\raggedleft\large\textbf{Security Scan Attestation}}%
+}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancyfoot[L]{\small \UniqueID}
+\fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}
+\fancyfoot[R]{\small \DocumentDate}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ============================================================================
+% CUSTOM COMMANDS
+% ============================================================================
+\newcommand{\dmsection}[1]{\item \textbf{#1}\par}
+
+% Result formatting
+\newcommand{\passmark}{\textcolor{green!60!black}{\textbf{PASS}}}
+\newcommand{\failmark}{\textcolor{red}{\textbf{FAIL}}}
+\newcommand{\resultcell}[1]{\ifnum\pdfstrcmp{#1}{PASS}=0 \passmark\else\failmark\fi}
+
+% ============================================================================
+% BEGIN DOCUMENT
+% ============================================================================
+\begin{document}
+
+\hfill \UniqueID
+
+\vspace{0.25in}
+
+% ----------------------------------------------------------------------------
+% HEADER FIELDS
+% ----------------------------------------------------------------------------
+\textbf{DATE:} \DocumentDate
+
+\textbf{TARGET:} \TargetName
+
+\textbf{PATH:} \texttt{\TargetPath}
+
+\textbf{SUBJECT:} Automated Security Scan Attestation
+
+\vspace{0.25in}
+
+% ============================================================================
+% MAIN CONTENT
+% ============================================================================
+\begin{enumerate}
+
+% ----------------------------------------------------------------------------
+\dmsection{Purpose}
+
+This document attests that automated security scans were executed against \textbf{\TargetName} using the Security Verification Toolkit. The scans verify alignment with NIST SP 800-53 security controls.
+
+% ----------------------------------------------------------------------------
+\dmsection{Scan Environment}
+
+\begin{itemize}
+    \item \textbf{Scan Timestamp:} \ScanTimestamp
+    \item \textbf{Toolkit Version:} \SecurityToolkitVersion{} (\SecurityToolkitCommit)
+    \item \textbf{Toolkit Repository:} \url{\SecurityToolkitURL}
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\dmsection{NIST Control Mapping}
+
+The following NIST SP 800-53 Rev 5 controls were verified:
+
+\vspace{6pt}
+\begin{tabular}{@{}llp{2.5in}@{}}
+\toprule
+\textbf{Control} & \textbf{Family} & \textbf{Verification Method} \\
+\midrule
+SI-3 & System Integrity & ClamAV malware scanning \\
+SI-12 & System Integrity & PII pattern detection \\
+SA-11 & Services Acquisition & Secrets and credential scanning \\
+SC-8 & Communications Protection & MAC address detection \\
+CM-6 & Configuration Management & Host security posture \\
+\bottomrule
+\end{tabular}
+
+% ----------------------------------------------------------------------------
+\dmsection{Scan Results}
+
+\vspace{6pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Scan} & \textbf{NIST Control} & \textbf{Result} & \textbf{Findings} \\
+\midrule
+PII Scan & SI-12 & \resultcell{\PIIScanResult} & \PIIScanFindings \\
+Malware Scan & SI-3 & \resultcell{\MalwareScanResult} & \MalwareScanFindings \\
+Secrets Scan & SA-11 & \resultcell{\SecretsScanResult} & \SecretsScanFindings \\
+MAC Address Scan & SC-8 & \resultcell{\MACScanResult} & \MACScanFindings \\
+Host Security & CM-6 & \resultcell{\HostSecurityResult} & \HostSecurityFindings \\
+\bottomrule
+\end{tabular}
+
+\vspace{12pt}
+\textbf{Summary:} \PassCount{} passed, \FailCount{} failed
+
+\vspace{6pt}
+\textbf{Overall Result:} \resultcell{\OverallResult}
+
+% ----------------------------------------------------------------------------
+\dmsection{Attestation}
+
+This document certifies that:
+
+\begin{enumerate}[label=(\alph*)]
+    \item Automated security scans were executed against the target repository
+    \item Scan results are accurately represented in this document
+    \item The Security Verification Toolkit version and commit hash are recorded for traceability
+    \item Detailed scan logs are available in the \texttt{.scans/} directory
+\end{enumerate}
+
+\vspace{12pt}
+\textbf{Verification:} Scan output checksums are recorded in \texttt{.scans/checksums.md} and can be verified using:
+
+\begin{verbatim}
+cd .scans && shasum -a 256 -c checksums.md
+\end{verbatim}
+
+\end{enumerate}
+
+\end{document}
