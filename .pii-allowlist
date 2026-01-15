@@ -14,3 +14,4 @@ e77083a965c9422ff9a54383709e3d045c844106e11004e625293c97e5cc59c2 # Reference Doc
 64d70cf599419e6878a8dac0a830de6b20a9acf00207bacffa4a15ea2772aac4 # A # /Users/brucedombrowski/Security/scripts/run-all-scans.sh:367:        -e "s/00000
 83b777bc49234dc533ea0023e4c6880f30c6d356cda631f057346f47ed37b297 # A # /Users/brucedombrowski/Security/scripts/run-all-scans.sh:372:        -e "s/00000
 2b7f297a459cd02cf71ce6223e4663d9c8981588377b16e2e18cfb26b844f525 # Documentation or pattern explanation # /Users/brucedombrowski/Security/CHANGELOG.md:26:  - [L]ocalhost - Loopback addre
+47add10ae819b2c9f1a7d2b4a202a5980cc3fe2014c5ccc9d43bdd6cc9d2f9dc # Placeholder checksum (64 zeros) replaced at runtime with actual SHA256 hash # /Users/brucedombrowski/Security/scripts/run-all-scans.sh:373:        -e "s/00000
