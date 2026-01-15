@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-01-15
+
+### Added
+
+- **Host Inventory Collection**
+  - New `collect-host-inventory.sh` script for comprehensive system inventory
+  - Captures OS version, kernel, architecture, hardware model, serial number
+  - Network interfaces with MAC addresses, IP addresses, and status
+  - Installed software packages (Homebrew, dpkg, rpm)
+  - Security-relevant software versions (ClamAV, OpenSSL, SSH, GPG, etc.)
+  - NIST SP 800-53 CM-8 (System Component Inventory) aligned
+
+- **Inventory-Referenced Scans**
+  - Host inventory collected first, creating a verifiable system thumbprint
+  - All scan outputs include inventory SHA256 checksum reference
+  - Enables sharing scan results without exposing sensitive machine data
+  - Checksums.md documents the inventory reference with privacy note
+
+### Changed
+
+- `run-all-scans.sh` now collects host inventory before running scans
+- Individual scan outputs include inventory reference header
+- `check-host-security.sh` simplified to reference separate inventory script
+
+## [1.5.0] - 2026-01-15
+
+### Added
+
+- **PDF Scan Attestation Generation**
+  - Automatic PDF attestation document generated after scans complete
+  - Professional LaTeX template with NIST control mapping
+  - Dynamic substitution of scan results, timestamps, and toolkit version
+  - PASS/FAIL color-coded results table
+  - Includes verification instructions for scan output checksums
+  - Output: `.scans/scan-attestation-YYYY-MM-DD.pdf`
+
+- **Templates Directory**
+  - `templates/scan_attestation.tex` - Generic attestation template for any project
+  - `templates/logo.png` - Logo for PDF header
+
 ## [1.4.0] - 2026-01-15
 
 ### Added
@@ -103,6 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
+[1.6.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.6.0
+[1.5.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.5.0
 [1.4.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.4.0
 [1.3.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.3.0
 [1.2.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.2.0

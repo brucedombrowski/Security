@@ -126,6 +126,17 @@ run_check "SSH Agent" \
 
 echo ""
 echo "=============================="
+echo ""
+
+# Reference to host inventory (collected separately for security reasons)
+echo "Host Inventory Reference:"
+echo "-------------------------"
+echo "  Host inventory is collected separately by collect-host-inventory.sh"
+echo "  This keeps sensitive data (MAC addresses, serial numbers) in a dedicated file."
+echo "  Run: $SCRIPT_DIR/collect-host-inventory.sh [output_file]"
+echo ""
+echo "=============================="
+echo ""
 
 if [ "$OVERALL_STATUS" = "PASS" ]; then
     echo "OVERALL RESULT: PASS"

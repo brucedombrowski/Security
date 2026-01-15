@@ -10,15 +10,21 @@ This repository contains security analysis and compliance documentation tools fo
 Security/
 ├── README.md           # Usage documentation
 ├── AGENTS.md           # This file (AI agent instructions)
+├── CHANGELOG.md        # Version history
 ├── LICENSE             # MIT License
 ├── .gitignore          # Excludes .scans/ and result files
-└── scripts/
-    ├── run-all-scans.sh       # Master orchestrator
-    ├── check-pii.sh           # PII pattern detection
-    ├── check-malware.sh       # ClamAV malware scanning
-    ├── check-secrets.sh       # Secrets/credentials detection
-    ├── check-mac-addresses.sh # IEEE 802.3 MAC address scan
-    └── check-host-security.sh # Host OS security verification
+├── scripts/
+│   ├── run-all-scans.sh         # Master orchestrator (inventory + scans + PDF)
+│   ├── collect-host-inventory.sh # System inventory (SENSITIVE: MAC addresses, etc.)
+│   ├── check-pii.sh             # PII pattern detection
+│   ├── check-malware.sh         # ClamAV malware scanning (with DB auto-update)
+│   ├── check-secrets.sh         # Secrets/credentials detection
+│   ├── check-mac-addresses.sh   # IEEE 802.3 MAC address scan
+│   └── check-host-security.sh   # Host OS security verification
+└── templates/
+    ├── scan_attestation.tex         # Generic attestation LaTeX template
+    ├── security_compliance_statement.tex  # Project-specific compliance template
+    └── logo.png                     # Logo for PDF headers
 ```
 
 ## Script Design Patterns
@@ -34,12 +40,22 @@ All scripts follow these conventions:
 - `1` = Fail (issues detected)
 
 ### Output
-- Results go to stdout only
-- No files written to target repository
+- Console output for real-time feedback
+- Results saved to `<target>/.scans/` directory:
+  - **Host inventory**: `host-inventory-YYYY-MM-DD.txt` (SENSITIVE - contains MAC addresses)
+  - Individual scan logs: `*-scan-YYYY-MM-DD.txt` (reference inventory checksum)
+  - Consolidated report: `security-scan-report-YYYY-MM-DD.txt`
+  - Checksums file: `checksums.md` (SHA256 of all outputs + inventory reference)
+  - PDF attestation: `scan-attestation-YYYY-MM-DD.pdf` (if pdflatex available)
+  - ClamAV metadata: `malware-metadata-YYYY-MM-DD/` (JSON with file hashes)
+  - ClamAV log: `clamav-log-YYYY-MM-DD.txt`
+- All outputs include toolkit version and commit hash for traceability
+- Scan results can be shared without exposing sensitive machine data (they only reference inventory checksum)
 - Suitable for CI/CD pipeline integration
 
 ### NIST Control Mapping
 Each script maps to specific NIST 800-53 controls:
+- `collect-host-inventory.sh` → CM-8 (System Component Inventory)
 - `check-pii.sh` → SI-12 (Information Management)
 - `check-malware.sh` → SI-3 (Malicious Code Protection)
 - `check-secrets.sh` → SA-11 (Developer Testing)
@@ -115,6 +131,22 @@ SECURITY_TOOLKIT="$HOME/Security"
 "$SECURITY_TOOLKIT/scripts/run-all-scans.sh" "$(pwd)" || exit 1
 ```
 
+## Templates
+
+### scan_attestation.tex
+Generic attestation document generated automatically by `run-all-scans.sh`:
+- Substitution variables: `\UniqueID`, `\DocumentDate`, `\TargetName`, `\PIIScanResult`, etc.
+- NIST control mapping table
+- Scan results table with PASS/FAIL color coding
+- Verification instructions for checksums
+
+### security_compliance_statement.tex
+Project-specific compliance document requiring manual curation:
+- Cryptographic implementation details
+- Certificate handling documentation
+- Security controls description
+- Formal certification statement
+
 ## Future Enhancements
 
 Potential additions to the toolkit:
@@ -132,13 +164,24 @@ Potential additions to the toolkit:
    - Language-specific security linters
    - OWASP pattern detection
 
-4. **PDF report generation**
-   - LaTeX templates for formal reports
-   - Integration with LaTeX/ExportCompliance templates
-
 ## Dependencies
 
-- **Required**: grep (with -E extended regex)
-- **Required for malware scan**: ClamAV (`clamscan`)
+- **Required**: grep (with -E extended regex), git (for version identification)
+- **Required for malware scan**: ClamAV (`clamscan`, `freshclam`, `sigtool`)
+- **Optional for PDF generation**: pdflatex (from TeX Live or BasicTeX)
 - **macOS specific**: Various system commands for host security checks
 - **Linux specific**: ufw/iptables, SELinux/AppArmor for host security checks
+
+### Installing Dependencies
+
+**macOS:**
+```bash
+brew install clamav
+brew install basictex  # For PDF generation (optional)
+```
+
+**Linux (Debian/Ubuntu):**
+```bash
+sudo apt install clamav clamav-daemon
+sudo apt install texlive-latex-base  # For PDF generation (optional)
+```
