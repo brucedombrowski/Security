@@ -13,6 +13,7 @@ The compliance statement is a formal PDF document that:
 ## Prerequisites
 
 ### Required
+- **Bash** - Required to execute security scripts (included by default on macOS/Linux; Windows users need WSL or Git Bash)
 - **pdflatex** - TeX Live or MiKTeX for PDF generation
 
 ### Optional
