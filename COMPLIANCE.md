@@ -162,6 +162,28 @@ The `generate-compliance.sh` script returns:
 | 1 | PDF generated but scans have findings requiring review |
 | 2 | Fatal error - missing dependencies or template |
 
+## Signing the Compliance Statement
+
+For formal compliance submissions, it is recommended to digitally sign the generated PDF to ensure authenticity and non-repudiation:
+
+```bash
+# Sign the compliance statement with your signing certificate
+# macOS/Linux with iText or similar
+pdfsigner -input security_compliance_statement.pdf \
+          -output security_compliance_statement-signed.pdf \
+          -certificate /path/to/your/cert.p12
+
+# Or using PDFSigner on Windows
+PDFSigner.exe security_compliance_statement.pdf your-certificate-name
+```
+
+The signed PDF provides cryptographic proof that:
+- The document has not been modified since signing
+- The signatory identity is verified
+- The signature includes a timestamp for non-repudiation
+
+This is especially important for compliance documentation submitted to federal agencies or contractors.
+
 ## Integration with CI/CD
 
 ```yaml
