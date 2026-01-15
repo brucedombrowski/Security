@@ -82,6 +82,25 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
     exit 0
 fi
 
+# Function to escape LaTeX special characters
+# Prevents LaTeX injection and ensures proper PDF generation
+# Escapes: $ _ { } & % # \ ^ ~
+escape_latex_chars() {
+    local input="$1"
+    # Order matters: backslash must be first to avoid double-escaping
+    echo "$input" | \
+        sed 's/\\/\\textbackslash{}/g' | \
+        sed 's/\$/\\$/g' | \
+        sed 's/_/\\_/g' | \
+        sed 's/{/\\{/g' | \
+        sed 's/}/\\}/g' | \
+        sed 's/&/\\&/g' | \
+        sed 's/%/\\%/g' | \
+        sed 's/#/\\#/g' | \
+        sed 's/\^/\\textasciicircum{}/g' | \
+        sed 's/~/\\textasciitilde{}/g'
+}
+
 echo "Generating PDF attestation..."
 
 # Delete previous attestation PDFs to avoid conflicts
@@ -171,52 +190,91 @@ if [ -f "$SECURITY_REPO_DIR/templates/logo.png" ]; then
 fi
 
 # Perform substitutions using sed
+# All variables are escaped to prevent LaTeX injection
 # Escape special characters in paths for sed
 ESCAPED_TARGET_PATH=$(echo "$TARGET_DIR" | sed 's/[&/\]/\\&/g')
 
 # Truncate inventory checksum for display (first 16 chars)
 INVENTORY_CHECKSUM_SHORT="${INVENTORY_CHECKSUM:0:16}..."
 
+# Escape all LaTeX variables to prevent injection
+PII_RESULT_ESCAPED=$(escape_latex_chars "$PII_RESULT")
+PII_FINDINGS_ESCAPED=$(escape_latex_chars "$PII_FINDINGS")
+MALWARE_RESULT_ESCAPED=$(escape_latex_chars "$MALWARE_RESULT")
+MALWARE_FINDINGS_ESCAPED=$(escape_latex_chars "$MALWARE_FINDINGS")
+SECRETS_RESULT_ESCAPED=$(escape_latex_chars "$SECRETS_RESULT")
+SECRETS_FINDINGS_ESCAPED=$(escape_latex_chars "$SECRETS_FINDINGS")
+MAC_RESULT_ESCAPED=$(escape_latex_chars "$MAC_RESULT")
+MAC_FINDINGS_ESCAPED=$(escape_latex_chars "$MAC_FINDINGS")
+HOST_RESULT_ESCAPED=$(escape_latex_chars "$HOST_RESULT")
+HOST_FINDINGS_ESCAPED=$(escape_latex_chars "$HOST_FINDINGS")
+VULN_RESULT_ESCAPED=$(escape_latex_chars "$VULN_RESULT")
+VULN_FINDINGS_ESCAPED=$(escape_latex_chars "$VULN_FINDINGS")
+OVERALL_STATUS_ESCAPED=$(escape_latex_chars "$OVERALL_STATUS")
+REPO_NAME_ESCAPED=$(escape_latex_chars "$REPO_NAME")
+TOOLKIT_VERSION_ESCAPED=$(escape_latex_chars "$TOOLKIT_VERSION")
+TOOLKIT_COMMIT_ESCAPED=$(escape_latex_chars "$TOOLKIT_COMMIT")
+INVENTORY_CHECKSUM_SHORT_ESCAPED=$(escape_latex_chars "$INVENTORY_CHECKSUM_SHORT")
+PII_ALLOWLIST_COUNT_ESCAPED=$(escape_latex_chars "$PII_ALLOWLIST_COUNT")
+PII_ALLOWLIST_CHECKSUM_ESCAPED=$(escape_latex_chars "$PII_ALLOWLIST_CHECKSUM")
+SECRETS_ALLOWLIST_COUNT_ESCAPED=$(escape_latex_chars "$SECRETS_ALLOWLIST_COUNT")
+SECRETS_ALLOWLIST_CHECKSUM_ESCAPED=$(escape_latex_chars "$SECRETS_ALLOWLIST_CHECKSUM")
+PII_SCAN_CHECKSUM_ESCAPED=$(escape_latex_chars "$PII_SCAN_CHECKSUM")
+MALWARE_SCAN_CHECKSUM_ESCAPED=$(escape_latex_chars "$MALWARE_SCAN_CHECKSUM")
+SECRETS_SCAN_CHECKSUM_ESCAPED=$(escape_latex_chars "$SECRETS_SCAN_CHECKSUM")
+MAC_SCAN_CHECKSUM_ESCAPED=$(escape_latex_chars "$MAC_SCAN_CHECKSUM")
+HOST_SECURITY_SCAN_CHECKSUM_ESCAPED=$(escape_latex_chars "$HOST_SECURITY_SCAN_CHECKSUM")
+VULN_SCAN_CHECKSUM_ESCAPED=$(escape_latex_chars "$VULN_SCAN_CHECKSUM")
+REPORT_CHECKSUM_ESCAPED=$(escape_latex_chars "$REPORT_CHECKSUM")
+CHECKSUMS_MD_CHECKSUM_FULL_ESCAPED=$(escape_latex_chars "$CHECKSUMS_MD_CHECKSUM_FULL")
+PASS_COUNT_ESCAPED=$(escape_latex_chars "$PASS_COUNT")
+FAIL_COUNT_ESCAPED=$(escape_latex_chars "$FAIL_COUNT")
+UNIQUE_ID_ESCAPED=$(escape_latex_chars "$UNIQUE_ID")
+FORMATTED_DATE_ESCAPED=$(escape_latex_chars "$FORMATTED_DATE")
+TIMESTAMP_ESCAPED=$(escape_latex_chars "$TIMESTAMP")
+FILE_TIMESTAMP_ESCAPED=$(escape_latex_chars "$FILE_TIMESTAMP")
+DATE_STAMP_ESCAPED=$(escape_latex_chars "$DATE_STAMP")
+
 sed -i.bak \
-    -e "s/SCAN-YYYY-NNN/$UNIQUE_ID/g" \
-    -e "s/January 15, 2026/$FORMATTED_DATE/g" \
-    -e "s/2026-01-15 08:00:00/$TIMESTAMP/g" \
-    -e "s/2026-01-15T000000Z/$FILE_TIMESTAMP/g" \
-    -e "s/2026-01-15/$DATE_STAMP/g" \
-    -e "s/ProjectName/$REPO_NAME/g" \
+    -e "s/SCAN-YYYY-NNN/$UNIQUE_ID_ESCAPED/g" \
+    -e "s/January 15, 2026/$FORMATTED_DATE_ESCAPED/g" \
+    -e "s/2026-01-15 08:00:00/$TIMESTAMP_ESCAPED/g" \
+    -e "s/2026-01-15T000000Z/$FILE_TIMESTAMP_ESCAPED/g" \
+    -e "s/2026-01-15/$DATE_STAMP_ESCAPED/g" \
+    -e "s/ProjectName/$REPO_NAME_ESCAPED/g" \
     -e "s|/path/to/project|$ESCAPED_TARGET_PATH|g" \
-    -e "s/v1.0.0/$TOOLKIT_VERSION/g" \
-    -e "s/abc1234/$TOOLKIT_COMMIT/g" \
+    -e "s/v1.0.0/$TOOLKIT_VERSION_ESCAPED/g" \
+    -e "s/abc1234/$TOOLKIT_COMMIT_ESCAPED/g" \
     -e "s/PLACEHOLDER_HOSTNAME/$INVENTORY_CHECKSUM/g" \
-    -e "s/0000000000000000000000000000000000000000000000000000000000000000/$INVENTORY_CHECKSUM_SHORT/g" \
-    -e "s/host-inventory-2026-01-15.txt/host-inventory-$FILE_TIMESTAMP.txt/g" \
-    -e "s/\\\\newcommand{\\\\PIIScanResult}{PASS}/\\\\newcommand{\\\\PIIScanResult}{$PII_RESULT}/g" \
-    -e "s/\\\\newcommand{\\\\PIIScanFindings}{No PII detected}/\\\\newcommand{\\\\PIIScanFindings}{$PII_FINDINGS}/g" \
-    -e "s/\\\\newcommand{\\\\MalwareScanResult}{PASS}/\\\\newcommand{\\\\MalwareScanResult}{$MALWARE_RESULT}/g" \
-    -e "s/\\\\newcommand{\\\\MalwareScanFindings}{No malware detected}/\\\\newcommand{\\\\MalwareScanFindings}{$MALWARE_FINDINGS}/g" \
-    -e "s/\\\\newcommand{\\\\SecretsScanResult}{PASS}/\\\\newcommand{\\\\SecretsScanResult}{$SECRETS_RESULT}/g" \
-    -e "s/\\\\newcommand{\\\\SecretsScanFindings}{No secrets detected}/\\\\newcommand{\\\\SecretsScanFindings}{$SECRETS_FINDINGS}/g" \
-    -e "s/\\\\newcommand{\\\\MACScanResult}{PASS}/\\\\newcommand{\\\\MACScanResult}{$MAC_RESULT}/g" \
-    -e "s/\\\\newcommand{\\\\MACScanFindings}{No MAC addresses detected}/\\\\newcommand{\\\\MACScanFindings}{$MAC_FINDINGS}/g" \
-    -e "s/\\\\newcommand{\\\\HostSecurityResult}{PASS}/\\\\newcommand{\\\\HostSecurityResult}{$HOST_RESULT}/g" \
-    -e "s/\\\\newcommand{\\\\HostSecurityFindings}{All checks passed}/\\\\newcommand{\\\\HostSecurityFindings}{$HOST_FINDINGS}/g" \
-    -e "s/\\\\newcommand{\\\\VulnScanResult}{SKIP}/\\\\newcommand{\\\\VulnScanResult}{$VULN_RESULT}/g" \
-    -e "s/\\\\newcommand{\\\\VulnScanFindings}{Not run}/\\\\newcommand{\\\\VulnScanFindings}{$VULN_FINDINGS}/g" \
-    -e "s/\\\\newcommand{\\\\OverallResult}{PASS}/\\\\newcommand{\\\\OverallResult}{$OVERALL_STATUS}/g" \
-    -e "s/\\\\newcommand{\\\\PassCount}{5}/\\\\newcommand{\\\\PassCount}{$PASS_COUNT}/g" \
-    -e "s/\\\\newcommand{\\\\FailCount}{0}/\\\\newcommand{\\\\FailCount}{$FAIL_COUNT}/g" \
-    -e "s/\\\\newcommand{\\\\PIIAllowlistCount}{0}/\\\\newcommand{\\\\PIIAllowlistCount}{$PII_ALLOWLIST_COUNT}/g" \
-    -e "s/\\\\newcommand{\\\\PIIAllowlistChecksum}{N\\/A}/\\\\newcommand{\\\\PIIAllowlistChecksum}{$PII_ALLOWLIST_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\SecretsAllowlistCount}{0}/\\\\newcommand{\\\\SecretsAllowlistCount}{$SECRETS_ALLOWLIST_COUNT}/g" \
-    -e "s/\\\\newcommand{\\\\SecretsAllowlistChecksum}{N\\/A}/\\\\newcommand{\\\\SecretsAllowlistChecksum}{$SECRETS_ALLOWLIST_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\PIIScanChecksum}{N\\/A}/\\\\newcommand{\\\\PIIScanChecksum}{$PII_SCAN_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\MalwareScanChecksum}{N\\/A}/\\\\newcommand{\\\\MalwareScanChecksum}{$MALWARE_SCAN_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\SecretsScanChecksum}{N\\/A}/\\\\newcommand{\\\\SecretsScanChecksum}{$SECRETS_SCAN_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\MACScanChecksum}{N\\/A}/\\\\newcommand{\\\\MACScanChecksum}{$MAC_SCAN_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\HostSecurityScanChecksum}{N\\/A}/\\\\newcommand{\\\\HostSecurityScanChecksum}{$HOST_SECURITY_SCAN_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\VulnScanChecksum}{N\\/A}/\\\\newcommand{\\\\VulnScanChecksum}{$VULN_SCAN_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\ReportChecksum}{N\\/A}/\\\\newcommand{\\\\ReportChecksum}{$REPORT_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{CHECKSUMS_MD_FULL_PLACEHOLDER}/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{$CHECKSUMS_MD_CHECKSUM_FULL}/g" \
+    -e "s/0000000000000000000000000000000000000000000000000000000000000000/$INVENTORY_CHECKSUM_SHORT_ESCAPED/g" \
+    -e "s/host-inventory-2026-01-15.txt/host-inventory-$FILE_TIMESTAMP_ESCAPED.txt/g" \
+    -e "s/\\\\newcommand{\\\\PIIScanResult}{PASS}/\\\\newcommand{\\\\PIIScanResult}{$PII_RESULT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\PIIScanFindings}{No PII detected}/\\\\newcommand{\\\\PIIScanFindings}{$PII_FINDINGS_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\MalwareScanResult}{PASS}/\\\\newcommand{\\\\MalwareScanResult}{$MALWARE_RESULT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\MalwareScanFindings}{No malware detected}/\\\\newcommand{\\\\MalwareScanFindings}{$MALWARE_FINDINGS_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\SecretsScanResult}{PASS}/\\\\newcommand{\\\\SecretsScanResult}{$SECRETS_RESULT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\SecretsScanFindings}{No secrets detected}/\\\\newcommand{\\\\SecretsScanFindings}{$SECRETS_FINDINGS_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\MACScanResult}{PASS}/\\\\newcommand{\\\\MACScanResult}{$MAC_RESULT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\MACScanFindings}{No MAC addresses detected}/\\\\newcommand{\\\\MACScanFindings}{$MAC_FINDINGS_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\HostSecurityResult}{PASS}/\\\\newcommand{\\\\HostSecurityResult}{$HOST_RESULT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\HostSecurityFindings}{All checks passed}/\\\\newcommand{\\\\HostSecurityFindings}{$HOST_FINDINGS_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\VulnScanResult}{SKIP}/\\\\newcommand{\\\\VulnScanResult}{$VULN_RESULT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\VulnScanFindings}{Not run}/\\\\newcommand{\\\\VulnScanFindings}{$VULN_FINDINGS_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\OverallResult}{PASS}/\\\\newcommand{\\\\OverallResult}{$OVERALL_STATUS_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\PassCount}{5}/\\\\newcommand{\\\\PassCount}{$PASS_COUNT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\FailCount}{0}/\\\\newcommand{\\\\FailCount}{$FAIL_COUNT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\PIIAllowlistCount}{0}/\\\\newcommand{\\\\PIIAllowlistCount}{$PII_ALLOWLIST_COUNT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\PIIAllowlistChecksum}{N\\/A}/\\\\newcommand{\\\\PIIAllowlistChecksum}{$PII_ALLOWLIST_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\SecretsAllowlistCount}{0}/\\\\newcommand{\\\\SecretsAllowlistCount}{$SECRETS_ALLOWLIST_COUNT_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\SecretsAllowlistChecksum}{N\\/A}/\\\\newcommand{\\\\SecretsAllowlistChecksum}{$SECRETS_ALLOWLIST_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\PIIScanChecksum}{N\\/A}/\\\\newcommand{\\\\PIIScanChecksum}{$PII_SCAN_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\MalwareScanChecksum}{N\\/A}/\\\\newcommand{\\\\MalwareScanChecksum}{$MALWARE_SCAN_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\SecretsScanChecksum}{N\\/A}/\\\\newcommand{\\\\SecretsScanChecksum}{$SECRETS_SCAN_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\MACScanChecksum}{N\\/A}/\\\\newcommand{\\\\MACScanChecksum}{$MAC_SCAN_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\HostSecurityScanChecksum}{N\\/A}/\\\\newcommand{\\\\HostSecurityScanChecksum}{$HOST_SECURITY_SCAN_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\VulnScanChecksum}{N\\/A}/\\\\newcommand{\\\\VulnScanChecksum}{$VULN_SCAN_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\ReportChecksum}{N\\/A}/\\\\newcommand{\\\\ReportChecksum}{$REPORT_CHECKSUM_ESCAPED}/g" \
+    -e "s/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{CHECKSUMS_MD_FULL_PLACEHOLDER}/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{$CHECKSUMS_MD_CHECKSUM_FULL_ESCAPED}/g" \
     "$PDF_BUILD_DIR/scan_attestation.tex"
 
 # Function to build allowlist entries for LaTeX (output to file for \input)
