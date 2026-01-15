@@ -102,7 +102,8 @@ SECRETS_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/secrets-scan-$FILE_TIMESTAMP.t
 MAC_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/mac-address-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
 HOST_SECURITY_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/host-security-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
 REPORT_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/security-scan-report-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
-CHECKSUMS_MD_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/checksums.md" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+# Full checksums.md checksum for verification chain
+CHECKSUMS_MD_CHECKSUM_FULL=$(shasum -a 256 "$SCANS_DIR/checksums.md" 2>/dev/null | awk '{print $1}' || echo "N/A")
 
 # Extract PII allowlist count and checksum
 PII_ALLOWLIST_FILE="$TARGET_DIR/.pii-allowlist"
@@ -201,7 +202,7 @@ sed -i.bak \
     -e "s/\\\\newcommand{\\\\MACScanChecksum}{N\\/A}/\\\\newcommand{\\\\MACScanChecksum}{$MAC_SCAN_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\HostSecurityScanChecksum}{N\\/A}/\\\\newcommand{\\\\HostSecurityScanChecksum}{$HOST_SECURITY_SCAN_CHECKSUM}/g" \
     -e "s/\\\\newcommand{\\\\ReportChecksum}{N\\/A}/\\\\newcommand{\\\\ReportChecksum}{$REPORT_CHECKSUM}/g" \
-    -e "s/\\\\newcommand{\\\\ChecksumsMdChecksum}{N\\/A}/\\\\newcommand{\\\\ChecksumsMdChecksum}{$CHECKSUMS_MD_CHECKSUM}/g" \
+    -e "s/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{0000000000000000000000000000000000000000000000000000000000000000}/\\\\newcommand{\\\\ChecksumsMdChecksumFull}{$CHECKSUMS_MD_CHECKSUM_FULL}/g" \
     "$PDF_BUILD_DIR/scan_attestation.tex"
 
 # Function to build allowlist entries for LaTeX (output to file for \input)
