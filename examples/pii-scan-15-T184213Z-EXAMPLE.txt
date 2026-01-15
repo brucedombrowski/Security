@@ -1,0 +1,28 @@
+# Host Inventory Reference: [CHECKSUM_REDACTED]
+# Scan Timestamp: 2026-01-15T[REDACTED]Z
+
+PII Verification Scan
+=====================
+Timestamp: 2026-01-15T[REDACTED]Z
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T181747Z-1-g42c144a (42c144a)
+Target: /Users/[REDACTED]
+Repository: Security
+
+Checking: IPv4 Addresses
+  Result: PASS (9 allowlisted)
+Checking: US Phone Numbers (dashed)
+  Result: PASS (0 matches)
+Checking: US Phone Numbers (dotted)
+  Result: PASS (0 matches)
+Checking: US Phone Numbers (parenthetical)
+  Result: PASS (0 matches)
+Checking: Social Security Numbers
+  Result: PASS (0 matches)
+Checking: Credit Card Numbers (16 digit)
+  Result: PASS (3 allowlisted)
+
+=====================
+Allowlist: /Users/[REDACTED] (13 entries)
+
+OVERALL RESULT: PASS
+No PII patterns detected.
