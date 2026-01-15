@@ -59,10 +59,18 @@ fi
 TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 DATE_STAMP=$(date -u "+%Y-%m-%d")
 # Filesystem-safe timestamp for unique filenames (no colons)
-FILE_TIMESTAMP=$(date -u "+%Y-%m-%dT%H%M%SZ")
+# Format: YYYY-MM-DD-THHMMSSZ (e.g., 2026-01-15-T154452Z)
+FILE_TIMESTAMP=$(date -u "+%Y-%m-%d-T%H%M%SZ")
 
-# Create .scans directory for output
+# Get hostname for attestation
+TARGET_HOST=$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo "unknown")
+
+# Create .scans directory for output (delete previous results first)
 SCANS_DIR="$TARGET_DIR/.scans"
+if [ -d "$SCANS_DIR" ]; then
+    echo "Removing previous scan results: $SCANS_DIR"
+    rm -rf "$SCANS_DIR"
+fi
 mkdir -p "$SCANS_DIR"
 
 # Consolidated report file (using FILE_TIMESTAMP for unique UTC-timestamped filenames)
@@ -319,6 +327,14 @@ log ""
 ls -1 "$SCANS_DIR"/*.txt 2>/dev/null | while read f; do
     log "  $(basename "$f")"
 done
+
+# Calculate individual scan file checksums for PDF attestation (first 16 chars)
+PII_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/pii-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+MALWARE_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/malware-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+SECRETS_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/secrets-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+MAC_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/mac-address-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+HOST_SECURITY_SCAN_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/host-security-scan-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+REPORT_CHECKSUM=$(shasum -a 256 "$SCANS_DIR/security-scan-report-$FILE_TIMESTAMP.txt" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
 log ""
 
 # Generate PDF attestation if pdflatex is available
@@ -334,15 +350,22 @@ if [ -n "$PDFLATEX" ] && [ -x "$PDFLATEX" ] && [ -f "$TEMPLATE_FILE" ]; then
     # Create temp directory for LaTeX build
     PDF_BUILD_DIR=$(mktemp -d)
 
-    # Generate unique ID
-    UNIQUE_ID="SCAN-$(date +%Y)-$(printf '%03d' $((RANDOM % 1000)))"
+    # Generate unique ID based on UTC timestamp (unique to the second)
+    UNIQUE_ID="SCAN-$(date -u +%Y%m%d-%H%M%S)"
     FORMATTED_DATE=$(date "+%B %d, %Y")
 
-    # Extract allowlist count
+    # Extract allowlist count and checksum
     ALLOWLIST_FILE="$TARGET_DIR/.pii-allowlist"
     ALLOWLIST_COUNT=0
+    ALLOWLIST_CHECKSUM="N/A"
     if [ -f "$ALLOWLIST_FILE" ]; then
         ALLOWLIST_COUNT=$(grep -c "^[a-f0-9]" "$ALLOWLIST_FILE" 2>/dev/null || echo "0")
+        ALLOWLIST_CHECKSUM=$(shasum -a 256 "$ALLOWLIST_FILE" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
+        # Mark PII scan as EXCEPT (pass with exceptions) if there are reviewed exceptions
+        if [ "$ALLOWLIST_COUNT" -gt 0 ] && [ "$PII_RESULT" = "PASS" ]; then
+            PII_RESULT="EXCEPT"
+            PII_FINDINGS="$ALLOWLIST_COUNT reviewed exceptions"
+        fi
     fi
 
     # Copy template and substitute variables
@@ -370,6 +393,7 @@ if [ -n "$PDFLATEX" ] && [ -x "$PDFLATEX" ] && [ -f "$TEMPLATE_FILE" ]; then
         -e "s|/path/to/project|$ESCAPED_TARGET_PATH|g" \
         -e "s/v1.0.0/$TOOLKIT_VERSION/g" \
         -e "s/abc1234/$TOOLKIT_COMMIT/g" \
+        -e "s/PLACEHOLDER_HOSTNAME/$TARGET_HOST/g" \
         -e "s/0000000000000000000000000000000000000000000000000000000000000000/$INVENTORY_CHECKSUM_SHORT/g" \
         -e "s/host-inventory-2026-01-15.txt/host-inventory-$FILE_TIMESTAMP.txt/g" \
         -e "s/\\\\newcommand{\\\\PIIScanResult}{PASS}/\\\\newcommand{\\\\PIIScanResult}{$PII_RESULT}/g" \
@@ -386,28 +410,55 @@ if [ -n "$PDFLATEX" ] && [ -x "$PDFLATEX" ] && [ -f "$TEMPLATE_FILE" ]; then
         -e "s/\\\\newcommand{\\\\PassCount}{5}/\\\\newcommand{\\\\PassCount}{$PASS_COUNT}/g" \
         -e "s/\\\\newcommand{\\\\FailCount}{0}/\\\\newcommand{\\\\FailCount}{$FAIL_COUNT}/g" \
         -e "s/\\\\newcommand{\\\\AllowlistCount}{0}/\\\\newcommand{\\\\AllowlistCount}{$ALLOWLIST_COUNT}/g" \
+        -e "s/\\\\newcommand{\\\\AllowlistChecksum}{N\\/A}/\\\\newcommand{\\\\AllowlistChecksum}{$ALLOWLIST_CHECKSUM}/g" \
+        -e "s/\\\\newcommand{\\\\PIIScanChecksum}{N\\/A}/\\\\newcommand{\\\\PIIScanChecksum}{$PII_SCAN_CHECKSUM}/g" \
+        -e "s/\\\\newcommand{\\\\MalwareScanChecksum}{N\\/A}/\\\\newcommand{\\\\MalwareScanChecksum}{$MALWARE_SCAN_CHECKSUM}/g" \
+        -e "s/\\\\newcommand{\\\\SecretsScanChecksum}{N\\/A}/\\\\newcommand{\\\\SecretsScanChecksum}{$SECRETS_SCAN_CHECKSUM}/g" \
+        -e "s/\\\\newcommand{\\\\MACScanChecksum}{N\\/A}/\\\\newcommand{\\\\MACScanChecksum}{$MAC_SCAN_CHECKSUM}/g" \
+        -e "s/\\\\newcommand{\\\\HostSecurityScanChecksum}{N\\/A}/\\\\newcommand{\\\\HostSecurityScanChecksum}{$HOST_SECURITY_SCAN_CHECKSUM}/g" \
+        -e "s/\\\\newcommand{\\\\ReportChecksum}{N\\/A}/\\\\newcommand{\\\\ReportChecksum}{$REPORT_CHECKSUM}/g" \
         "$PDF_BUILD_DIR/scan_attestation.tex"
 
     # Handle AllowlistEntries separately due to potential special characters
     if [ "$ALLOWLIST_COUNT" -gt 0 ]; then
-        # Build LaTeX itemize from allowlist reasons
-        # Write directly to file to avoid shell escaping issues
+        # Build LaTeX table from allowlist entries
+        # Format: HASH # REASON # CONTENT_SNIPPET
         ENTRIES_FILE="$PDF_BUILD_DIR/entries.tex"
-        echo '\begin{itemize}[leftmargin=0.3in, itemsep=2pt]' > "$ENTRIES_FILE"
+        echo '{\scriptsize' > "$ENTRIES_FILE"
+        echo '\begin{tabular}{@{}rlp{2.5in}@{}}' >> "$ENTRIES_FILE"
+        echo '\toprule' >> "$ENTRIES_FILE"
+        echo '\textbf{\#} & \textbf{Pattern} & \textbf{Justification} \\' >> "$ENTRIES_FILE"
+        echo '\midrule' >> "$ENTRIES_FILE"
+        ENTRY_NUM=0
         while IFS= read -r line; do
             if [ -n "$line" ]; then
-                # Extract reason (format: HASH # REASON # FINDING)
+                ENTRY_NUM=$((ENTRY_NUM + 1))
+                # Extract reason (format: HASH # REASON # CONTENT_SNIPPET)
                 reason=$(echo "$line" | sed 's/^[a-f0-9]* # \([^#]*\) #.*/\1/')
+                # Extract content snippet
+                content_snippet=$(echo "$line" | sed 's/^[a-f0-9]* # [^#]* # //')
+                # Truncate content snippet for display (max 40 chars)
+                content_snippet=$(echo "$content_snippet" | cut -c1-40)
                 if [ -n "$reason" ]; then
-                    # Escape LaTeX special characters in reason text
+                    # Escape LaTeX special characters
                     reason=$(echo "$reason" | sed -e 's/&/\\&/g' \
                                                   -e 's/%/\\%/g' \
-                                                  -e 's/_/\\_/g')
-                    echo "\\item $reason" >> "$ENTRIES_FILE"
+                                                  -e 's/_/\\_/g' \
+                                                  -e 's/\$/\\$/g' \
+                                                  -e 's/#/\\#/g')
+                    content_snippet=$(echo "$content_snippet" | sed -e 's/&/\\&/g' \
+                                                                    -e 's/%/\\%/g' \
+                                                                    -e 's/_/\\_/g' \
+                                                                    -e 's/\$/\\$/g' \
+                                                                    -e 's/#/\\#/g' \
+                                                                    -e 's/\\/\\textbackslash{}/g')
+                    echo "$ENTRY_NUM & \\texttt{$content_snippet} & $reason \\\\" >> "$ENTRIES_FILE"
                 fi
             fi
-        done < <(grep "^[a-f0-9]" "$ALLOWLIST_FILE" 2>/dev/null | head -10)
-        echo '\end{itemize}' >> "$ENTRIES_FILE"
+        done < <(grep "^[a-f0-9]" "$ALLOWLIST_FILE" 2>/dev/null | head -20)
+        echo '\bottomrule' >> "$ENTRIES_FILE"
+        echo '\end{tabular}' >> "$ENTRIES_FILE"
+        echo '}' >> "$ENTRIES_FILE"
 
         # Replace "None" with the entries using perl (handles multiline better than sed/awk)
         perl -i -p0e 'BEGIN { open(F,"'"$ENTRIES_FILE"'"); local $/; $e=<F>; close(F); }
@@ -461,6 +512,14 @@ else
 fi
 
 log ""
+
+# Update report checksum in checksums.md (report file was modified after initial checksum)
+FINAL_REPORT_CHECKSUM=$(shasum -a 256 "$REPORT_FILE" 2>/dev/null | awk '{print $1}')
+if [ -n "$FINAL_REPORT_CHECKSUM" ]; then
+    # Replace the report checksum line in checksums.md
+    sed -i.bak "s/^[a-f0-9]*  security-scan-report-.*\.txt$/$FINAL_REPORT_CHECKSUM  $(basename "$REPORT_FILE")/" "$CHECKSUMS_FILE"
+    rm -f "$CHECKSUMS_FILE.bak"
+fi
 
 if [ "$OVERALL_STATUS" = "PASS" ]; then
     exit 0

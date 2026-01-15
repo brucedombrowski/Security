@@ -19,8 +19,9 @@
 \newcommand{\UniqueID}{SCAN-YYYY-NNN}
 \newcommand{\DocumentDate}{January 15, 2026}
 \newcommand{\ScanTimestamp}{2026-01-15 08:00:00}
-\newcommand{\TargetName}{ProjectName}
+\newcommand{\TargetHost}{PLACEHOLDER_HOSTNAME}
 \newcommand{\TargetPath}{/path/to/project}
+\newcommand{\TargetName}{ProjectName}
 \newcommand{\SecurityToolkitVersion}{v1.0.0}
 \newcommand{\SecurityToolkitCommit}{abc1234}
 \newcommand{\SecurityToolkitURL}{https://github.com/brucedombrowski/Security}
@@ -48,7 +49,16 @@
 
 % Allowlist/Exceptions
 \newcommand{\AllowlistCount}{0}
+\newcommand{\AllowlistChecksum}{N/A}
 \newcommand{\AllowlistEntries}{None}
+
+% Scan output checksums (first 16 chars of SHA256)
+\newcommand{\PIIScanChecksum}{N/A}
+\newcommand{\MalwareScanChecksum}{N/A}
+\newcommand{\SecretsScanChecksum}{N/A}
+\newcommand{\MACScanChecksum}{N/A}
+\newcommand{\HostSecurityScanChecksum}{N/A}
+\newcommand{\ReportChecksum}{N/A}
 
 % ============================================================================
 % DOCUMENT CONFIGURATION
@@ -93,8 +103,9 @@
 
 % Result formatting
 \newcommand{\passmark}{\textcolor{green!60!black}{\textbf{PASS}}}
+\newcommand{\passexceptmark}{\textcolor{green!60!black}{\textbf{PASS w/ exceptions}}}
 \newcommand{\failmark}{\textcolor{red}{\textbf{FAIL}}}
-\newcommand{\resultcell}[1]{\ifnum\pdfstrcmp{#1}{PASS}=0 \passmark\else\failmark\fi}
+\newcommand{\resultcell}[1]{\ifnum\pdfstrcmp{#1}{PASS}=0 \passmark\else\ifnum\pdfstrcmp{#1}{EXCEPT}=0 \passexceptmark\else\failmark\fi\fi}
 
 % ============================================================================
 % BEGIN DOCUMENT
@@ -110,9 +121,9 @@
 % ----------------------------------------------------------------------------
 \textbf{DATE:} \DocumentDate
 
-\textbf{TARGET:} \TargetName
+\textbf{HOST:} \texttt{\TargetHost}
 
-\textbf{PATH:} \texttt{\TargetPath}
+\textbf{PATH:} \texttt{\TargetPath} (\TargetName)
 
 \textbf{SUBJECT:} Automated Security Scan Attestation
 
@@ -195,19 +206,30 @@ Host Security & CM-6 & \resultcell{\HostSecurityResult} & \HostSecurityFindings 
 \vspace{6pt}
 \textbf{Overall Result:} \resultcell{\OverallResult}
 
+\vspace{6pt}
+{\small PASS w/ exceptions = reviewed exceptions documented in Section 6}
+
 % ----------------------------------------------------------------------------
 \dmsection{Reviewed Exceptions}
 
-The following items were flagged by automated scans but reviewed and accepted as non-issues. Each exception requires documented justification.
+Items flagged by automated scans but reviewed and accepted as non-issues are documented in the PII allowlist file. Each exception includes a SHA256 hash for integrity verification and reviewer justification.
 
 \vspace{6pt}
-\textbf{Total Exceptions:} \AllowlistCount
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Allowlist File} & \texttt{.pii-allowlist} \\
+\textbf{SHA256 (first 16)} & \texttt{\AllowlistChecksum} \\
+\textbf{Total Exceptions} & \AllowlistCount \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\textbf{Justifications:}
 
 \vspace{6pt}
 \AllowlistEntries
 
-\vspace{6pt}
-\textbf{Note:} Exceptions are stored in \texttt{.pii-allowlist} with SHA256 hashes for integrity verification. Each entry includes reviewer justification (e.g., ``X.509 OID for certificate filtering'').
+{\small\textbf{Note:} Full details including file paths and SHA256 hashes are in \texttt{.pii-allowlist}.}
 
 % ----------------------------------------------------------------------------
 \dmsection{Scan Output Checksums}
@@ -216,23 +238,23 @@ The following SHA256 checksums were generated for scan output files:
 
 \vspace{6pt}
 {\small
-\begin{tabular}{@{}p{2.8in}l@{}}
+\begin{tabular}{@{}ll@{}}
 \toprule
-\textbf{File} & \textbf{SHA256 (first 16 chars)} \\
+\textbf{Scan Output File} & \textbf{SHA256 (first 16)} \\
 \midrule
-\texttt{host-inventory-\ScanFileTimestamp.txt} & \texttt{\HostInventoryChecksum} \\
-\texttt{pii-scan-\ScanFileTimestamp.txt} & See checksums.md \\
-\texttt{malware-scan-\ScanFileTimestamp.txt} & See checksums.md \\
-\texttt{secrets-scan-\ScanFileTimestamp.txt} & See checksums.md \\
-\texttt{mac-address-scan-\ScanFileTimestamp.txt} & See checksums.md \\
-\texttt{host-security-scan-\ScanFileTimestamp.txt} & See checksums.md \\
-\texttt{security-scan-report-\ScanFileTimestamp.txt} & See checksums.md \\
+host-inventory & \texttt{\HostInventoryChecksum} \\
+pii-scan & \texttt{\PIIScanChecksum} \\
+malware-scan & \texttt{\MalwareScanChecksum} \\
+secrets-scan & \texttt{\SecretsScanChecksum} \\
+mac-address-scan & \texttt{\MACScanChecksum} \\
+host-security-scan & \texttt{\HostSecurityScanChecksum} \\
+security-scan-report & \texttt{\ReportChecksum} \\
 \bottomrule
 \end{tabular}
 }
 
 \vspace{6pt}
-Complete checksums are recorded in \texttt{.scans/checksums.md}.
+Full file names: \texttt{*-\ScanFileTimestamp.txt}. Complete checksums in \texttt{.scans/checksums.md}.
 
 % ----------------------------------------------------------------------------
 \dmsection{Attestation}

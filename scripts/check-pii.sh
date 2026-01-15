@@ -75,9 +75,16 @@ REVIEW_COUNT=0
 ACCEPTED_COUNT=0
 REJECTED_COUNT=0
 
-# Function to compute hash for a finding (used for allowlist)
+# Function to extract content from a finding (strips file:line: prefix)
+extract_content() {
+    echo "$1" | cut -d: -f3-
+}
+
+# Function to compute hash for a finding (uses content only, not file:line)
+# This makes allowlist entries stable across line number changes
 hash_finding() {
-    echo -n "$1" | shasum -a 256 | awk '{print $1}'
+    local content=$(extract_content "$1")
+    echo -n "$content" | shasum -a 256 | awk '{print $1}'
 }
 
 # Function to check if a finding is allowlisted
@@ -175,10 +182,11 @@ prompt_review() {
     echo "    [V]ersion - Version number (e.g., 6.0.0.0)"
     echo "    [L]ocalhost - Loopback address (127.0.0.1)"
     echo "    [D]ocumentation - Documentation or comments"
+    echo "    [X]Regex  - Sed/regex pattern for string substitution"
     echo ""
 
     while true; do
-        echo -n "  Your decision [A/R/S/E/O/V/L/D]: "
+        echo -n "  Your decision [A/R/S/E/O/V/L/D/X]: "
         read -r response < /dev/tty
         case "$response" in
             [Ee]*)
@@ -211,6 +219,12 @@ prompt_review() {
                 ACCEPTED_COUNT=$((ACCEPTED_COUNT + 1))
                 return 0
                 ;;
+            [Xx]*)
+                add_to_allowlist "$finding" "Placeholder pattern (build-time substitution)"
+                echo "  → Added to allowlist: Placeholder pattern"
+                ACCEPTED_COUNT=$((ACCEPTED_COUNT + 1))
+                return 0
+                ;;
             [Aa]*)
                 echo ""
                 echo "  Why is this acceptable? (This will be recorded in the allowlist)"
@@ -235,7 +249,7 @@ prompt_review() {
                 return 2  # Skipped - still needs review
                 ;;
             *)
-                echo "  Please enter A, R, S, E, O, V, L, or D"
+                echo "  Please enter A, R, S, E, O, V, L, D, or X"
                 ;;
         esac
     done
