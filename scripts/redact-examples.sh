@@ -135,7 +135,8 @@ truncate_package_lists() {
 # Process scan files
 for file in "$SOURCE_DIR"/*-scan-*.txt; do
     if [ -f "$file" ]; then
-        filename=$(basename "$file" | sed 's/-[0-9]*-[0-9]*//' | sed 's/.txt/-EXAMPLE.txt/')
+        # Strip full timestamp (e.g., 2026-01-15-T185310Z) from filename
+        filename=$(basename "$file" | sed -E 's/-[0-9]{4}-[0-9]{2}-[0-9]{2}-T[0-9]{6}Z//' | sed 's/.txt/-EXAMPLE.txt/')
         redact_file "$file" "$OUTPUT_DIR/$filename"
         echo "Created: $OUTPUT_DIR/$filename"
     fi
