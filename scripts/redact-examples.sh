@@ -23,6 +23,11 @@ OUTPUT_DIR="$2"
 
 mkdir -p "$OUTPUT_DIR"
 
+# Clean up old example files (but preserve README.md)
+echo "Cleaning old example files..."
+find "$OUTPUT_DIR" -name "*-EXAMPLE.txt" -type f -delete 2>/dev/null || true
+find "$OUTPUT_DIR" -name "*-EXAMPLE.pdf" -type f -delete 2>/dev/null || true
+
 # Redaction patterns - AGGRESSIVE redaction for public examples
 redact_file() {
     local input="$1"
