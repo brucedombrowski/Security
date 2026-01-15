@@ -144,6 +144,8 @@ MAC_RESULT="PASS"
 MAC_FINDINGS="No MAC addresses detected"
 HOST_RESULT="PASS"
 HOST_FINDINGS="All checks passed"
+VULN_RESULT="SKIP"
+VULN_FINDINGS="Not run"
 
 # Run each scan
 # Arguments: scan_name script_cmd control_ref output_file result_var findings_var
@@ -255,6 +257,49 @@ run_scan "Host Security Configuration" \
     "host-security-scan-$FILE_TIMESTAMP.txt" \
     "HOST_RESULT" "HOST_FINDINGS"
 
+# Run vulnerability scan (quick mode, scans localhost)
+# Note: This scans the HOST system, not the codebase - uses different invocation
+log "Running: Vulnerability Scan (Nmap/Lynis)"
+log "  Control: NIST 800-53: RA-5 (Vulnerability Scanning), SI-2 (Flaw Remediation)"
+log "  Host Inventory Reference: $INVENTORY_CHECKSUM"
+
+VULN_SCRIPT="$SCRIPT_DIR/scan-vulnerabilities.sh"
+if [ -x "$VULN_SCRIPT" ]; then
+    # Vulnerability scan targets localhost, not a directory
+    vuln_output=$("$VULN_SCRIPT" -q 2>&1) || vuln_exit=$?
+    vuln_exit=${vuln_exit:-0}
+    echo "$vuln_output"
+    echo "$vuln_output" >> "$REPORT_FILE"
+
+    # Save with inventory reference header
+    {
+        echo "# Host Inventory Reference: $INVENTORY_CHECKSUM"
+        echo "# Scan Timestamp: $TIMESTAMP"
+        echo ""
+        echo "$vuln_output"
+    } > "$SCANS_DIR/vulnerability-scan-$FILE_TIMESTAMP.txt"
+
+    if [ $vuln_exit -eq 0 ]; then
+        log "  Status: PASS"
+        PASS_COUNT=$((PASS_COUNT + 1))
+        VULN_RESULT="PASS"
+        VULN_FINDINGS="No critical vulnerabilities"
+    else
+        log "  Status: FAIL"
+        OVERALL_STATUS="FAIL"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        VULN_RESULT="FAIL"
+        VULN_FINDINGS="Vulnerabilities detected"
+    fi
+else
+    log "  Status: SKIPPED (scan-vulnerabilities.sh not found)"
+    VULN_RESULT="SKIP"
+    VULN_FINDINGS="Not run"
+fi
+log ""
+log "--------------------------------------------------------"
+log ""
+
 log "========================================================"
 log ""
 log "SCAN SUMMARY"
@@ -337,7 +382,8 @@ export TARGET_DIR FILE_TIMESTAMP TIMESTAMP DATE_STAMP INVENTORY_CHECKSUM
 export TOOLKIT_VERSION TOOLKIT_COMMIT
 export PII_RESULT PII_FINDINGS MALWARE_RESULT MALWARE_FINDINGS
 export SECRETS_RESULT SECRETS_FINDINGS MAC_RESULT MAC_FINDINGS
-export HOST_RESULT HOST_FINDINGS OVERALL_STATUS PASS_COUNT FAIL_COUNT
+export HOST_RESULT HOST_FINDINGS VULN_RESULT VULN_FINDINGS
+export OVERALL_STATUS PASS_COUNT FAIL_COUNT
 
 ATTESTATION_SCRIPT="$SCRIPT_DIR/generate-scan-attestation.sh"
 if [ -x "$ATTESTATION_SCRIPT" ]; then
