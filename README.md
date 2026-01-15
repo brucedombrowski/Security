@@ -27,6 +27,7 @@ This toolkit provides automated security verification scripts aligned with feder
 | `generate-compliance.sh` | - | Generate security compliance statement PDF |
 | `secure-delete.sh` | SP 800-88 | Securely delete files (NIST Clear method) |
 | `purge-git-history.sh` | SP 800-88 | Remove sensitive files from git history |
+| `scan-vulnerabilities.sh` | RA-5, SI-2 | Comprehensive vulnerability scanning (Nmap/OpenVAS/Lynis) |
 
 ## Usage
 
@@ -105,6 +106,39 @@ Generate a formal security compliance statement PDF for a project:
 
 See [COMPLIANCE.md](COMPLIANCE.md) for detailed documentation on the compliance workflow.
 
+### Vulnerability Scanning
+
+Run comprehensive vulnerability assessments using open-source tools:
+
+```bash
+# Full vulnerability scan (Nmap + Lynis)
+./scripts/scan-vulnerabilities.sh
+
+# Scan specific network target
+./scripts/scan-vulnerabilities.sh 192.168.1.0/24
+
+# Quick scan mode
+./scripts/scan-vulnerabilities.sh -q 10.0.0.1
+
+# Nmap network scan only
+./scripts/scan-vulnerabilities.sh -n 192.168.1.1
+
+# Lynis system audit only
+./scripts/scan-vulnerabilities.sh -l
+
+# Full scan with elevated privileges (recommended)
+sudo ./scripts/scan-vulnerabilities.sh
+```
+
+**NIST Controls Assessed:**
+- RA-5: Vulnerability Monitoring and Scanning
+- SI-2: Flaw Remediation
+- SI-4: System Monitoring
+- CM-6: Configuration Settings
+- CA-2: Control Assessments
+
+See [AGENTS.md](AGENTS.md#vulnerability-scanning-scan-vulnerabilitiessh) for complete NIST 800-53, 800-171, and FIPS 199/200 control mapping.
+
 ## Prerequisites
 
 - **Bash** - Required to execute all security scripts (included by default on macOS/Linux)
@@ -128,6 +162,30 @@ See [COMPLIANCE.md](COMPLIANCE.md) for detailed documentation on the compliance 
   ```
 
 - **grep** - Standard grep with extended regex support (included in macOS/Linux)
+
+- **Nmap** - Required for network vulnerability scanning
+  ```bash
+  # macOS
+  brew install nmap
+
+  # Ubuntu/Debian
+  sudo apt install nmap
+  ```
+
+- **Lynis** - Required for system security auditing
+  ```bash
+  # macOS
+  brew install lynis
+
+  # Ubuntu/Debian
+  sudo apt install lynis
+  ```
+
+- **OpenVAS/GVM** - Optional for comprehensive vulnerability assessment
+  ```bash
+  # See: https://greenbone.github.io/docs/latest/
+  # OpenVAS requires dedicated setup and daemon configuration
+  ```
 
 ## Exit Codes
 
@@ -181,8 +239,13 @@ If you need to preserve scan results for a specific release or submittal, copy t
 | SI-12 | System and Information Integrity | Information Management and Retention | `check-pii.sh` |
 | SA-11 | System and Services Acquisition | Developer Testing and Evaluation | `check-secrets.sh` |
 | SC-8 | System and Communications Protection | Transmission Confidentiality and Integrity | `check-mac-addresses.sh` |
-| CM-6 | Configuration Management | Configuration Settings | `check-host-security.sh` |
-| CM-8 | Configuration Management | System Component Inventory | `collect-host-inventory.sh` |
+| CM-6 | Configuration Management | Configuration Settings | `check-host-security.sh`, `scan-vulnerabilities.sh` |
+| CM-8 | Configuration Management | System Component Inventory | `collect-host-inventory.sh`, `scan-vulnerabilities.sh` |
+| RA-5 | Risk Assessment | Vulnerability Monitoring and Scanning | `scan-vulnerabilities.sh` |
+| SI-2 | System and Information Integrity | Flaw Remediation | `scan-vulnerabilities.sh` |
+| SI-4 | System and Information Integrity | System Monitoring | `scan-vulnerabilities.sh` |
+| CA-2 | Assessment, Authorization | Control Assessments | `scan-vulnerabilities.sh` |
+| MP-6 | Media Protection | Media Sanitization | `secure-delete.sh`, `purge-git-history.sh` |
 
 ## CUI Handling
 

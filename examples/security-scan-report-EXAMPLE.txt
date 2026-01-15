@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    69367d6dc8d3d154...                                       #
+#  Source SHA256:    b20aecd6f341e171...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    15d7fcde1bd1d406...                                       #
-#  Redacted:         2026-01-15T20:01:17Z                                       #
+#  Redacted:         2026-01-15T20:28:57Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -26,7 +26,7 @@ Report: /Users/[REDACTED]
 
 Collecting Host Inventory...
 -----------------------------
-  Host inventory collected: host-inventory-2026-01-15-T200059Z.txt
+  Host inventory collected: host-inventory-2026-01-15-T202839Z.txt
   Inventory SHA256: [REDACTED]
 
   All subsequent scans reference this inventory snapshot.
@@ -39,7 +39,7 @@ Running: PII Pattern Scan
 PII Verification Scan
 =====================
 Timestamp: 2026-01-15T[REDACTED]Z
-Toolkit: Security Verification Toolkit v0.0.0-test.20260115T195412Z-2-g978a1d3 (978a1d3)
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T200059Z-1-g135fe91 (135fe91)
 Target: /Users/[REDACTED]
 Repository: Security
 
@@ -62,10 +62,10 @@ Checking: Credit Card Numbers (16 digit)
 /Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')",
 /Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')",
 /Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')",
+/Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')",
 /Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')"
 /Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')"
 /Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')",
-/Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')"
   Result: REVIEW - 21 new match(es) found
   ... and 11 more
   (3 previously allowlisted)
@@ -91,7 +91,7 @@ Attempting to update ClamAV virus database...
 Malware Verification Scan
 =========================
 Timestamp: 2026-01-15T[REDACTED]Z
-Toolkit: Security Verification Toolkit v0.0.0-test.20260115T195412Z-2-g978a1d3 (978a1d3)
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T200059Z-1-g135fe91 (135fe91)
 Source: https://[REDACTED]/brucedombrowski/Security
 Scanner: ClamAV 1.5.1/27881/Thu Jan 15 [REDACTED] 2026
 Target: /Users/[REDACTED]
@@ -174,102 +174,61 @@ Scanning /Users/[REDACTED]
 /Users/[REDACTED] OK
 Scanning /Users/[REDACTED]
 /Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
 /Users/[REDACTED] Excluded
 
 ----------- SCAN SUMMARY -----------
 Known viruses: 3627218
 Engine version: [REDACTED]
 Scanned directories: 5
-Scanned files: 34
+Scanned files: 36
 Infected files: 0
-Data scanned: 435.99 KiB
-Data read: 233.33 KiB (ratio 1.87:1)
-Time: 5.297 sec (0 m 5 s)
+Data scanned: 708.20 KiB
+Data read: 327.97 KiB (ratio 2.16:1)
+Time: 5.341 sec (0 m 5 s)
 Start Date: [REDACTED] [REDACTED]
 End Date:   [REDACTED] [REDACTED]
 
 File Hash Manifest:
 -------------------
+  generate-scan-attestation.sh
+    SHA256: [REDACTED]
+    MD5:    d74400991736d8469b1777ed749b52f5
+    SHA1:   98e63790ef5e4505aa61f37df1a20565d7b2e37a
+    Size:   13912 bytes
+  check-mac-addresses.sh
+    SHA256: [REDACTED]
+    MD5:    96a5fff5389be661584fe22cfeb2e213
+    SHA1:   799281ec949adcc68311648bc71024764b2199c3
+    Size:   3795 bytes
+  README.md
+    SHA256: [REDACTED]
+    MD5:    066b7bbefce3c0654fbfdab0551847fd
+    SHA1:   368361b823703df13dd89169bd59651db6146459
+    Size:   1835 bytes
   .gitignore
     SHA256: [REDACTED]
     MD5:    85f44ec03c8109e0f774e8e4012e0d82
     SHA1:   eddbbfec4fc60f0df35d46e85ba8d71b6adc07a1
     Size:   162 bytes
-  CHANGELOG.md
+  settings.json
     SHA256: [REDACTED]
-    MD5:    e9f8f9f3bc7880f2b714ac8abe649269
-    SHA1:   49405df6a2c1d023c7d24b5c7f281a0de82649bc
-    Size:   9836 bytes
-  check-secrets.sh
+    MD5:    7f4394d4c7e67549340312d60cd11986
+    SHA1:   983741cbdef6f2ec706aa07efa49c22985c1aba0
+    Size:   78 bytes
+  .pii-allowlist
     SHA256: [REDACTED]
-    MD5:    f93915dfba5032137fa947a13286e4e0
-    SHA1:   41741591ef3051473d0b2dbfdadba495a751749b
-    Size:   13858 bytes
+    MD5:    21bb9120cf7360b4e0599d1e6c14283d
+    SHA1:   36e68d4ea6e9e57ae7536641c958757bf4fd0fce
+    Size:   2742 bytes
   check-pii.sh
     SHA256: [REDACTED]
     MD5:    e9a1955ca77c2b4b66b4031828decb72
     SHA1:   be937468446306f7bca8c0fd0bc5ee4ed43b3bf9
     Size:   15034 bytes
-  generate-compliance.sh
-    SHA256: [REDACTED]
-    MD5:    d15cc7660b6d0609a142e7506f027c19
-    SHA1:   b5983cf9c1791c4f69bc475ffa5653ead318387d
-    Size:   7705 bytes
-  LICENSE
-    SHA256: [REDACTED]
-    MD5:    68260813fc6e3c86b7bfa3271daaff45
-    SHA1:   9f7da6567a3bce6ebe5a8d3e53e2a4b58235b90c
-    Size:   1073 bytes
-  README.md
-    SHA256: [REDACTED]
-    MD5:    42edef30448dcb4daee65e9a81cde8b1
-    SHA1:   2f8b8d35ddd0a8b6e2788defdbe42d06fb94bba8
-    Size:   1682 bytes
-  [REDACTED].json
-    SHA256: [REDACTED]
-    MD5:    26abb973278e4bd665399cd64e88c475
-    SHA1:   804fed2479ce48c2e15c835979f744d7bdf466ed
-    Size:   5171 bytes
-  release.sh
-    SHA256: [REDACTED]
-    MD5:    de2760ab74864f52ab4249c63e155aea
-    SHA1:   129d2c2394c927026562f26f5a9ba29fab0b1916
-    Size:   8851 bytes
-  .secrets-allowlist
-    SHA256: [REDACTED]
-    MD5:    fc4346df18c0c1d160e243f74ba7c2b5
-    SHA1:   c90ec8a74349cb414ca16d7a9a46df340955ac93
-    Size:   714 bytes
-  scan_attestation.tex
-    SHA256: [REDACTED]
-    MD5:    d3623aa235cd6fe67cb552b2284e639a
-    SHA1:   54675e780202a9ba81395836b4e1afe1155f5fcf
-    Size:   12214 bytes
-  secure-delete.sh
-    SHA256: [REDACTED]
-    MD5:    75bc7da70027474b9b8991948cc888f5
-    SHA1:   846a60462ac55657748c4ffc90ffdc3884daff53
-    Size:   7160 bytes
-  collect-host-inventory.sh
-    SHA256: [REDACTED]
-    MD5:    18932a1fb468f30a9609c6661a7ac0b5
-    SHA1:   9e4fd3b91a49494885775bc772b6cdf572aa03be
-    Size:   11567 bytes
-  check-host-security.sh
-    SHA256: [REDACTED]
-    MD5:    7aa3bfc79913566419ccfe16a60caf95
-    SHA1:   ab6dbe9ebadabd9ec18b907ddf815bb4db895ad2
-    Size:   4755 bytes
-  security_compliance_statement.tex
-    SHA256: [REDACTED]
-    MD5:    5185c2b825b2b50c7c6950ab0f23cee1
-    SHA1:   df8152a81f48ab70ef47298f9adc88d6e320b5ee
-    Size:   11223 bytes
-  README.md
-    SHA256: [REDACTED]
-    MD5:    a9f104ad8132429d5cf3186b8e84b948
-    SHA1:   264b4f172e7fe918a7da2cc15814d60e10f60b58
-    Size:   7008 bytes
   .DS_Store
     SHA256: [REDACTED]
     MD5:    9a76174853102a1021c8e12b4023ba47
@@ -280,86 +239,141 @@ File Hash Manifest:
     MD5:    8c5fe61784f71f9f31b8438737b88b63
     SHA1:   455159d7ffe854bbaa9120b44c3460b4ee4c1dea
     Size:   7441 bytes
+  .secrets-allowlist
+    SHA256: [REDACTED]
+    MD5:    fc4346df18c0c1d160e243f74ba7c2b5
+    SHA1:   c90ec8a74349cb414ca16d7a9a46df340955ac93
+    Size:   714 bytes
   mac-address-scan-EXAMPLE.txt
     SHA256: [REDACTED]
-    MD5:    4956f6fad9f8b8b2f0154b94a7de99fd
-    SHA1:   ac7b9b8e3920bd4481ff5bd4b3361662aaf9dc40
+    MD5:    cd9da146edd13ebeb992726960fada5d
+    SHA1:   95dcbd0466a85ccd8fe0a750733f024f6ca77834
     Size:   1783 bytes
-  run-all-scans.sh
+  CHANGELOG.md
     SHA256: [REDACTED]
-    MD5:    fe6c24e3cf4f096dd7c21e00ae68f491
-    SHA1:   5e8658b1513645752e59c8b6c09f2d4e78bca6d8
-    Size:   11827 bytes
-  settings.json
-    SHA256: [REDACTED]
-    MD5:    7f4394d4c7e67549340312d60cd11986
-    SHA1:   983741cbdef6f2ec706aa07efa49c22985c1aba0
-    Size:   78 bytes
-  COMPLIANCE.md
-    SHA256: [REDACTED]
-    MD5:    9b2fa0ec41767fbe85b2ee899cb3a05c
-    SHA1:   5dc2e1b684cdadd2ba5b58c92bf1a5726aa9c9ad
-    Size:   7601 bytes
+    MD5:    e9f8f9f3bc7880f2b714ac8abe649269
+    SHA1:   49405df6a2c1d023c7d24b5c7f281a0de82649bc
+    Size:   9836 bytes
   pii-scan-EXAMPLE.txt
     SHA256: [REDACTED]
-    MD5:    277e8d474715b0ab118d10c2090fc44f
-    SHA1:   da98782ec1a97e9c287edfc3998946ee95d6baf0
-    Size:   3438 bytes
+    MD5:    8421eab62a8b6337b49ce70a38dcf2c5
+    SHA1:   c1231f92ef9e8083a819103f9f680dfb5208aa71
+    Size:   3439 bytes
+  collect-host-inventory.sh
+    SHA256: [REDACTED]
+    MD5:    18932a1fb468f30a9609c6661a7ac0b5
+    SHA1:   9e4fd3b91a49494885775bc772b6cdf572aa03be
+    Size:   11567 bytes
   logo.png
     SHA256: [REDACTED]
     MD5:    315dfafe5b28dccdf1164bbb1b9ab7a3
     SHA1:   4b2cbe3a3f4ab9f8f00a9e90c563643ba2c269ef
     Size:   3007 bytes
-  host-inventory-EXAMPLE.txt
+  scan-attestation-EXAMPLE.pdf
     SHA256: [REDACTED]
-    MD5:    d6c9f79566ecbed4238d4f30ca0e5da2
-    SHA1:   fc2a72b31af9cdae028549ac2ababc700273dc5f
-    Size:   4354 bytes
+    MD5:    0e57ef10522e632ed0501472600ff235
+    SHA1:   2ef3e33eb86b051ae4d5ab1f7ec7d077fedd1958
+    Size:   90097 bytes
+  scan_attestation.tex
+    SHA256: [REDACTED]
+    MD5:    d3623aa235cd6fe67cb552b2284e639a
+    SHA1:   54675e780202a9ba81395836b4e1afe1155f5fcf
+    Size:   12214 bytes
+  check-host-security.sh
+    SHA256: [REDACTED]
+    MD5:    7aa3bfc79913566419ccfe16a60caf95
+    SHA1:   ab6dbe9ebadabd9ec18b907ddf815bb4db895ad2
+    Size:   4755 bytes
+  release.sh
+    SHA256: [REDACTED]
+    MD5:    de2760ab74864f52ab4249c63e155aea
+    SHA1:   129d2c2394c927026562f26f5a9ba29fab0b1916
+    Size:   8851 bytes
+  secrets-scan-EXAMPLE.txt
+    SHA256: [REDACTED]
+    MD5:    8694826564ac1b8940ac1f4b94e6d0eb
+    SHA1:   2d087b9160afab2a6b7a242a428d889e0c4cafee
+    Size:   2264 bytes
+  run-all-scans.sh
+    SHA256: [REDACTED]
+    MD5:    fe6c24e3cf4f096dd7c21e00ae68f491
+    SHA1:   5e8658b1513645752e59c8b6c09f2d4e78bca6d8
+    Size:   11827 bytes
+  LICENSE
+    SHA256: [REDACTED]
+    MD5:    68260813fc6e3c86b7bfa3271daaff45
+    SHA1:   9f7da6567a3bce6ebe5a8d3e53e2a4b58235b90c
+    Size:   1073 bytes
+  security_compliance_statement.tex
+    SHA256: [REDACTED]
+    MD5:    5185c2b825b2b50c7c6950ab0f23cee1
+    SHA1:   df8152a81f48ab70ef47298f9adc88d6e320b5ee
+    Size:   11223 bytes
   redact-examples.sh
     SHA256: [REDACTED]
     MD5:    82729599945db664ef7e7e6253d94884
     SHA1:   369af5ec39860b0f9c00a7109aeeeeea94a0aaff
     Size:   12237 bytes
-  .pii-allowlist
-    SHA256: [REDACTED]
-    MD5:    21bb9120cf7360b4e0599d1e6c14283d
-    SHA1:   36e68d4ea6e9e57ae7536641c958757bf4fd0fce
-    Size:   2742 bytes
   host-security-scan-EXAMPLE.txt
     SHA256: [REDACTED]
-    MD5:    4ab1a5dce254dac4d277f2cea2971a22
-    SHA1:   3a90e88d6b191aadaeeb0d7e305c7c679a5d3fbb
+    MD5:    55683611ab201d2591e2622705c3184a
+    SHA1:   f30572e945b135cfeb4958194764c9b1704aec18
     Size:   2246 bytes
-  check-mac-addresses.sh
-    SHA256: [REDACTED]
-    MD5:    96a5fff5389be661584fe22cfeb2e213
-    SHA1:   799281ec949adcc68311648bc71024764b2199c3
-    Size:   3795 bytes
-  security-scan-report-EXAMPLE.txt
-    SHA256: [REDACTED]
-    MD5:    c9d432722b608edb3e5b0db32923b4e3
-    SHA1:   8f3606c32ab6e0f0d54b5164d84e277adef02e27
-    Size:   16973 bytes
-  secrets-scan-EXAMPLE.txt
-    SHA256: [REDACTED]
-    MD5:    17514d581d0fe75648d0f54ca4225a3e
-    SHA1:   061ab23c18dae98e3f816fb31b48ca245b0ae99a
-    Size:   2264 bytes
-  generate-scan-attestation.sh
-    SHA256: [REDACTED]
-    MD5:    d74400991736d8469b1777ed749b52f5
-    SHA1:   98e63790ef5e4505aa61f37df1a20565d7b2e37a
-    Size:   13912 bytes
   check-malware.sh
     SHA256: [REDACTED]
     MD5:    1b4994c40cf1984281d009144dcfebb1
     SHA1:   a5f232642ece093fcff0bacb7df4bae4cbffaa0b
     Size:   11245 bytes
+  COMPLIANCE.md
+    SHA256: [REDACTED]
+    MD5:    9b2fa0ec41767fbe85b2ee899cb3a05c
+    SHA1:   5dc2e1b684cdadd2ba5b58c92bf1a5726aa9c9ad
+    Size:   7601 bytes
+  purge-git-history.sh
+    SHA256: [REDACTED]
+    MD5:    756439147167c7ce2b47c6fe586c53d4
+    SHA1:   ffe2f03247180938b6c29ec8ebfd3b4200bc1ba4
+    Size:   5406 bytes
+  security-scan-report-EXAMPLE.txt
+    SHA256: [REDACTED]
+    MD5:    eb715e2df6387a98f4bd82aa60204c6b
+    SHA1:   81d6fd5b9b384762ad19b38dad067399b2f76c71
+    Size:   16974 bytes
+  README.md
+    SHA256: [REDACTED]
+    MD5:    0556e9caa74cd7ab68d3e7368f03839e
+    SHA1:   a6819a2c76ee512a5d6169744f862fcc5dd5441e
+    Size:   8266 bytes
+  check-secrets.sh
+    SHA256: [REDACTED]
+    MD5:    f93915dfba5032137fa947a13286e4e0
+    SHA1:   41741591ef3051473d0b2dbfdadba495a751749b
+    Size:   13858 bytes
+  [REDACTED].json
+    SHA256: [REDACTED]
+    MD5:    26abb973278e4bd665399cd64e88c475
+    SHA1:   804fed2479ce48c2e15c835979f744d7bdf466ed
+    Size:   5171 bytes
   malware-scan-EXAMPLE.txt
     SHA256: [REDACTED]
-    MD5:    47ff7ca66effb947e4ef318a30fd9d15
-    SHA1:   3c827c5b483fe72c8db331bf52416bc59d09b212
+    MD5:    0402221e40a28310285f64938da35326
+    SHA1:   7d3b79db15455740c725ef440bcee23c16226260
     Size:   9824 bytes
+  secure-delete.sh
+    SHA256: [REDACTED]
+    MD5:    75bc7da70027474b9b8991948cc888f5
+    SHA1:   846a60462ac55657748c4ffc90ffdc3884daff53
+    Size:   7160 bytes
+  generate-compliance.sh
+    SHA256: [REDACTED]
+    MD5:    d15cc7660b6d0609a142e7506f027c19
+    SHA1:   b5983cf9c1791c4f69bc475ffa5653ead318387d
+    Size:   7705 bytes
+  host-inventory-EXAMPLE.txt
+    SHA256: [REDACTED]
+    MD5:    e97cab3f77e6f09acfcf89d8f8737cb3
+    SHA1:   008c4d4d969f9be94fcc0bff53ec5279b1b9c420
+    Size:   4354 bytes
 
 =========================
 
@@ -380,7 +394,7 @@ Running: Secrets/Credentials Scan
 Secrets/Vulnerability Verification Scan
 ========================================
 Timestamp: 2026-01-15T[REDACTED]Z
-Toolkit: Security Verification Toolkit v0.0.0-test.20260115T195412Z-2-g978a1d3 (978a1d3)
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T200059Z-1-g135fe91 (135fe91)
 Target: /Users/[REDACTED]
 Repository: Security
 
@@ -420,7 +434,7 @@ Running: IEEE 802.3 MAC Address Scan
 IEEE 802.3 MAC Address Verification Scan
 =========================================
 Timestamp: 2026-01-15T[REDACTED]Z
-Toolkit: Security Verification Toolkit v0.0.0-test.20260115T195412Z-2-g978a1d3 (978a1d3)
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T200059Z-1-g135fe91 (135fe91)
 Target: /Users/[REDACTED]
 Repository: Security
 
@@ -445,7 +459,7 @@ Host OS Security Verification
 ==============================
 Timestamp: 2026-01-15T[REDACTED]Z
 Host: [REDACTED]
-Toolkit: Security Verification Toolkit v0.0.0-test.20260115T195412Z-2-g978a1d3 (978a1d3)
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T200059Z-1-g135fe91 (135fe91)
 Source: https://[REDACTED]/brucedombrowski/Security
 
 Running security configuration checks...
@@ -502,13 +516,13 @@ Results saved to: /Users/[REDACTED]
 Checksums: checksums.md
 
   clamav-log-2026-01-15.txt
-  host-inventory-2026-01-15-T200059Z.txt
-  host-security-scan-2026-01-15-T200059Z.txt
-  mac-address-scan-2026-01-15-T200059Z.txt
-  malware-scan-2026-01-15-T200059Z.txt
-  pii-scan-2026-01-15-T200059Z.txt
-  secrets-scan-2026-01-15-T200059Z.txt
-  security-scan-report-2026-01-15-T200059Z.txt
+  host-inventory-2026-01-15-T202839Z.txt
+  host-security-scan-2026-01-15-T202839Z.txt
+  mac-address-scan-2026-01-15-T202839Z.txt
+  malware-scan-2026-01-15-T202839Z.txt
+  pii-scan-2026-01-15-T202839Z.txt
+  secrets-scan-2026-01-15-T202839Z.txt
+  security-scan-report-2026-01-15-T202839Z.txt
 Generating PDF attestation...
-  scan-attestation-2026-01-15-T200059Z.pdf
+  scan-attestation-2026-01-15-T202839Z.pdf
 

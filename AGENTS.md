@@ -29,7 +29,10 @@ Security/
 │   ├── check-malware.sh         # ClamAV malware scanning (with DB auto-update)
 │   ├── check-secrets.sh         # Secrets/credentials detection
 │   ├── check-mac-addresses.sh   # IEEE 802.3 MAC address scan
-│   └── check-host-security.sh   # Host OS security verification
+│   ├── check-host-security.sh   # Host OS security verification
+│   ├── scan-vulnerabilities.sh  # Comprehensive vuln scanning (Nmap/OpenVAS/Lynis)
+│   ├── secure-delete.sh         # NIST SP 800-88 secure file deletion
+│   └── purge-git-history.sh     # Remove sensitive files from git history
 └── templates/
     ├── scan_attestation.tex         # Generic attestation LaTeX template
     ├── security_compliance_statement.tex  # Project-specific compliance template
@@ -70,6 +73,9 @@ Each script maps to specific NIST 800-53 controls:
 - `check-secrets.sh` → SA-11 (Developer Testing)
 - `check-mac-addresses.sh` → SC-8 (Transmission Confidentiality)
 - `check-host-security.sh` → CM-6 (Configuration Settings)
+- `scan-vulnerabilities.sh` → RA-5, SI-2, SI-4, CA-2 (Vulnerability Assessment)
+- `secure-delete.sh` → MP-6 (Media Sanitization, NIST SP 800-88)
+- `purge-git-history.sh` → MP-6, SI-12 (Sanitization of version control)
 
 ## Adding New Scans
 
@@ -155,6 +161,92 @@ Project-specific compliance document requiring manual curation:
 - Certificate handling documentation
 - Security controls description
 - Formal certification statement
+
+## Vulnerability Scanning (scan-vulnerabilities.sh)
+
+The `scan-vulnerabilities.sh` script provides comprehensive vulnerability assessment using open-source tools with full NIST compliance mapping.
+
+### Supported Tools
+
+| Tool | Purpose | NIST Controls |
+|------|---------|---------------|
+| **Nmap** | Network scanning, port discovery, service detection | RA-5, SI-4, CM-8, SC-7 |
+| **OpenVAS/GVM** | Vulnerability assessment, CVE detection | RA-5, SI-2, RA-3 |
+| **Lynis** | System security auditing, configuration review | SI-7, CM-6, CA-2 |
+
+### NIST SP 800-53 Rev 5 Control Mapping
+
+| Control | Family | Description | Implementation |
+|---------|--------|-------------|----------------|
+| RA-3 | Risk Assessment | Risk Assessment | All tools contribute to risk assessment |
+| RA-5 | Risk Assessment | Vulnerability Monitoring and Scanning | Nmap + OpenVAS network/vuln scanning |
+| CA-2 | Assessment | Control Assessments | Lynis system audit |
+| CA-7 | Assessment | Continuous Monitoring | Scheduled scan capability |
+| SI-2 | System Integrity | Flaw Remediation | OpenVAS CVE identification |
+| SI-4 | System Integrity | System Monitoring | Nmap service monitoring |
+| SI-7 | System Integrity | Software/Firmware Integrity | Lynis integrity checks |
+| CM-6 | Configuration Mgmt | Configuration Settings | Lynis configuration audit |
+| CM-8 | Configuration Mgmt | System Component Inventory | Nmap service inventory |
+| SC-7 | Comms Protection | Boundary Protection | Nmap firewall/port analysis |
+| SA-11 | Services Acquisition | Developer Testing | All tools for security testing |
+
+### NIST SP 800-171 Rev 2 Control Mapping
+
+| Control | Requirement | Implementation |
+|---------|-------------|----------------|
+| 3.11.1 | Periodically assess risk | All scan tools |
+| 3.11.2 | Scan for vulnerabilities periodically | Nmap + OpenVAS |
+| 3.11.3 | Remediate vulnerabilities per risk | OpenVAS findings |
+| 3.12.1 | Assess security controls periodically | Lynis audit |
+| 3.12.3 | Monitor security controls ongoing | All tools |
+| 3.14.1 | Identify, report, correct flaws | OpenVAS + Lynis |
+| 3.14.6 | Monitor to detect attacks | Nmap monitoring |
+| 3.14.7 | Identify unauthorized system use | Nmap service detection |
+
+### FIPS 199/200 Alignment
+
+**FIPS 199 Impact Assessment:**
+- Confidentiality: Scan results may reveal network topology (handle as sensitive)
+- Integrity: Verifies system configuration integrity via Lynis
+- Availability: Identifies services affecting system availability
+
+**FIPS 200 Minimum Security Requirements:**
+- Risk Assessment (RA) - Verified
+- Security Assessment and Authorization (CA) - Verified
+- System and Information Integrity (SI) - Verified
+- Configuration Management (CM) - Verified
+
+### Usage Examples
+
+```bash
+# Full scan of localhost (all available tools)
+./scripts/scan-vulnerabilities.sh
+
+# Network scan of specific target
+./scripts/scan-vulnerabilities.sh 192.168.1.0/24
+
+# Quick scan (reduced thoroughness)
+./scripts/scan-vulnerabilities.sh -q 10.0.0.1
+
+# Nmap only
+./scripts/scan-vulnerabilities.sh -n 192.168.1.1
+
+# Lynis system audit only
+./scripts/scan-vulnerabilities.sh -l
+
+# Full scan with sudo (recommended for comprehensive results)
+sudo ./scripts/scan-vulnerabilities.sh
+```
+
+### Output Files
+
+Scan results are saved to `.scans/` with timestamps:
+- `vulnerability-scan-TIMESTAMP.txt` - Consolidated report with NIST mapping
+- `nmap-TIMESTAMP.txt` - Nmap text output
+- `nmap-TIMESTAMP.xml` - Nmap XML output (for further processing)
+- `lynis-TIMESTAMP.txt` - Lynis audit log
+- `lynis-TIMESTAMP-report.dat` - Lynis machine-readable report
+- `openvas-TIMESTAMP.xml` - OpenVAS results (when available)
 
 ## Future Enhancements
 
