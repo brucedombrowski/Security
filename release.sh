@@ -160,22 +160,6 @@ run_scans() {
     return 0
 }
 
-# Generate compliance statement
-generate_compliance() {
-    print_info "Generating compliance statement..."
-    
-    if ! command -v pdflatex &> /dev/null; then
-        print_warning "pdflatex not available, skipping PDF generation"
-        return 0
-    fi
-    
-    if ! "$REPO_ROOT/scripts/generate-compliance.sh" "$REPO_ROOT" "$REPO_ROOT"; then
-        print_warning "Compliance statement generation completed with findings"
-    else
-        print_success "Compliance statement generated"
-    fi
-}
-
 # Create redacted examples
 create_examples() {
     print_info "Creating redacted example files..."
@@ -302,14 +286,12 @@ main() {
     check_dependencies
     
     # Run tests unless skipped
+    # Note: run_scans calls run-all-scans.sh which already generates PDF attestation
+    # Do NOT call generate_compliance here - it would re-run scans and delete .scans/
     if [ "$skip_tests" != "--skip-tests" ]; then
         if ! run_scans; then
             print_error "Security scans failed"
             exit 1
-        fi
-        
-        if ! generate_compliance; then
-            print_warning "Compliance generation had issues (continuing anyway)"
         fi
     else
         print_info "Skipping security tests (--skip-tests flag)"
