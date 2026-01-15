@@ -160,6 +160,30 @@ log "========================================================"
 log ""
 log "Results saved to: $SCANS_DIR/"
 log ""
+
+# Generate checksums.md for all scan output files
+CHECKSUMS_FILE="$SCANS_DIR/checksums.md"
+{
+    echo "# Scan Output Checksums"
+    echo ""
+    echo "Generated: $TIMESTAMP"
+    echo ""
+    echo "SHA256 checksums for scan result files:"
+    echo ""
+    echo "\`\`\`"
+    cd "$SCANS_DIR"
+    for f in *.txt; do
+        if [ -f "$f" ]; then
+            shasum -a 256 "$f"
+        fi
+    done
+    echo "\`\`\`"
+    echo ""
+    echo "Verify with: \`cd .scans && shasum -a 256 -c checksums.md\`"
+} > "$CHECKSUMS_FILE"
+
+log "Checksums: checksums.md"
+log ""
 ls -1 "$SCANS_DIR"/*.txt 2>/dev/null | while read f; do
     log "  $(basename "$f")"
 done
