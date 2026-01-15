@@ -23,6 +23,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SECURITY_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Toolkit identification
+TOOLKIT_VERSION=$(git -C "$SECURITY_REPO_DIR" describe --tags --always 2>/dev/null || echo "unknown")
+TOOLKIT_COMMIT=$(git -C "$SECURITY_REPO_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # Allow target directory to be specified as argument
 if [ -n "$1" ]; then
@@ -167,8 +172,11 @@ CHECKSUMS_FILE="$SCANS_DIR/checksums.md"
     echo "# Scan Output Checksums"
     echo ""
     echo "Generated: $TIMESTAMP"
+    echo "Toolkit: Security Verification Toolkit $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
+    echo "Source: https://github.com/brucedombrowski/Security"
+    echo "Target: $TARGET_DIR"
     echo ""
-    echo "SHA256 checksums for scan result files:"
+    echo "## SHA256 Checksums"
     echo ""
     echo "\`\`\`"
     cd "$SCANS_DIR"
@@ -179,7 +187,13 @@ CHECKSUMS_FILE="$SCANS_DIR/checksums.md"
     done
     echo "\`\`\`"
     echo ""
-    echo "Verify with: \`cd .scans && shasum -a 256 -c checksums.md\`"
+    echo "## Verification"
+    echo ""
+    echo "To verify integrity of scan results:"
+    echo ""
+    echo "\`\`\`bash"
+    echo "cd .scans && shasum -a 256 -c checksums.md"
+    echo "\`\`\`"
 } > "$CHECKSUMS_FILE"
 
 log "Checksums: checksums.md"
