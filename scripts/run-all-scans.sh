@@ -65,8 +65,8 @@ FILE_TIMESTAMP=$(date -u "+%Y-%m-%dT%H%M%SZ")
 SCANS_DIR="$TARGET_DIR/.scans"
 mkdir -p "$SCANS_DIR"
 
-# Consolidated report file
-REPORT_FILE="$SCANS_DIR/security-scan-report-$DATE_STAMP.txt"
+# Consolidated report file (using FILE_TIMESTAMP for unique UTC-timestamped filenames)
+REPORT_FILE="$SCANS_DIR/security-scan-report-$FILE_TIMESTAMP.txt"
 REPO_NAME=$(basename "$TARGET_DIR")
 
 # Function to output to both console and file
@@ -92,7 +92,7 @@ log ""
 # ============================================================================
 # HOST INVENTORY COLLECTION (First step - creates verifiable thumbprint)
 # ============================================================================
-INVENTORY_FILE="$SCANS_DIR/host-inventory-$DATE_STAMP.txt"
+INVENTORY_FILE="$SCANS_DIR/host-inventory-$FILE_TIMESTAMP.txt"
 INVENTORY_SCRIPT="$SCRIPT_DIR/collect-host-inventory.sh"
 
 log "Collecting Host Inventory..."
@@ -104,7 +104,7 @@ if [ -x "$INVENTORY_SCRIPT" ]; then
     # Calculate checksum of inventory file
     INVENTORY_CHECKSUM=$(shasum -a 256 "$INVENTORY_FILE" | awk '{print $1}')
 
-    log "  Host inventory collected: host-inventory-$DATE_STAMP.txt"
+    log "  Host inventory collected: host-inventory-$FILE_TIMESTAMP.txt"
     log "  Inventory SHA256: $INVENTORY_CHECKSUM"
     log ""
     log "  All subsequent scans reference this inventory snapshot."
@@ -217,31 +217,31 @@ run_scan() {
 run_scan "PII Pattern Scan" \
     "$SCRIPT_DIR/check-pii.sh $INTERACTIVE_FLAG" \
     "NIST 800-53: SI-12 (Information Management)" \
-    "pii-scan-$DATE_STAMP.txt" \
+    "pii-scan-$FILE_TIMESTAMP.txt" \
     "PII_RESULT" "PII_FINDINGS"
 
 run_scan "Malware Scan (ClamAV)" \
     "$SCRIPT_DIR/check-malware.sh" \
     "NIST 800-53: SI-3 (Malicious Code Protection)" \
-    "malware-scan-$DATE_STAMP.txt" \
+    "malware-scan-$FILE_TIMESTAMP.txt" \
     "MALWARE_RESULT" "MALWARE_FINDINGS"
 
 run_scan "Secrets/Credentials Scan" \
     "$SCRIPT_DIR/check-secrets.sh $INTERACTIVE_FLAG" \
     "NIST 800-53: SA-11 (Developer Testing)" \
-    "secrets-scan-$DATE_STAMP.txt" \
+    "secrets-scan-$FILE_TIMESTAMP.txt" \
     "SECRETS_RESULT" "SECRETS_FINDINGS"
 
 run_scan "IEEE 802.3 MAC Address Scan" \
     "$SCRIPT_DIR/check-mac-addresses.sh" \
     "NIST 800-53: SC-8 (Transmission Confidentiality)" \
-    "mac-address-scan-$DATE_STAMP.txt" \
+    "mac-address-scan-$FILE_TIMESTAMP.txt" \
     "MAC_RESULT" "MAC_FINDINGS"
 
 run_scan "Host Security Configuration" \
     "$SCRIPT_DIR/check-host-security.sh" \
     "NIST 800-53: CM-6 (Configuration Settings)" \
-    "host-security-scan-$DATE_STAMP.txt" \
+    "host-security-scan-$FILE_TIMESTAMP.txt" \
     "HOST_RESULT" "HOST_FINDINGS"
 
 log "========================================================"
@@ -287,7 +287,7 @@ CHECKSUMS_FILE="$SCANS_DIR/checksums.md"
     echo ""
     echo "\`\`\`"
     echo "SHA256: $INVENTORY_CHECKSUM"
-    echo "File:   host-inventory-$DATE_STAMP.txt"
+    echo "File:   host-inventory-$FILE_TIMESTAMP.txt"
     echo "\`\`\`"
     echo ""
     echo "**Note:** The host inventory contains sensitive information (MAC addresses,"
@@ -364,13 +364,14 @@ if [ -n "$PDFLATEX" ] && [ -x "$PDFLATEX" ] && [ -f "$TEMPLATE_FILE" ]; then
         -e "s/SCAN-YYYY-NNN/$UNIQUE_ID/g" \
         -e "s/January 15, 2026/$FORMATTED_DATE/g" \
         -e "s/2026-01-15 08:00:00/$TIMESTAMP/g" \
+        -e "s/2026-01-15T000000Z/$FILE_TIMESTAMP/g" \
         -e "s/2026-01-15/$DATE_STAMP/g" \
         -e "s/ProjectName/$REPO_NAME/g" \
         -e "s|/path/to/project|$ESCAPED_TARGET_PATH|g" \
         -e "s/v1.0.0/$TOOLKIT_VERSION/g" \
         -e "s/abc1234/$TOOLKIT_COMMIT/g" \
         -e "s/0000000000000000000000000000000000000000000000000000000000000000/$INVENTORY_CHECKSUM_SHORT/g" \
-        -e "s/host-inventory-2026-01-15.txt/host-inventory-$DATE_STAMP.txt/g" \
+        -e "s/host-inventory-2026-01-15.txt/host-inventory-$FILE_TIMESTAMP.txt/g" \
         -e "s/\\\\newcommand{\\\\PIIScanResult}{PASS}/\\\\newcommand{\\\\PIIScanResult}{$PII_RESULT}/g" \
         -e "s/\\\\newcommand{\\\\PIIScanFindings}{No PII detected}/\\\\newcommand{\\\\PIIScanFindings}{$PII_FINDINGS}/g" \
         -e "s/\\\\newcommand{\\\\MalwareScanResult}{PASS}/\\\\newcommand{\\\\MalwareScanResult}{$MALWARE_RESULT}/g" \
