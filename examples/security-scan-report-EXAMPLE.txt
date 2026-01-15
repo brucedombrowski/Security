@@ -1,0 +1,694 @@
+################################################################################
+#                                                                              #
+#                         REDACTED EXAMPLE FILE                                #
+#                                                                              #
+#  This file has been automatically redacted for public distribution.          #
+#  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
+#  has been replaced with [REDACTED] placeholders.                             #
+#                                                                              #
+#  Source SHA256:    44c401f20fa85893...                                       #
+#  Redaction Script: scripts/redact-examples.sh                                #
+#  Script SHA256:    15d7fcde1bd1d406...                                       #
+#  Redacted:         2026-01-15T21:08:26Z                                       #
+#                                                                              #
+################################################################################
+
+
+========================================================
+Security Verification Suite
+========================================================
+Timestamp: 2026-01-15T[REDACTED]Z
+Target: /Users/[REDACTED]
+Repository: Security
+Report: /Users/[REDACTED]
+
+========================================================
+
+Collecting Host Inventory...
+-----------------------------
+  Host inventory collected: host-inventory-2026-01-15-T210750Z.txt
+  Inventory SHA256: [REDACTED]
+
+  All subsequent scans reference this inventory snapshot.
+
+========================================================
+
+Running: PII Pattern Scan
+  Control: NIST 800-53: SI-12 (Information Management)
+  Host Inventory Reference: [CHECKSUM_REDACTED]
+PII Verification Scan
+=====================
+Timestamp: 2026-01-15T[REDACTED]Z
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T210403Z-2-g26f251c (26f251c)
+Target: /Users/[REDACTED]
+Repository: Security
+
+Checking: IPv4 Addresses
+/Users/[REDACTED] [REDACTED]/24
+/Users/[REDACTED] -q [REDACTED]
+/Users/[REDACTED] -n [REDACTED]
+/Users/[REDACTED]    # Redact IPv4 addresses (space or colon before, preserves OIDs like [REDACTED])
+/Users/[REDACTED]     Default: localhost (127.0.0.1)
+/Users/[REDACTED]
+/Users/[REDACTED]  IP address, hostname, or CIDR range (default: [REDACTED])
+/Users/[REDACTED]  $0 [REDACTED]/24            # Scan network range
+/Users/[REDACTED]  $0 -n [REDACTED]               # Nmap only on specific host
+/Users/[REDACTED]  $0 -q [REDACTED]            # Quick scan of specific host
+  Result: REVIEW - 15 new match(es) found
+  ... and 5 more
+  (7 previously allowlisted)
+Checking: US Phone Numbers (dashed)
+  Result: PASS (0 matches)
+Checking: US Phone Numbers (dotted)
+  Result: PASS (0 matches)
+Checking: US Phone Numbers (parenthetical)
+  Result: PASS (0 matches)
+Checking: Social Security Numbers
+  Result: PASS (0 matches)
+Checking: Credit Card Numbers (16 digit)
+/Users/[REDACTED]      "Bash(line='#  Source SHA256:    1234567890123456...                                     #')",
+  Result: REVIEW - 1 new match(es) found
+  (3 previously allowlisted)
+
+=====================
+Allowlist: /Users/[REDACTED] (13 entries)
+
+OVERALL RESULT: REVIEW REQUIRED
+Potential PII patterns detected. Manual review required.
+
+Run with -i flag for interactive review:
+  /Users/[REDACTED] -i /Users/[REDACTED]
+  Status: FAIL
+
+--------------------------------------------------------
+
+Running: Malware Scan (ClamAV)
+  Control: NIST 800-53: SI-3 (Malicious Code Protection)
+  Host Inventory Reference: [CHECKSUM_REDACTED]
+Attempting to update ClamAV virus database...
+  Database update: SUCCESS
+
+Malware Verification Scan
+=========================
+Timestamp: 2026-01-15T[REDACTED]Z
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T210403Z-2-g26f251c (26f251c)
+Source: https://[REDACTED]/brucedombrowski/Security
+Scanner: ClamAV 1.5.1/27881/Thu Jan 15 [REDACTED] 2026
+Target: /Users/[REDACTED]
+Repository: Security
+
+Virus Database Information:
+  Database Location: /opt/homebrew/var/lib/clamav
+  Main DB: Version 63, Built 16 Dec 2025 23:18 +0000 (3287027 signatures)
+  Daily DB: Version 27881, Built 15 Jan 2026 07:25 +0000 (354802 signatures) [incremental]
+  Bytecode DB: Version 339, Built 11 Sep 2025 08:29 -0400 (80 signatures)
+
+Running ClamAV scan with verbose output and hash generation...
+
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+/Users/[REDACTED] Excluded
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+Scanning /Users/[REDACTED]
+/Users/[REDACTED] OK
+/Users/[REDACTED] Excluded
+
+----------- SCAN SUMMARY -----------
+Known viruses: 3627218
+Engine version: [REDACTED]
+Scanned directories: 4
+Scanned files: 28
+Infected files: 0
+Data scanned: 449.73 KiB
+Data read: 239.24 KiB (ratio 1.88:1)
+Time: 5.361 sec (0 m 5 s)
+Start Date: [REDACTED] [REDACTED]
+End Date:   [REDACTED] [REDACTED]
+
+File Hash Manifest:
+-------------------
+  check-mac-addresses.sh
+    SHA256: [REDACTED]
+    MD5:    96a5fff5389be661584fe22cfeb2e213
+    SHA1:   799281ec949adcc68311648bc71024764b2199c3
+    Size:   3795 bytes
+  [REDACTED].json
+    SHA256: [REDACTED]
+    MD5:    937c4257b56761d91e17d06aa5312be6
+    SHA1:   1ed7730c53625409c3641d5cda1101fe069e0f2c
+    Size:   5309 bytes
+  COMPLIANCE.md
+    SHA256: [REDACTED]
+    MD5:    911706a8123ad80177aa16f85dc3a2e3
+    SHA1:   f9e37633d269a5a9d28df1944a5d10efed25bfc0
+    Size:   7149 bytes
+  run-all-scans.sh
+    SHA256: [REDACTED]
+    MD5:    1317c786be6d93277b57d4dd60aa6554
+    SHA1:   8d99a7140f73512fbc1b57746f47570da22ca482
+    Size:   13355 bytes
+  README.md
+    SHA256: [REDACTED]
+    MD5:    34689cc301b19d0493003439f51b2934
+    SHA1:   e4d3c27de1304bc3f3f7686cf86401e75e32500b
+    Size:   10702 bytes
+  check-secrets.sh
+    SHA256: [REDACTED]
+    MD5:    f93915dfba5032137fa947a13286e4e0
+    SHA1:   41741591ef3051473d0b2dbfdadba495a751749b
+    Size:   13858 bytes
+  .secrets-allowlist
+    SHA256: [REDACTED]
+    MD5:    fc4346df18c0c1d160e243f74ba7c2b5
+    SHA1:   c90ec8a74349cb414ca16d7a9a46df340955ac93
+    Size:   714 bytes
+  scan-vulnerabilities.sh
+    SHA256: [REDACTED]
+    MD5:    8b29633e2fb620a4c87383fb8ad478c0
+    SHA1:   b7d1e9507f40dd416b8bc5ff3afc1c4911f7fbb9
+    Size:   30539 bytes
+  settings.json
+    SHA256: [REDACTED]
+    MD5:    7f4394d4c7e67549340312d60cd11986
+    SHA1:   983741cbdef6f2ec706aa07efa49c22985c1aba0
+    Size:   78 bytes
+  collect-host-inventory.sh
+    SHA256: [REDACTED]
+    MD5:    18932a1fb468f30a9609c6661a7ac0b5
+    SHA1:   9e4fd3b91a49494885775bc772b6cdf572aa03be
+    Size:   11567 bytes
+  logo.png
+    SHA256: [REDACTED]
+    MD5:    315dfafe5b28dccdf1164bbb1b9ab7a3
+    SHA1:   4b2cbe3a3f4ab9f8f00a9e90c563643ba2c269ef
+    Size:   3007 bytes
+  redact-examples.sh
+    SHA256: [REDACTED]
+    MD5:    82729599945db664ef7e7e6253d94884
+    SHA1:   369af5ec39860b0f9c00a7109aeeeeea94a0aaff
+    Size:   12237 bytes
+  check-pii.sh
+    SHA256: [REDACTED]
+    MD5:    e9a1955ca77c2b4b66b4031828decb72
+    SHA1:   be937468446306f7bca8c0fd0bc5ee4ed43b3bf9
+    Size:   15034 bytes
+  LICENSE
+    SHA256: [REDACTED]
+    MD5:    68260813fc6e3c86b7bfa3271daaff45
+    SHA1:   9f7da6567a3bce6ebe5a8d3e53e2a4b58235b90c
+    Size:   1073 bytes
+  secure-delete.sh
+    SHA256: [REDACTED]
+    MD5:    75bc7da70027474b9b8991948cc888f5
+    SHA1:   846a60462ac55657748c4ffc90ffdc3884daff53
+    Size:   7160 bytes
+  security_compliance_statement.tex
+    SHA256: [REDACTED]
+    MD5:    50df02f9a06487e47e7d4ac9aed9d948
+    SHA1:   f64afe3ba7d17f7b2945119aa89cede913122e78
+    Size:   11223 bytes
+  scan_attestation.tex
+    SHA256: [REDACTED]
+    MD5:    3603d6c70865f4a75b83e6709c977baa
+    SHA1:   1896409d81935c778eefc931630be393def79539
+    Size:   12787 bytes
+  generate-compliance.sh
+    SHA256: [REDACTED]
+    MD5:    d15cc7660b6d0609a142e7506f027c19
+    SHA1:   b5983cf9c1791c4f69bc475ffa5653ead318387d
+    Size:   7705 bytes
+  .DS_Store
+    SHA256: [REDACTED]
+    MD5:    9a76174853102a1021c8e12b4023ba47
+    SHA1:   49abe6e1f0ac003b84789e264bcadb9998819afe
+    Size:   6148 bytes
+  .gitignore
+    SHA256: [REDACTED]
+    MD5:    fac923b92912093c935ee65cc52b7c19
+    SHA1:   fa6b5162de161dfbbcc0fdc426ff2715f8da1807
+    Size:   368 bytes
+  check-malware.sh
+    SHA256: [REDACTED]
+    MD5:    1b4994c40cf1984281d009144dcfebb1
+    SHA1:   a5f232642ece093fcff0bacb7df4bae4cbffaa0b
+    Size:   11245 bytes
+  check-host-security.sh
+    SHA256: [REDACTED]
+    MD5:    7aa3bfc79913566419ccfe16a60caf95
+    SHA1:   ab6dbe9ebadabd9ec18b907ddf815bb4db895ad2
+    Size:   4755 bytes
+  .pii-allowlist
+    SHA256: [REDACTED]
+    MD5:    21bb9120cf7360b4e0599d1e6c14283d
+    SHA1:   36e68d4ea6e9e57ae7536641c958757bf4fd0fce
+    Size:   2742 bytes
+  generate-scan-attestation.sh
+    SHA256: [REDACTED]
+    MD5:    d57e70cbd58582396223354d969ff347
+    SHA1:   d1c02ccc4530677e9846c95303502cf794f8648d
+    Size:   14764 bytes
+  AGENTS.md
+    SHA256: [REDACTED]
+    MD5:    4507d1df608bbe9f1027cd983dd4c921
+    SHA1:   84b79e701e2bb723323b149f714cd8552d63a293
+    Size:   12311 bytes
+  release.sh
+    SHA256: [REDACTED]
+    MD5:    de2760ab74864f52ab4249c63e155aea
+    SHA1:   129d2c2394c927026562f26f5a9ba29fab0b1916
+    Size:   8851 bytes
+  CHANGELOG.md
+    SHA256: [REDACTED]
+    MD5:    7724f80e5321111ae058446983895de0
+    SHA1:   e34f7c837230bafb7633165946836cbb34ab2fa7
+    Size:   11098 bytes
+  purge-git-history.sh
+    SHA256: [REDACTED]
+    MD5:    756439147167c7ce2b47c6fe586c53d4
+    SHA1:   ffe2f03247180938b6c29ec8ebfd3b4200bc1ba4
+    Size:   5406 bytes
+
+=========================
+
+Scan Artifacts:
+  ClamAV Log: /Users/[REDACTED]
+  JSON Metadata: /Users/[REDACTED]
+
+=========================
+RESULT: PASS
+No malware detected.
+  Status: PASS
+
+--------------------------------------------------------
+
+Running: Secrets/Credentials Scan
+  Control: NIST 800-53: SA-11 (Developer Testing)
+  Host Inventory Reference: [CHECKSUM_REDACTED]
+Secrets/Vulnerability Verification Scan
+========================================
+Timestamp: 2026-01-15T[REDACTED]Z
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T210403Z-2-g26f251c (26f251c)
+Target: /Users/[REDACTED]
+Repository: Security
+
+Checking: AWS Access Keys [CRITICAL]
+  Result: PASS (0 matches)
+Checking: AWS Secret Keys [CRITICAL]
+  Result: PASS (0 matches)
+Checking: Generic API Keys [HIGH]
+  Result: PASS (0 matches)
+Checking: Private Keys [CRITICAL]
+  Result: PASS (0 matches)
+Checking: Database Connection Strings [CRITICAL]
+  Result: PASS (0 matches)
+Checking: Hardcoded Passwords [HIGH]
+  Result: PASS (0 matches)
+Checking: Bearer Tokens [HIGH]
+  Result: PASS (0 matches)
+Checking: GitHub Tokens [CRITICAL]
+  Result: PASS (0 matches)
+Checking: Slack Tokens [HIGH]
+  Result: PASS (0 matches)
+Checking: Shell Command Injection [MEDIUM]
+  Result: PASS (3 allowlisted)
+
+========================================
+Allowlist: /Users/[REDACTED] (3 entries)
+
+OVERALL RESULT: PASS
+No secrets or vulnerabilities detected.
+  Status: PASS
+
+--------------------------------------------------------
+
+Running: IEEE 802.3 MAC Address Scan
+  Control: NIST 800-53: SC-8 (Transmission Confidentiality)
+  Host Inventory Reference: [CHECKSUM_REDACTED]
+IEEE 802.3 MAC Address Verification Scan
+=========================================
+Timestamp: 2026-01-15T[REDACTED]Z
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T210403Z-2-g26f251c (26f251c)
+Target: /Users/[REDACTED]
+Repository: Security
+
+Checking: Colon-Separated (XX:XX:XX:XX:XX:XX)
+  Result: PASS (0 matches)
+Checking: Dash-Separated (XX-XX-XX-XX-XX-XX)
+  Result: PASS (0 matches)
+Checking: Cisco Format (XXXX.XXXX.XXXX)
+  Result: PASS (0 matches)
+
+=========================================
+OVERALL RESULT: PASS
+No MAC addresses detected.
+  Status: PASS
+
+--------------------------------------------------------
+
+Running: Host Security Configuration
+  Control: NIST 800-53: CM-6 (Configuration Settings)
+  Host Inventory Reference: [CHECKSUM_REDACTED]
+Host OS Security Verification
+==============================
+Timestamp: 2026-01-15T[REDACTED]Z
+Host: [REDACTED]
+Toolkit: Security Verification Toolkit v0.0.0-test.20260115T210403Z-2-g26f251c (26f251c)
+Source: https://[REDACTED]/brucedombrowski/Security
+
+Running security configuration checks...
+
+Checking: System Integrity Protection (SIP)
+  Result: PASS
+Checking: FileVault Disk Encryption
+  Result: PASS
+Checking: macOS Application Firewall
+  Result: PASS
+Checking: Gatekeeper
+  Result: PASS
+Checking: XProtect Malware Definitions
+  Result: PASS
+Checking: Pending Security Updates
+  Result: PASS (no security updates pending)
+Checking: SSH Agent
+  Result: PASS
+
+==============================
+
+Host Inventory Reference:
+-------------------------
+  Host inventory is collected separately by collect-host-inventory.sh
+  This keeps sensitive data (MAC addresses, serial numbers) in a dedicated file.
+  Run: /Users/[REDACTED] [output_file]
+
+==============================
+
+OVERALL RESULT: PASS
+All security checks passed.
+  Status: PASS
+
+--------------------------------------------------------
+
+Running: Vulnerability Scan (Nmap/Lynis)
+  Control: NIST 800-53: RA-5 (Vulnerability Scanning), SI-2 (Flaw Remediation)
+  Host Inventory Reference: [CHECKSUM_REDACTED]
+
+================================================================================
+                    VULNERABILITY SCANNING REPORT
+================================================================================
+
+  Scan Timestamp:  2026-01-15T210806Z
+  Target:          [REDACTED]
+  Scan Mode:       quick
+  Hostname: [REDACTED]
+  Toolkit:         Security Verification Toolkit v0.0.0-test.20260115T210403Z-2-g26f251c (26f251c)
+  Source:          https://[REDACTED]/brucedombrowski/Security
+
+================================================================================
+
+Checking dependencies...
+
+[0;32m[PASS][0m nmap: found
+[0;32m[PASS][0m lynis: found
+
+[1;33m[WARN][0m Optional tools not found: openvas/gvm
+         Install for more comprehensive scanning.
+[0;34m[INFO][0m Output directory: /Users/[REDACTED]
+[0;34m[INFO][0m Report file: /Users/[REDACTED]
+
+
+================================================================================
+NMAP NETWORK VULNERABILITY SCAN
+================================================================================
+
+NIST Controls:
+  - RA-5: Vulnerability Monitoring and Scanning
+  - SI-4: System Monitoring
+  - CM-8: System Component Inventory
+  - SC-7: Boundary Protection
+
+NIST SP 800-171:
+  - 3.11.2: Scan for vulnerabilities periodically
+  - 3.14.6: Monitor systems to detect attacks
+  - 3.14.7: Identify unauthorized use of systems
+
+Target: [REDACTED]
+
+[0;34m[INFO][0m Running quick Nmap scan (top 100 ports)...
+[1;33m[WARN][0m Running unprivileged scan (TCP connect only)
+[1;33m[WARN][0m Localhost TCP connect scan may show 'Strange read error' - this is a known Nmap issue
+
+Starting Nmap 7.98 ( https://[REDACTED] ) at 2026-01-15 15:08 -0600
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.000069s latency).
+Not shown: 99 closed tcp ports (conn-refused)
+PORT     STATE SERVICE VERSION
+5000/tcp open  rtsp
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://[REDACTED]/cgi-bin/submit.cgi?new-service :
+SF-Port5000-TCP:V=7.98%I=7%D=1/15%Time=6969573D%P=arm-apple-darwin25.0.0%r
+SF:(GetRequest,91,"HTTP/1\.1\x20403\x20Forbidden\r\nContent-Length:\x200\r
+SF:\nServer:\x20AirTunes/920\.10\.1\r\nX-Apple-ProcessingTime:\x200\r\nX-A
+SF:pple-RequestReceivedTimestamp:\x201422591501\r\n\r\n")%r(RTSPRequest,91
+SF:,"RTSP/1\.0\x20403\x20Forbidden\r\nContent-Length:\x200\r\nServer:\x20A
+SF:irTunes/920\.10\.1\r\nX-Apple-ProcessingTime:\x200\r\nX-Apple-RequestRe
+SF:ceivedTimestamp:\x201422591523\r\n\r\n")%r(HTTPOptions,91,"HTTP/1\.1\x2
+SF:0403\x20Forbidden\r\nContent-Length:\x200\r\nServer:\x20AirTunes/920\.1
+SF:0\.1\r\nX-Apple-ProcessingTime:\x200\r\nX-Apple-RequestReceivedTimestam
+SF:p:\x201422596525\r\n\r\n")%r(FourOhFourRequest,91,"HTTP/1\.1\x20403\x20
+SF:Forbidden\r\nContent-Length:\x200\r\nServer:\x20AirTunes/920\.10\.1\r\n
+SF:X-Apple-ProcessingTime:\x200\r\nX-Apple-RequestReceivedTimestamp:\x2014
+SF:22596535\r\n\r\n")%r(SIPOptions,A3,"RTSP/1\.0\x20403\x20Forbidden\r\nCo
+SF:ntent-Length:\x200\r\nServer:\x20AirTunes/920\.10\.1\r\nCSeq:\x2042\x20
+SF:OPTIONS\r\nX-Apple-ProcessingTime:\x200\r\nX-Apple-RequestReceivedTimes
+SF:tamp:\x201422596539\r\n\r\n");
+
+Service detection performed. Please report any incorrect results at https://[REDACTED]/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 18.65 seconds
+[0;32m[PASS][0m Nmap scan completed
+
+Results saved to:
+  Text: /Users/[REDACTED]
+  XML:  /Users/[REDACTED]
+
+--- Nmap Scan Summary ---
+
+Open ports found: 1
+Filtered ports: 0
+0
+
+Open ports and services:
+5000/tcp open  rtsp
+
+Security assessment:
+[0;32m[PASS][0m No obviously vulnerable services detected
+
+
+================================================================================
+LYNIS SYSTEM SECURITY AUDIT
+================================================================================
+
+NIST Controls:
+  - SI-7: Software, Firmware, and Information Integrity
+  - CM-6: Configuration Settings
+  - CA-2: Control Assessments
+
+NIST SP 800-171:
+  - 3.12.1: Periodically assess security controls
+  - 3.12.3: Monitor security controls on ongoing basis
+
+FIPS 200 Requirements:
+  - Configuration Management (CM)
+  - System and Information Integrity (SI)
+
+[0;34m[INFO][0m Running quick Lynis audit...
+[1;33m[WARN][0m Running without root - some checks will be skipped
+
+
+[ Lynis 3.1.6 ]
+
+################################################################################
+  Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
+  welcome to redistribute it under the terms of the GNU General Public License.
+  See the LICENSE file for details about using this software.
+
+  2007-2025, CISOfy - https://[REDACTED]/lynis/
+  Enterprise support available (compliance, plugins, interface and tools)
+################################################################################
+
+
+[+] Initializing program
+------------------------------------
+
+
+  Usage: lynis command [options]
+
+
+  Command:
+
+    audit
+        audit system                  : Perform local security scan
+        audit system remote <host>    : Remote security scan
+        audit dockerfile <file>       : Analyze Dockerfile
+
+    show
+        show                          : Show all commands
+        show version                  : Show Lynis version
+        show help                     : Show help
+
+    update
+        update info                   : Show update details
+
+
+  Options:
+
+    Alternative system audit modes
+    --forensics                       : Perform forensics on a running or mounted system
+    --pentest                         : Non-privileged, show points of interest for pentesting
+
+    Layout options
+    --no-colors                       : Don't use colors in output
+    --quiet (-q)                      : No output
+    --reverse-colors                  : Optimize color display for light backgrounds
+    --reverse-colours                 : Optimize colour display for light backgrounds
+
+    Misc options
+    --debug                           : Debug logging to screen
+    --no-log                          : Don't create a log file
+    --profile <profile>               : Scan the system with the given profile file
+    --view-manpage (--man)            : View man page
+    --verbose                         : Show more details on screen
+    --version (-V)                    : Display version number and quit
+    --wait                            : Wait between a set of tests
+    --slow-warning <seconds>  : Threshold for slow test warning in seconds (default 10)
+
+    Enterprise options
+    --plugindir <path>                : Define path of available plugins
+    --upload                          : Upload data to central node
+
+    More options available. Run '/opt/homebrew/bin/lynis show options', or use the man page.
+
+
+  Error: Invalid option '--no-wait'
+
+[0;32m[PASS][0m Lynis audit completed
+
+Results saved to:
+  Log:    /Users/[REDACTED]
+  Report: /Users/[REDACTED]
+
+--- Lynis Audit Summary ---
+
+
+Findings:
+  Warnings:    0
+0
+  Suggestions: 0
+0
+
+/Users/[REDACTED] line 682: [: 0
+0: integer expression expected
+
+================================================================================
+                         SCAN COMPLETION SUMMARY
+================================================================================
+
+Scans executed: 2
+Scans passed:   2
+
+Report saved to: /Users/[REDACTED]
+
+[0;32m[PASS][0m All scans completed successfully
+
+NIST Compliance Status:
+  RA-5 (Vulnerability Scanning): Executed
+  CA-2 (Control Assessment): Executed
+  SI-2 (Flaw Remediation): Findings documented
+  Status: PASS
+
+--------------------------------------------------------
+
+========================================================
+
+SCAN SUMMARY
+============
+Passed: 5
+Failed: 1
+
+OVERALL RESULT: FAIL
+
+1 scan(s) require attention.
+Review the output above for details.
+
+========================================================
+SCAN ARTIFACTS
+========================================================
+
+Results saved to: /Users/[REDACTED]
+
+Checksums: checksums.md
+
+  clamav-log-2026-01-15.txt
+  host-inventory-2026-01-15-T210750Z.txt
+  host-security-scan-2026-01-15-T210750Z.txt
+  lynis-2026-01-15T210806Z.txt
+  mac-address-scan-2026-01-15-T210750Z.txt
+  malware-scan-2026-01-15-T210750Z.txt
+  nmap-2026-01-15T210806Z.txt
+  pii-scan-2026-01-15-T210750Z.txt
+  secrets-scan-2026-01-15-T210750Z.txt
+  security-scan-report-2026-01-15-T210750Z.txt
+  vulnerability-scan-2026-01-15-T210750Z.txt
+  vulnerability-scan-2026-01-15T210806Z.txt
+Generating PDF attestation...
+  scan-attestation-2026-01-15-T210750Z.pdf
+

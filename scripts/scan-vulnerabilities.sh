@@ -606,10 +606,10 @@ run_lynis_audit() {
     echo "  - System and Information Integrity (SI)"
     echo ""
 
-    local lynis_args="--quick --no-colors --no-wait"
+    local lynis_args="--quick --no-colors"
 
     if [ "$SCAN_MODE" = "full" ]; then
-        lynis_args="--no-colors --no-wait"
+        lynis_args="--no-colors"
         log_info "Running comprehensive Lynis audit..."
     else
         log_info "Running quick Lynis audit..."
@@ -668,9 +668,12 @@ summarize_lynis_results() {
         fi
     fi
 
-    # Count warnings and suggestions
-    local warnings=$(grep -c "\[ warning \]" "$lynis_output" 2>/dev/null || echo "0")
-    local suggestions=$(grep -c "\[ suggestion \]" "$lynis_output" 2>/dev/null || echo "0")
+    # Count warnings and suggestions (use tr to strip any whitespace/newlines)
+    local warnings=$(grep -c "\[ warning \]" "$lynis_output" 2>/dev/null | tr -d '[:space:]')
+    local suggestions=$(grep -c "\[ suggestion \]" "$lynis_output" 2>/dev/null | tr -d '[:space:]')
+    # Default to 0 if empty
+    warnings="${warnings:-0}"
+    suggestions="${suggestions:-0}"
 
     echo ""
     echo "Findings:"
@@ -678,8 +681,8 @@ summarize_lynis_results() {
     echo "  Suggestions: $suggestions"
     echo ""
 
-    # Show top warnings
-    if [ "$warnings" -gt 0 ]; then
+    # Show top warnings (use numeric comparison with default)
+    if [ "${warnings:-0}" -gt 0 ] 2>/dev/null; then
         echo "Top warnings:"
         grep "\[ warning \]" "$lynis_output" | head -5
         echo ""
