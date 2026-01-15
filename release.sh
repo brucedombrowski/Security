@@ -241,16 +241,27 @@ print_summary() {
 main() {
     print_header
     
-    # If no version provided, generate a test release
-    local version="${1:-}"
+    # Parse arguments - handle flags and version
+    local version=""
+    local skip_tests=""
     
-    if [ -z "$version" ]; then
+    # Check first argument
+    if [ -z "$1" ]; then
+        # No arguments - generate test release
         version=$(generate_test_version)
         print_info "No version specified—generating test release: $version"
         echo ""
+    elif [ "$1" = "--skip-tests" ]; then
+        # Only flag provided - generate test release and skip tests
+        version=$(generate_test_version)
+        skip_tests="--skip-tests"
+        print_info "Generating test release with tests skipped: $version"
+        echo ""
+    else
+        # Version provided (may or may not have second argument)
+        version="$1"
+        skip_tests="${2:-}"
     fi
-    
-    local skip_tests="${2:-}"
     
     # Validate version
     if ! validate_version "$version"; then
