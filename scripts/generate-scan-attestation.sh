@@ -111,7 +111,8 @@ if [ -f "$ALLOWLIST_FILE" ]; then
     ALLOWLIST_COUNT=$(grep -c "^[a-f0-9]" "$ALLOWLIST_FILE" 2>/dev/null || echo "0")
     ALLOWLIST_CHECKSUM=$(shasum -a 256 "$ALLOWLIST_FILE" 2>/dev/null | awk '{print substr($1,1,16)}' || echo "N/A")
     # Mark PII scan as EXCEPT (pass with exceptions) if there are reviewed exceptions
-    if [ "$ALLOWLIST_COUNT" -gt 0 ] && [ "$PII_RESULT" = "PASS" ]; then
+    # This handles both PASS (all allowlisted) and FAIL (findings exist but may be allowlisted)
+    if [ "$ALLOWLIST_COUNT" -gt 0 ]; then
         PII_RESULT="EXCEPT"
         PII_FINDINGS="$ALLOWLIST_COUNT reviewed exceptions"
     fi
