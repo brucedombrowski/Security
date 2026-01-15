@@ -21,6 +21,10 @@ fi
 SOURCE_DIR="$1"
 OUTPUT_DIR="$2"
 
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+SCRIPT_CHECKSUM=$(shasum -a 256 "$SCRIPT_PATH" 2>/dev/null | awk '{print $1}')
+REDACTION_TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
 mkdir -p "$OUTPUT_DIR"
 
 # Clean up old example files (but preserve README.md)
@@ -28,10 +32,40 @@ echo "Cleaning old example files..."
 find "$OUTPUT_DIR" -name "*-EXAMPLE.txt" -type f -delete 2>/dev/null || true
 find "$OUTPUT_DIR" -name "*-EXAMPLE.pdf" -type f -delete 2>/dev/null || true
 
+# Generate redaction banner with source file checksum
+generate_banner() {
+    local source_checksum="$1"
+    cat <<EOF
+################################################################################
+#                                                                              #
+#                         REDACTED EXAMPLE FILE                                #
+#                                                                              #
+#  This file has been automatically redacted for public distribution.          #
+#  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
+#  has been replaced with [REDACTED] placeholders.                             #
+#                                                                              #
+#  Source SHA256:    $source_checksum  #
+#  Redaction Script: scripts/redact-examples.sh                                #
+#  Script SHA256:    $SCRIPT_CHECKSUM  #
+#  Redacted:         $REDACTION_TIMESTAMP                                       #
+#                                                                              #
+################################################################################
+
+EOF
+}
+
 # Redaction patterns - AGGRESSIVE redaction for public examples
 redact_file() {
     local input="$1"
     local output="$2"
+
+    # Calculate source file checksum before redaction
+    local source_checksum
+    source_checksum=$(shasum -a 256 "$input" 2>/dev/null | awk '{print $1}')
+
+    # Create temp file for redacted content
+    local temp_redacted
+    temp_redacted=$(mktemp)
 
     # Redact MAC addresses (case insensitive for uppercase MAC)
     sed -E 's/([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}/[REDACTED]/gi' "$input" | \
@@ -70,7 +104,12 @@ redact_file() {
     sed -E 's/Commit:[^)]*\)/Commit: [REDACTED])/g' | \
     # Redact SHA256 checksums
     sed -E 's/SHA256:[[:space:]]*[a-f0-9]{64}/SHA256: [REDACTED]/g' | \
-    sed -E 's/[a-f0-9]{64}/[CHECKSUM_REDACTED]/g' > "$output"
+    sed -E 's/[a-f0-9]{64}/[CHECKSUM_REDACTED]/g' > "$temp_redacted"
+
+    # Combine banner and redacted content
+    generate_banner "$source_checksum" > "$output"
+    cat "$temp_redacted" >> "$output"
+    rm -f "$temp_redacted"
 
     # For host inventory files, truncate software package lists
     if echo "$output" | grep -q "host-inventory"; then
