@@ -2,8 +2,8 @@
 .scans/
 *-Scan-Results.md
 
-# Security assessment reports (internal use only)
-SECURITY_ASSESSMENT.md
+# Security assessments & remediation plans (internal use only)
+.assessments/
 
 # Vulnerability scan outputs (SENSITIVE - network topology, CVEs)
 nmap-*.txt
