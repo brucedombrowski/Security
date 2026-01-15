@@ -170,14 +170,16 @@ sed -i.bak \
 
 # Handle AllowlistEntries separately due to potential special characters
 if [ "$ALLOWLIST_COUNT" -gt 0 ]; then
-    # Build LaTeX itemize list from allowlist entries
+    # Build LaTeX table rows from allowlist entries (enumerated)
     ENTRIES_FILE="$PDF_BUILD_DIR/entries.tex"
-    echo '\begin{itemize}[leftmargin=0.3in,itemsep=2pt]' > "$ENTRIES_FILE"
+    : > "$ENTRIES_FILE"  # Clear/create file
+    entry_num=0
     while IFS= read -r line; do
         if [ -n "$line" ]; then
             # Extract reason (format: HASH # REASON # CONTENT_SNIPPET)
             reason=$(echo "$line" | sed 's/^[a-f0-9]* # \([^#]*\) #.*/\1/')
             if [ -n "$reason" ]; then
+                entry_num=$((entry_num + 1))
                 # Escape LaTeX special characters: $ _ { } & % #
                 reason=$(echo "$reason" | sed -e 's/\$/\\$/g' \
                                               -e 's/_/\\_/g' \
@@ -186,11 +188,10 @@ if [ "$ALLOWLIST_COUNT" -gt 0 ]; then
                                               -e 's/&/\\&/g' \
                                               -e 's/%/\\%/g' \
                                               -e 's/#/\\#/g')
-                echo "\\item $reason" >> "$ENTRIES_FILE"
+                echo "$entry_num & $reason \\\\\\\\" >> "$ENTRIES_FILE"
             fi
         fi
     done < <(grep "^[a-f0-9]" "$ALLOWLIST_FILE" 2>/dev/null | head -20)
-    echo '\end{itemize}' >> "$ENTRIES_FILE"
 
     # Replace "None" with the entries using perl (handles multiline better than sed)
     perl -i -p0e 'BEGIN { open(F,"'"$ENTRIES_FILE"'"); local $/; $e=<F>; close(F); }
