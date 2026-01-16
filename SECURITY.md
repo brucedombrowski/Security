@@ -5,7 +5,7 @@
 If you discover a security vulnerability in the Security Verification Toolkit,
 please **DO NOT** open a public GitHub issue or discussion.
 
-Instead, please email your report to: **security@brucedombrowski.com**
+Instead, please email your report to: **REDACTED_EMAIL**
 
 ## What to Include
 
@@ -110,7 +110,7 @@ you're welcome to publish details, blog posts, or conference presentations.
 
 ## Security Contact
 
-- **Email:** security@brucedombrowski.com
+- **Email:** REDACTED_EMAIL
 
 ## Related Documents
 
