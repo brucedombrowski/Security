@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    e8bda8b723760389...                                       #
+#  Source SHA256:    ca5a8d737a40c9f5...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
-#  Script SHA256:    2c7829ce7714551c...                                       #
-#  Redacted:         2026-01-16T16:26:20Z                                       #
+#  Script SHA256:    4504dce3b3744c10...                                       #
+#  Redacted:         2026-01-16T16:54:25Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -19,7 +19,7 @@
 PII Verification Scan
 =====================
 Timestamp: 2026-01-16T[REDACTED]Z
-Toolkit: Security Verification Toolkit v1.14.0 (c5511dd)
+Toolkit: Security Verification Toolkit v1.14.1-3-gb7f59b5 (b7f59b5)
 Target: /Users/[REDACTED]
 Repository: Security
 
@@ -34,39 +34,50 @@ Checking: IPv4 Addresses
 /Users/[REDACTED] # Shell command syntax, not PII data # ipv4=$(ifconfig ... grep -v "127.0.0.1")
 /Users/[REDACTED] # X.509 OID for Email Protection (1.3.6.1.5.5.7.3.4) # \item Email Protection (OID ...)
 /Users/[REDACTED] # X.509 OID for Document Signing (1.3.6.1.4.1.311.10.3.12) # \item Document Signing (OID ...)
-  Result: REVIEW - 65 new match(es) found
-  ... and 55 more
+  Result: REVIEW - 67 new match(es) found
+  ... and 57 more
   (13 previously allowlisted)
 Checking: US Phone Numbers (dashed)
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555-123-4567"
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555-123-4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] "Detect 555-123-4567"
 /Users/[REDACTED] echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] "Detect 555-123-4567"
 /Users/[REDACTED] echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
-  Result: REVIEW - 6 new match(es) found
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555-123-4567"
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
+  Result: REVIEW - 14 new match(es) found
+  ... and 4 more
   (2 previously allowlisted)
 Checking: US Phone Numbers (dotted)
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555.123.4567"
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555.123.4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] "Detect 555.123.4567"
 /Users/[REDACTED] echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] "Detect 555.123.4567"
 /Users/[REDACTED] echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
-  Result: REVIEW - 6 new match(es) found
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555.123.4567"
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
+  Result: REVIEW - 14 new match(es) found
+  ... and 4 more
   (2 previously allowlisted)
 Checking: US Phone Numbers (parenthetical)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # 250:Phone: (555) 123-4567
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect (555) 123-4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "(555) 123-4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]Phone: (555) 123-4567
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # 250:Phone: (555) 123-4567
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect (555) 123-4567"
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "(555) 123-4567" | grep -qE "$PHONE_PATTERN"; then
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]Phone: (555) 123-4567
 /Users/[REDACTED] "Detect (555) 123-4567"
 /Users/[REDACTED] echo "(555) 123-4567" | grep -qE "$PHONE_PATTERN"; then
-/Users/[REDACTED] (555) 123-4567
-/Users/[REDACTED] "Detect (555) 123-4567"
-/Users/[REDACTED] echo "(555) 123-4567" | grep -qE "$PHONE_PATTERN"; then
-/Users/[REDACTED] (555) 123-4567
-  Result: REVIEW - 10 new match(es) found
+  Result: REVIEW - 24 new match(es) found
+  ... and 14 more
   (3 previously allowlisted)
 Checking: Social Security Numbers
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # 148:test_start "Detect SSN in text (SSN: 123-45-6789)"
@@ -77,10 +88,10 @@ Checking: Social Security Numbers
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect SSN in text (SSN: 123-45-6789)"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "SSN: 123-45-6789" | grep -qE "$SSN_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]SSN: 123-45-6789
-/Users/[REDACTED] "Detect valid SSN format (123-45-6789)"
-/Users/[REDACTED] echo "123-45-6789" | grep -qE "$SSN_PATTERN"; then
-  Result: REVIEW - 18 new match(es) found
-  ... and 8 more
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # 148:test_start "Detect SSN in text (SSN: 123-45-6789)"
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # 149:if echo "SSN: 123-45-6789" | grep -qE "$SSN_PATTERN"; then
+  Result: REVIEW - 28 new match(es) found
+  ... and 18 more
   (5 previously allowlisted)
 Checking: Credit Card Numbers (16 digit)
 /Users/[REDACTED] # Localhost/loopback address (127.0.0.1) # 4:**Target System:** Bruces-MacBook-Pro (localhost / [REDACTED])
@@ -93,8 +104,8 @@ Checking: Credit Card Numbers (16 digit)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect MC format (5500 0000 0000 0004)"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "5500 0000 0000 0004" | grep -qE "$CREDIT_CARD_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect continuous digits (4111111111111111)"
-  Result: REVIEW - 32 new match(es) found
-  ... and 22 more
+  Result: REVIEW - 41 new match(es) found
+  ... and 31 more
   (10 previously allowlisted)
 
 =====================

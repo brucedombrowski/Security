@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    d512662cf0be48df...                                       #
+#  Source SHA256:    e39734a3e7fdfe81...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
-#  Script SHA256:    2c7829ce7714551c...                                       #
-#  Redacted:         2026-01-16T16:26:20Z                                       #
+#  Script SHA256:    4504dce3b3744c10...                                       #
+#  Redacted:         2026-01-16T16:54:25Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -27,7 +27,7 @@ Host System Inventory
 =====================
 Generated: [REDACTED]
 Hostname: [REDACTED]
-Toolkit: Security Verification Toolkit v1.14.0 (c5511dd)
+Toolkit: Security Verification Toolkit v1.14.1-3-gb7f59b5 (b7f59b5)
 Source: https://[REDACTED]/brucedombrowski/Security
 
 HANDLING NOTICE:
@@ -101,6 +101,18 @@ Programming Languages:
   Rust: [REDACTED]
   Perl: [REDACTED]
   PHP: [REDACTED]
+  Bash: [REDACTED]
+  Zsh: [REDACTED]
+  Lua: [REDACTED]
+  R: [REDACTED]
+  Swift: [REDACTED]
+  Kotlin: [REDACTED]
+  Scala: [REDACTED]
+  Groovy: [REDACTED]
+  TypeScript: [REDACTED]
+  Elixir: [REDACTED]
+  Haskell (GHC): [REDACTED]
+  Julia: [REDACTED]
 
 Web Browsers:
 -------------
@@ -127,6 +139,50 @@ Remote Desktop / Control Software:
   Zoom: [REDACTED]
   Microsoft Remote Desktop: [REDACTED]
   VNC Viewer: [REDACTED]
+
+Productivity Software:
+----------------------
+  Microsoft Word: [REDACTED]
+  Microsoft Excel: [REDACTED]
+  Microsoft PowerPoint: [REDACTED]
+  Microsoft Outlook: [REDACTED]
+  Microsoft Teams: [REDACTED]
+  Apple Pages: [REDACTED]
+  Apple Numbers: [REDACTED]
+  Apple Keynote: [REDACTED]
+  LibreOffice: [REDACTED]
+  Slack: [REDACTED]
+  Cisco Webex: [REDACTED]
+  Discord: [REDACTED]
+  Skype: [REDACTED]
+
+Containers and Virtualization:
+------------------------------
+  Docker: [REDACTED]
+  Podman: [REDACTED]
+  kubectl: [REDACTED]
+  Minikube: [REDACTED]
+  Helm: [REDACTED]
+  Vagrant: [REDACTED]
+  VirtualBox: [REDACTED]
+  VMware Fusion: [REDACTED]
+  Parallels Desktop: [REDACTED]
+
+Web Servers:
+------------
+  Apache (httpd): [REDACTED]
+  Nginx: [REDACTED]
+  Caddy: [REDACTED]
+  Lighttpd: [REDACTED]
+  Traefik: [REDACTED]
+
+Database Servers:
+-----------------
+  PostgreSQL: [REDACTED]
+  MySQL: [REDACTED]
+  SQLite: [REDACTED]
+  MongoDB: [REDACTED]
+  Redis: [REDACTED]
 
 =====================
 Inventory collection complete.
