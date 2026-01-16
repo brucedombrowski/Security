@@ -15,7 +15,9 @@ IT security analysis and compliance documentation tools for software projects.
 | [INSTALLATION.md](INSTALLATION.md) | Setup and prerequisites |
 | [AGENTS.md](AGENTS.md) | Toolkit architecture |
 | [COMPLIANCE.md](COMPLIANCE.md) | NIST control mapping |
+| [MAINTENANCE.md](MAINTENANCE.md) | Maintenance schedules and procedures |
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting |
+| [docs/THREAT-INTELLIGENCE.md](docs/THREAT-INTELLIGENCE.md) | CISA KEV, DHS MARs, NASA SOC-MARs integration |
 | [docs/false-positives-macos.md](docs/false-positives-macos.md) | macOS-specific guidance |
 
 ## Overview
@@ -34,11 +36,13 @@ This toolkit provides automated security verification scripts aligned with feder
 | Script | NIST Control | Description |
 |--------|--------------|-------------|
 | `check-host-security.sh` | CM-6 | Host OS security posture verification |
+| `check-kev.sh` | RA-5, SI-5 | Cross-reference CVEs against CISA KEV catalog |
 | `check-mac-addresses.sh` | SC-8 | IEEE 802.3 MAC address detection |
 | `check-malware.sh` | SI-3 | ClamAV malware scanning |
 | `check-pii.sh` | SI-12 | Scan for PII patterns (SSN, phone, IP, credit card) |
 | `check-secrets.sh` | SA-11 | Detect hardcoded credentials and API keys |
 | `collect-host-inventory.sh` | CM-8 | System component inventory (CUI-marked) |
+| `Collect-HostInventory.ps1` | CM-8 | Windows PowerShell host inventory |
 | `generate-compliance.sh` | - | Generate security compliance statement PDF |
 | `generate-scan-attestation.sh` | - | Generate PDF attestation from scan results |
 | `purge-git-history.sh` | SP 800-88 | Remove sensitive files from git history |
