@@ -385,6 +385,90 @@ else
     output "  PHP: not installed"
 fi
 
+# Bash
+if command -v bash >/dev/null 2>&1; then
+    output "  Bash: $(bash --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+else
+    output "  Bash: not installed"
+fi
+
+# Zsh
+if command -v zsh >/dev/null 2>&1; then
+    output "  Zsh: $(zsh --version 2>/dev/null)"
+else
+    output "  Zsh: not installed"
+fi
+
+# Lua
+if command -v lua >/dev/null 2>&1; then
+    output "  Lua: $(lua -v 2>&1 | head -1)"
+else
+    output "  Lua: not installed"
+fi
+
+# R
+if command -v R >/dev/null 2>&1; then
+    output "  R: $(R --version 2>/dev/null | head -1)"
+else
+    output "  R: not installed"
+fi
+
+# Swift
+if command -v swift >/dev/null 2>&1; then
+    output "  Swift: $(swift --version 2>/dev/null | head -1)"
+else
+    output "  Swift: not installed"
+fi
+
+# Kotlin
+if command -v kotlin >/dev/null 2>&1; then
+    output "  Kotlin: $(kotlin -version 2>&1 | head -1)"
+else
+    output "  Kotlin: not installed"
+fi
+
+# Scala
+if command -v scala >/dev/null 2>&1; then
+    output "  Scala: $(scala -version 2>&1 | head -1)"
+else
+    output "  Scala: not installed"
+fi
+
+# Groovy
+if command -v groovy >/dev/null 2>&1; then
+    output "  Groovy: $(groovy --version 2>/dev/null | head -1)"
+else
+    output "  Groovy: not installed"
+fi
+
+# TypeScript
+if command -v tsc >/dev/null 2>&1; then
+    output "  TypeScript: $(tsc --version 2>/dev/null)"
+else
+    output "  TypeScript: not installed"
+fi
+
+# Elixir
+if command -v elixir >/dev/null 2>&1; then
+    output "  Elixir: $(elixir --version 2>/dev/null | grep Elixir | head -1)"
+else
+    output "  Elixir: not installed"
+fi
+
+# Haskell (GHC)
+if command -v ghc >/dev/null 2>&1; then
+    output "  Haskell (GHC): $(ghc --version 2>/dev/null)"
+else
+    output "  Haskell (GHC): not installed"
+fi
+
+# Julia
+if command -v julia >/dev/null 2>&1; then
+    output "  Julia: $(julia --version 2>/dev/null)"
+else
+    output "  Julia: not installed"
+fi
+
 output ""
 output "Web Browsers:"
 output "-------------"
