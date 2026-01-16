@@ -535,16 +535,41 @@ if (Test-Path $chromePath) {
     Write-Output-Line "  Chrome: not installed"
 }
 
-# Firefox
-$firefoxPath = "${env:ProgramFiles}\Mozilla Firefox\firefox.exe"
-$firefoxPath86 = "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe"
-if (Test-Path $firefoxPath) {
-    $firefoxVersion = (Get-Item $firefoxPath).VersionInfo.ProductVersion
-    Write-Output-Line "  Firefox: $firefoxVersion"
-} elseif (Test-Path $firefoxPath86) {
-    $firefoxVersion = (Get-Item $firefoxPath86).VersionInfo.ProductVersion
-    Write-Output-Line "  Firefox: $firefoxVersion"
-} else {
+# Firefox - check multiple possible locations
+$firefoxFound = $false
+$firefoxPaths = @(
+    "${env:ProgramFiles}\Mozilla Firefox\firefox.exe",
+    "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe",
+    "$env:LOCALAPPDATA\Mozilla Firefox\firefox.exe",
+    "$env:APPDATA\Mozilla Firefox\firefox.exe"
+)
+
+foreach ($ffPath in $firefoxPaths) {
+    if ($ffPath -and (Test-Path $ffPath -ErrorAction SilentlyContinue)) {
+        $firefoxVersion = (Get-Item $ffPath -ErrorAction SilentlyContinue).VersionInfo.ProductVersion
+        if ($firefoxVersion) {
+            Write-Output-Line "  Firefox: $firefoxVersion"
+            $firefoxFound = $true
+            break
+        }
+    }
+}
+
+# Also check registry for Firefox installation
+if (-not $firefoxFound) {
+    $firefoxReg = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+                                   "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+                                   "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
+                  Where-Object { $_.DisplayName -like "*Firefox*" } |
+                  Select-Object -First 1
+
+    if ($firefoxReg -and $firefoxReg.DisplayVersion) {
+        Write-Output-Line "  Firefox: $($firefoxReg.DisplayVersion)"
+        $firefoxFound = $true
+    }
+}
+
+if (-not $firefoxFound) {
     Write-Output-Line "  Firefox: not installed"
 }
 
