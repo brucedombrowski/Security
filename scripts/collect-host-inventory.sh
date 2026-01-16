@@ -470,21 +470,426 @@ else
 fi
 
 output ""
+output "Development Tools / IDEs:"
+output "-------------------------"
+
+# Helper function to find IDE on macOS - checks multiple paths
+find_macos_ide() {
+    local paths=("$@")
+
+    for path in "${paths[@]}"; do
+        if [ -d "$path" ]; then
+            local version
+            version=$(defaults read "$path/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null)
+            if [ -n "$version" ]; then
+                echo "$version"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+if [[ "$(uname)" == "Darwin" ]]; then
+    # VS Code - check multiple possible locations
+    vscode_paths=(
+        "/Applications/Visual Studio Code.app"
+        "$HOME/Applications/Visual Studio Code.app"
+        "/Applications/Visual Studio Code - Insiders.app"
+    )
+    vscode_ver=$(find_macos_ide "${vscode_paths[@]}")
+    if [ -n "$vscode_ver" ]; then
+        output "  VS Code: $vscode_ver"
+    else
+        output "  VS Code: not installed"
+    fi
+
+    # Visual Studio for Mac
+    vs_paths=(
+        "/Applications/Visual Studio.app"
+        "$HOME/Applications/Visual Studio.app"
+    )
+    vs_ver=$(find_macos_ide "${vs_paths[@]}")
+    if [ -n "$vs_ver" ]; then
+        output "  Visual Studio: $vs_ver"
+    else
+        output "  Visual Studio: not installed"
+    fi
+
+    # Xcode
+    xcode_paths=(
+        "/Applications/Xcode.app"
+        "/Applications/Xcode-beta.app"
+    )
+    xcode_ver=$(find_macos_ide "${xcode_paths[@]}")
+    if [ -n "$xcode_ver" ]; then
+        output "  Xcode: $xcode_ver"
+    else
+        output "  Xcode: not installed"
+    fi
+
+    # JetBrains IntelliJ IDEA
+    idea_paths=(
+        "/Applications/IntelliJ IDEA.app"
+        "/Applications/IntelliJ IDEA CE.app"
+        "/Applications/IntelliJ IDEA Ultimate.app"
+        "$HOME/Applications/IntelliJ IDEA.app"
+        "$HOME/Applications/IntelliJ IDEA CE.app"
+    )
+    idea_ver=$(find_macos_ide "${idea_paths[@]}")
+    if [ -n "$idea_ver" ]; then
+        output "  IntelliJ IDEA: $idea_ver"
+    else
+        output "  IntelliJ IDEA: not installed"
+    fi
+
+    # JetBrains PyCharm
+    pycharm_paths=(
+        "/Applications/PyCharm.app"
+        "/Applications/PyCharm CE.app"
+        "$HOME/Applications/PyCharm.app"
+        "$HOME/Applications/PyCharm CE.app"
+    )
+    pycharm_ver=$(find_macos_ide "${pycharm_paths[@]}")
+    if [ -n "$pycharm_ver" ]; then
+        output "  PyCharm: $pycharm_ver"
+    else
+        output "  PyCharm: not installed"
+    fi
+
+    # JetBrains WebStorm
+    webstorm_paths=(
+        "/Applications/WebStorm.app"
+        "$HOME/Applications/WebStorm.app"
+    )
+    webstorm_ver=$(find_macos_ide "${webstorm_paths[@]}")
+    if [ -n "$webstorm_ver" ]; then
+        output "  WebStorm: $webstorm_ver"
+    else
+        output "  WebStorm: not installed"
+    fi
+
+    # JetBrains GoLand
+    goland_paths=(
+        "/Applications/GoLand.app"
+        "$HOME/Applications/GoLand.app"
+    )
+    goland_ver=$(find_macos_ide "${goland_paths[@]}")
+    if [ -n "$goland_ver" ]; then
+        output "  GoLand: $goland_ver"
+    else
+        output "  GoLand: not installed"
+    fi
+
+    # JetBrains Rider
+    rider_paths=(
+        "/Applications/Rider.app"
+        "$HOME/Applications/Rider.app"
+    )
+    rider_ver=$(find_macos_ide "${rider_paths[@]}")
+    if [ -n "$rider_ver" ]; then
+        output "  Rider: $rider_ver"
+    else
+        output "  Rider: not installed"
+    fi
+
+    # JetBrains CLion
+    clion_paths=(
+        "/Applications/CLion.app"
+        "$HOME/Applications/CLion.app"
+    )
+    clion_ver=$(find_macos_ide "${clion_paths[@]}")
+    if [ -n "$clion_ver" ]; then
+        output "  CLion: $clion_ver"
+    else
+        output "  CLion: not installed"
+    fi
+
+    # JetBrains DataGrip
+    datagrip_paths=(
+        "/Applications/DataGrip.app"
+        "$HOME/Applications/DataGrip.app"
+    )
+    datagrip_ver=$(find_macos_ide "${datagrip_paths[@]}")
+    if [ -n "$datagrip_ver" ]; then
+        output "  DataGrip: $datagrip_ver"
+    else
+        output "  DataGrip: not installed"
+    fi
+
+    # Eclipse
+    eclipse_paths=(
+        "/Applications/Eclipse.app"
+        "$HOME/Applications/Eclipse.app"
+        "/Applications/Eclipse IDE.app"
+    )
+    eclipse_ver=$(find_macos_ide "${eclipse_paths[@]}")
+    if [ -n "$eclipse_ver" ]; then
+        output "  Eclipse: $eclipse_ver"
+    else
+        output "  Eclipse: not installed"
+    fi
+
+    # Sublime Text
+    sublime_paths=(
+        "/Applications/Sublime Text.app"
+        "$HOME/Applications/Sublime Text.app"
+    )
+    sublime_ver=$(find_macos_ide "${sublime_paths[@]}")
+    if [ -n "$sublime_ver" ]; then
+        output "  Sublime Text: $sublime_ver"
+    else
+        output "  Sublime Text: not installed"
+    fi
+
+    # Atom
+    atom_paths=(
+        "/Applications/Atom.app"
+        "$HOME/Applications/Atom.app"
+    )
+    atom_ver=$(find_macos_ide "${atom_paths[@]}")
+    if [ -n "$atom_ver" ]; then
+        output "  Atom: $atom_ver"
+    else
+        output "  Atom: not installed"
+    fi
+
+    # Android Studio
+    android_paths=(
+        "/Applications/Android Studio.app"
+        "$HOME/Applications/Android Studio.app"
+    )
+    android_ver=$(find_macos_ide "${android_paths[@]}")
+    if [ -n "$android_ver" ]; then
+        output "  Android Studio: $android_ver"
+    else
+        output "  Android Studio: not installed"
+    fi
+
+elif [[ "$(uname)" == "Linux" ]]; then
+    # VS Code - check command, snap, flatpak
+    if command -v code >/dev/null 2>&1; then
+        output "  VS Code: $(code --version 2>/dev/null | head -1)"
+    elif command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -q "^code "; then
+        vscode_snap=$(snap list 2>/dev/null | grep "^code " | awk '{print $2}')
+        output "  VS Code: $vscode_snap (snap)"
+    elif command -v flatpak >/dev/null 2>&1 && flatpak list --app 2>/dev/null | grep -q "com.visualstudio.code"; then
+        output "  VS Code: (flatpak)"
+    else
+        output "  VS Code: not installed"
+    fi
+
+    # JetBrains IDEs (check via jetbrains-toolbox or direct install)
+    # IntelliJ IDEA
+    if command -v idea >/dev/null 2>&1; then
+        output "  IntelliJ IDEA: installed"
+    elif [ -d "$HOME/.local/share/JetBrains/Toolbox/apps/IDEA" ] || [ -d "/opt/intellij-idea" ]; then
+        output "  IntelliJ IDEA: installed"
+    elif command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -q "intellij"; then
+        output "  IntelliJ IDEA: (snap)"
+    else
+        output "  IntelliJ IDEA: not installed"
+    fi
+
+    # PyCharm
+    if command -v pycharm >/dev/null 2>&1; then
+        output "  PyCharm: installed"
+    elif [ -d "$HOME/.local/share/JetBrains/Toolbox/apps/PyCharm" ] || [ -d "/opt/pycharm" ]; then
+        output "  PyCharm: installed"
+    elif command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -q "pycharm"; then
+        output "  PyCharm: (snap)"
+    else
+        output "  PyCharm: not installed"
+    fi
+
+    # WebStorm
+    if command -v webstorm >/dev/null 2>&1; then
+        output "  WebStorm: installed"
+    elif [ -d "$HOME/.local/share/JetBrains/Toolbox/apps/WebStorm" ]; then
+        output "  WebStorm: installed"
+    else
+        output "  WebStorm: not installed"
+    fi
+
+    # GoLand
+    if command -v goland >/dev/null 2>&1; then
+        output "  GoLand: installed"
+    elif [ -d "$HOME/.local/share/JetBrains/Toolbox/apps/GoLand" ]; then
+        output "  GoLand: installed"
+    else
+        output "  GoLand: not installed"
+    fi
+
+    # Rider
+    if command -v rider >/dev/null 2>&1; then
+        output "  Rider: installed"
+    elif [ -d "$HOME/.local/share/JetBrains/Toolbox/apps/Rider" ]; then
+        output "  Rider: installed"
+    else
+        output "  Rider: not installed"
+    fi
+
+    # CLion
+    if command -v clion >/dev/null 2>&1; then
+        output "  CLion: installed"
+    elif [ -d "$HOME/.local/share/JetBrains/Toolbox/apps/CLion" ]; then
+        output "  CLion: installed"
+    else
+        output "  CLion: not installed"
+    fi
+
+    # Eclipse
+    if command -v eclipse >/dev/null 2>&1; then
+        output "  Eclipse: $(eclipse -version 2>/dev/null | head -1 || echo "installed")"
+    elif [ -d "/opt/eclipse" ] || [ -d "$HOME/eclipse" ]; then
+        output "  Eclipse: installed"
+    elif command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -q "eclipse"; then
+        output "  Eclipse: (snap)"
+    else
+        output "  Eclipse: not installed"
+    fi
+
+    # Sublime Text
+    if command -v subl >/dev/null 2>&1; then
+        output "  Sublime Text: $(subl --version 2>/dev/null || echo "installed")"
+    elif command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -q "sublime-text"; then
+        sublime_snap=$(snap list 2>/dev/null | grep "sublime-text" | awk '{print $2}')
+        output "  Sublime Text: $sublime_snap (snap)"
+    else
+        output "  Sublime Text: not installed"
+    fi
+
+    # Atom
+    if command -v atom >/dev/null 2>&1; then
+        output "  Atom: $(atom --version 2>/dev/null | head -1)"
+    elif command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -q "^atom "; then
+        output "  Atom: (snap)"
+    else
+        output "  Atom: not installed"
+    fi
+
+    # Notepadqq (Notepad++ alternative for Linux)
+    if command -v notepadqq >/dev/null 2>&1; then
+        output "  Notepadqq: $(notepadqq --version 2>/dev/null || echo "installed")"
+    else
+        output "  Notepadqq: not installed"
+    fi
+
+    # Android Studio
+    if command -v android-studio >/dev/null 2>&1 || [ -d "/opt/android-studio" ] || [ -d "$HOME/android-studio" ]; then
+        output "  Android Studio: installed"
+    elif command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -q "android-studio"; then
+        output "  Android Studio: (snap)"
+    else
+        output "  Android Studio: not installed"
+    fi
+fi
+
+output ""
 output "Web Browsers:"
 output "-------------"
 
-# Chrome
+# Helper function to find browser on macOS - checks multiple paths
+find_macos_browser() {
+    local name="$1"
+    shift
+    local paths=("$@")
+
+    for path in "${paths[@]}"; do
+        if [ -d "$path" ]; then
+            local version
+            version=$(defaults read "$path/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null)
+            if [ -n "$version" ]; then
+                echo "$version"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+# Helper function to find browser on Linux - checks command, snap, flatpak, and package managers
+find_linux_browser() {
+    local name="$1"
+    local cmd="$2"
+    local snap_name="$3"
+    local flatpak_name="$4"
+    local dpkg_pattern="$5"
+    local rpm_pattern="$6"
+
+    # Try command first
+    if command -v "$cmd" >/dev/null 2>&1; then
+        "$cmd" --version 2>/dev/null | head -1
+        return 0
+    fi
+
+    # Try snap
+    if [ -n "$snap_name" ] && command -v snap >/dev/null 2>&1; then
+        local snap_ver
+        snap_ver=$(snap list 2>/dev/null | grep "^$snap_name " | awk '{print $2}')
+        if [ -n "$snap_ver" ]; then
+            echo "$snap_ver (snap)"
+            return 0
+        fi
+    fi
+
+    # Try flatpak
+    if [ -n "$flatpak_name" ] && command -v flatpak >/dev/null 2>&1; then
+        local flatpak_ver
+        flatpak_ver=$(flatpak list --app 2>/dev/null | grep "$flatpak_name" | awk '{print $3}')
+        if [ -n "$flatpak_ver" ]; then
+            echo "$flatpak_ver (flatpak)"
+            return 0
+        fi
+    fi
+
+    # Try dpkg
+    if [ -n "$dpkg_pattern" ] && command -v dpkg >/dev/null 2>&1; then
+        local dpkg_ver
+        dpkg_ver=$(dpkg -l 2>/dev/null | grep -i "$dpkg_pattern" | head -1 | awk '{print $3}')
+        if [ -n "$dpkg_ver" ]; then
+            echo "$dpkg_ver"
+            return 0
+        fi
+    fi
+
+    # Try rpm
+    if [ -n "$rpm_pattern" ] && command -v rpm >/dev/null 2>&1; then
+        local rpm_ver
+        rpm_ver=$(rpm -qa 2>/dev/null | grep -i "$rpm_pattern" | head -1 | sed 's/.*-\([0-9].*\)/\1/')
+        if [ -n "$rpm_ver" ]; then
+            echo "$rpm_ver"
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
 if [[ "$(uname)" == "Darwin" ]]; then
-    if [ -d "/Applications/Google Chrome.app" ]; then
-        chrome_ver=$(defaults read "/Applications/Google Chrome.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+    # Chrome - check multiple possible locations
+    chrome_paths=(
+        "/Applications/Google Chrome.app"
+        "$HOME/Applications/Google Chrome.app"
+        "/Applications/Chromium.app"
+        "$HOME/Applications/Chromium.app"
+    )
+    chrome_ver=$(find_macos_browser "Chrome" "${chrome_paths[@]}")
+    if [ -n "$chrome_ver" ]; then
         output "  Chrome: $chrome_ver"
     else
         output "  Chrome: not installed"
     fi
 
-    # Firefox
-    if [ -d "/Applications/Firefox.app" ]; then
-        firefox_ver=$(defaults read "/Applications/Firefox.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+    # Firefox - check multiple possible locations
+    firefox_paths=(
+        "/Applications/Firefox.app"
+        "$HOME/Applications/Firefox.app"
+        "/Applications/Firefox Developer Edition.app"
+        "/Applications/Firefox Nightly.app"
+    )
+    firefox_ver=$(find_macos_browser "Firefox" "${firefox_paths[@]}")
+    if [ -n "$firefox_ver" ]; then
         output "  Firefox: $firefox_ver"
     else
         output "  Firefox: not installed"
@@ -494,52 +899,114 @@ if [[ "$(uname)" == "Darwin" ]]; then
     safari_ver=$(defaults read "/Applications/Safari.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
     output "  Safari: $safari_ver"
 
-    # Microsoft Edge
-    if [ -d "/Applications/Microsoft Edge.app" ]; then
-        edge_ver=$(defaults read "/Applications/Microsoft Edge.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+    # Microsoft Edge - check multiple possible locations
+    edge_paths=(
+        "/Applications/Microsoft Edge.app"
+        "$HOME/Applications/Microsoft Edge.app"
+    )
+    edge_ver=$(find_macos_browser "Edge" "${edge_paths[@]}")
+    if [ -n "$edge_ver" ]; then
         output "  Edge: $edge_ver"
     else
         output "  Edge: not installed"
     fi
 
-    # Brave
-    if [ -d "/Applications/Brave Browser.app" ]; then
-        brave_ver=$(defaults read "/Applications/Brave Browser.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+    # Brave - check multiple possible locations
+    brave_paths=(
+        "/Applications/Brave Browser.app"
+        "$HOME/Applications/Brave Browser.app"
+    )
+    brave_ver=$(find_macos_browser "Brave" "${brave_paths[@]}")
+    if [ -n "$brave_ver" ]; then
         output "  Brave: $brave_ver"
     else
         output "  Brave: not installed"
     fi
+
+    # Opera - check multiple possible locations
+    opera_paths=(
+        "/Applications/Opera.app"
+        "$HOME/Applications/Opera.app"
+    )
+    opera_ver=$(find_macos_browser "Opera" "${opera_paths[@]}")
+    if [ -n "$opera_ver" ]; then
+        output "  Opera: $opera_ver"
+    else
+        output "  Opera: not installed"
+    fi
+
+    # Vivaldi - check multiple possible locations
+    vivaldi_paths=(
+        "/Applications/Vivaldi.app"
+        "$HOME/Applications/Vivaldi.app"
+    )
+    vivaldi_ver=$(find_macos_browser "Vivaldi" "${vivaldi_paths[@]}")
+    if [ -n "$vivaldi_ver" ]; then
+        output "  Vivaldi: $vivaldi_ver"
+    else
+        output "  Vivaldi: not installed"
+    fi
+
 elif [[ "$(uname)" == "Linux" ]]; then
-    # Chrome
-    if command -v google-chrome >/dev/null 2>&1; then
-        output "  Chrome: $(google-chrome --version 2>/dev/null)"
-    elif command -v chromium >/dev/null 2>&1; then
-        output "  Chromium: $(chromium --version 2>/dev/null)"
-    elif command -v chromium-browser >/dev/null 2>&1; then
-        output "  Chromium: $(chromium-browser --version 2>/dev/null)"
+    # Chrome - check command, snap, flatpak, package managers
+    chrome_ver=$(find_linux_browser "Chrome" "google-chrome" "chromium" "com.google.Chrome" "google-chrome" "google-chrome")
+    if [ -z "$chrome_ver" ]; then
+        # Also try chromium variants
+        chrome_ver=$(find_linux_browser "Chromium" "chromium" "chromium" "" "chromium" "chromium")
+        if [ -z "$chrome_ver" ]; then
+            chrome_ver=$(find_linux_browser "Chromium" "chromium-browser" "" "" "" "")
+        fi
+    fi
+    if [ -n "$chrome_ver" ]; then
+        output "  Chrome/Chromium: $chrome_ver"
     else
         output "  Chrome/Chromium: not installed"
     fi
 
-    # Firefox
-    if command -v firefox >/dev/null 2>&1; then
-        output "  Firefox: $(firefox --version 2>/dev/null)"
+    # Firefox - check command, snap, flatpak, package managers
+    firefox_ver=$(find_linux_browser "Firefox" "firefox" "firefox" "org.mozilla.firefox" "firefox" "firefox")
+    if [ -n "$firefox_ver" ]; then
+        output "  Firefox: $firefox_ver"
     else
         output "  Firefox: not installed"
     fi
 
-    # Edge
-    if command -v microsoft-edge >/dev/null 2>&1; then
-        output "  Edge: $(microsoft-edge --version 2>/dev/null)"
+    # Edge - check command and package managers
+    edge_ver=$(find_linux_browser "Edge" "microsoft-edge" "" "" "microsoft-edge" "microsoft-edge")
+    if [ -z "$edge_ver" ]; then
+        edge_ver=$(find_linux_browser "Edge" "microsoft-edge-stable" "" "" "" "")
+    fi
+    if [ -n "$edge_ver" ]; then
+        output "  Edge: $edge_ver"
     else
         output "  Edge: not installed"
     fi
 
-    # Brave
-    if command -v brave-browser >/dev/null 2>&1; then
-        output "  Brave: $(brave-browser --version 2>/dev/null)"
+    # Brave - check command, snap, flatpak, package managers
+    brave_ver=$(find_linux_browser "Brave" "brave-browser" "brave" "com.brave.Browser" "brave-browser" "brave-browser")
+    if [ -n "$brave_ver" ]; then
+        output "  Brave: $brave_ver"
     else
         output "  Brave: not installed"
+    fi
+
+    # Opera - check command, snap, flatpak, package managers
+    opera_ver=$(find_linux_browser "Opera" "opera" "opera" "com.opera.Opera" "opera" "opera")
+    if [ -n "$opera_ver" ]; then
+        output "  Opera: $opera_ver"
+    else
+        output "  Opera: not installed"
+    fi
+
+    # Vivaldi - check command and package managers
+    vivaldi_ver=$(find_linux_browser "Vivaldi" "vivaldi" "vivaldi" "com.vivaldi.Vivaldi" "vivaldi" "vivaldi")
+    if [ -z "$vivaldi_ver" ]; then
+        vivaldi_ver=$(find_linux_browser "Vivaldi" "vivaldi-stable" "" "" "" "")
+    fi
+    if [ -n "$vivaldi_ver" ]; then
+        output "  Vivaldi: $vivaldi_ver"
+    else
+        output "  Vivaldi: not installed"
     fi
 fi
 

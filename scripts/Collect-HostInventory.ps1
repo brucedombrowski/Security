@@ -527,29 +527,77 @@ function Find-Browser {
     param(
         [string]$Name,
         [string[]]$FilePaths,
-        [string]$RegistryPattern
+        [string[]]$RegistryPatterns,
+        [string]$ExeName
     )
 
-    # Try file paths first
+    # Method 1: Try explicit file paths first
     foreach ($path in $FilePaths) {
-        if ($path -and (Test-Path $path -ErrorAction SilentlyContinue)) {
-            $version = (Get-Item $path -ErrorAction SilentlyContinue).VersionInfo.ProductVersion
-            if ($version) {
-                return $version
+        if ($path) {
+            try {
+                $item = Get-Item -LiteralPath $path -ErrorAction Stop
+                if ($item) {
+                    $version = $item.VersionInfo.ProductVersion
+                    if ($version) {
+                        return $version
+                    }
+                }
+            } catch {
+                # Path doesn't exist or can't be accessed, continue to next
             }
         }
     }
 
-    # Fall back to registry
-    if ($RegistryPattern) {
+    # Method 2: Scan Program Files directories for the executable
+    if ($ExeName) {
+        $scanDirs = @(
+            "C:\Program Files",
+            "C:\Program Files (x86)",
+            "$env:LOCALAPPDATA",
+            "$env:APPDATA"
+        )
+        foreach ($dir in $scanDirs) {
+            if ($dir -and (Test-Path $dir -ErrorAction SilentlyContinue)) {
+                try {
+                    $found = Get-ChildItem -Path $dir -Filter $ExeName -Recurse -ErrorAction SilentlyContinue -Depth 3 | Select-Object -First 1
+                    if ($found) {
+                        $version = $found.VersionInfo.ProductVersion
+                        if ($version) {
+                            return $version
+                        }
+                    }
+                } catch {
+                    # Continue
+                }
+            }
+        }
+    }
+
+    # Method 3: Fall back to registry - check multiple patterns
+    foreach ($pattern in $RegistryPatterns) {
         $regEntry = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
                                      "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
                                      "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
-                    Where-Object { $_.DisplayName -like $RegistryPattern } |
+                    Where-Object { $_.DisplayName -like $pattern } |
                     Select-Object -First 1
 
-        if ($regEntry -and $regEntry.DisplayVersion) {
-            return $regEntry.DisplayVersion
+        if ($regEntry) {
+            if ($regEntry.DisplayVersion) {
+                return $regEntry.DisplayVersion
+            }
+            # Try to find exe from InstallLocation if DisplayVersion not available
+            if ($regEntry.InstallLocation) {
+                try {
+                    $possibleExe = Join-Path $regEntry.InstallLocation "$Name.exe"
+                    $item = Get-Item -LiteralPath $possibleExe -ErrorAction Stop
+                    if ($item) {
+                        $version = $item.VersionInfo.ProductVersion
+                        if ($version) { return $version }
+                    }
+                } catch {
+                    # Continue
+                }
+            }
         }
     }
 
@@ -560,9 +608,11 @@ function Find-Browser {
 $chromePaths = @(
     "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe",
     "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
-    "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+    "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe",
+    "C:\Program Files\Google\Chrome\Application\chrome.exe",
+    "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 )
-$chromeVersion = Find-Browser -Name "Chrome" -FilePaths $chromePaths -RegistryPattern "*Google Chrome*"
+$chromeVersion = Find-Browser -Name "chrome" -FilePaths $chromePaths -RegistryPatterns @("*Google Chrome*", "*Chrome*") -ExeName "chrome.exe"
 if ($chromeVersion) {
     Write-Output-Line "  Chrome: $chromeVersion"
 } else {
@@ -574,9 +624,11 @@ $firefoxPaths = @(
     "${env:ProgramFiles}\Mozilla Firefox\firefox.exe",
     "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe",
     "$env:LOCALAPPDATA\Mozilla Firefox\firefox.exe",
-    "$env:APPDATA\Mozilla Firefox\firefox.exe"
+    "$env:APPDATA\Mozilla Firefox\firefox.exe",
+    "C:\Program Files\Mozilla Firefox\firefox.exe",
+    "C:\Program Files (x86)\Mozilla Firefox\firefox.exe"
 )
-$firefoxVersion = Find-Browser -Name "Firefox" -FilePaths $firefoxPaths -RegistryPattern "*Firefox*"
+$firefoxVersion = Find-Browser -Name "firefox" -FilePaths $firefoxPaths -RegistryPatterns @("*Mozilla Firefox*", "*Firefox*") -ExeName "firefox.exe"
 if ($firefoxVersion) {
     Write-Output-Line "  Firefox: $firefoxVersion"
 } else {
@@ -587,9 +639,11 @@ if ($firefoxVersion) {
 $edgePaths = @(
     "${env:ProgramFiles}\Microsoft\Edge\Application\msedge.exe",
     "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
-    "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe"
+    "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe",
+    "C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 )
-$edgeVersion = Find-Browser -Name "Edge" -FilePaths $edgePaths -RegistryPattern "*Microsoft Edge*"
+$edgeVersion = Find-Browser -Name "msedge" -FilePaths $edgePaths -RegistryPatterns @("*Microsoft Edge*", "*Edge*") -ExeName "msedge.exe"
 if ($edgeVersion) {
     Write-Output-Line "  Edge: $edgeVersion"
 } else {
@@ -600,9 +654,11 @@ if ($edgeVersion) {
 $bravePaths = @(
     "${env:ProgramFiles}\BraveSoftware\Brave-Browser\Application\brave.exe",
     "${env:ProgramFiles(x86)}\BraveSoftware\Brave-Browser\Application\brave.exe",
-    "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\Application\brave.exe"
+    "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\Application\brave.exe",
+    "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
+    "C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe"
 )
-$braveVersion = Find-Browser -Name "Brave" -FilePaths $bravePaths -RegistryPattern "*Brave*"
+$braveVersion = Find-Browser -Name "brave" -FilePaths $bravePaths -RegistryPatterns @("*Brave*") -ExeName "brave.exe"
 if ($braveVersion) {
     Write-Output-Line "  Brave: $braveVersion"
 } else {
@@ -614,9 +670,11 @@ $operaPaths = @(
     "${env:ProgramFiles}\Opera\launcher.exe",
     "${env:ProgramFiles(x86)}\Opera\launcher.exe",
     "$env:LOCALAPPDATA\Programs\Opera\launcher.exe",
-    "$env:APPDATA\Opera Software\Opera Stable\opera.exe"
+    "$env:APPDATA\Opera Software\Opera Stable\opera.exe",
+    "C:\Program Files\Opera\launcher.exe",
+    "C:\Program Files (x86)\Opera\launcher.exe"
 )
-$operaVersion = Find-Browser -Name "Opera" -FilePaths $operaPaths -RegistryPattern "*Opera*"
+$operaVersion = Find-Browser -Name "launcher" -FilePaths $operaPaths -RegistryPatterns @("*Opera*") -ExeName "opera.exe"
 if ($operaVersion) {
     Write-Output-Line "  Opera: $operaVersion"
 } else {
@@ -627,9 +685,11 @@ if ($operaVersion) {
 $vivaldiPaths = @(
     "${env:ProgramFiles}\Vivaldi\Application\vivaldi.exe",
     "${env:ProgramFiles(x86)}\Vivaldi\Application\vivaldi.exe",
-    "$env:LOCALAPPDATA\Vivaldi\Application\vivaldi.exe"
+    "$env:LOCALAPPDATA\Vivaldi\Application\vivaldi.exe",
+    "C:\Program Files\Vivaldi\Application\vivaldi.exe",
+    "C:\Program Files (x86)\Vivaldi\Application\vivaldi.exe"
 )
-$vivaldiVersion = Find-Browser -Name "Vivaldi" -FilePaths $vivaldiPaths -RegistryPattern "*Vivaldi*"
+$vivaldiVersion = Find-Browser -Name "vivaldi" -FilePaths $vivaldiPaths -RegistryPatterns @("*Vivaldi*") -ExeName "vivaldi.exe"
 if ($vivaldiVersion) {
     Write-Output-Line "  Vivaldi: $vivaldiVersion"
 } else {
