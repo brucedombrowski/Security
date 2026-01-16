@@ -70,9 +70,13 @@ done
 # Check for pdflatex
 PDFLATEX=$(which pdflatex 2>/dev/null || echo "")
 if [ -z "$PDFLATEX" ] || [ ! -x "$PDFLATEX" ]; then
-    echo "Note: pdflatex not found, skipping PDF attestation generation"
-    echo "      Install with: brew install basictex (macOS) or apt install texlive-latex-base (Linux)"
-    exit 0
+    echo "Warning: pdflatex not found, PDF attestation generation skipped"
+    echo "         Install with: brew install basictex (macOS) or apt install texlive-latex-base (Linux)"
+    echo ""
+    echo "Note: PDF generation is optional. Scan results are still valid without attestation."
+    # Return exit code 2 for "skipped" (vs. 1 for "failed")
+    # Allows caller to distinguish between failure and optional feature skipped
+    exit 2
 fi
 
 # Check for template
