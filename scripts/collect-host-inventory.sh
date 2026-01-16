@@ -725,6 +725,160 @@ elif [[ "$(uname)" == "Linux" ]]; then
 fi
 
 output ""
+output "Productivity Software:"
+output "----------------------"
+
+if [[ "$(uname)" == "Darwin" ]]; then
+    # Microsoft Word
+    if [ -d "/Applications/Microsoft Word.app" ]; then
+        word_ver=$(defaults read "/Applications/Microsoft Word.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Microsoft Word: $word_ver"
+    else
+        output "  Microsoft Word: not installed"
+    fi
+
+    # Microsoft Excel
+    if [ -d "/Applications/Microsoft Excel.app" ]; then
+        excel_ver=$(defaults read "/Applications/Microsoft Excel.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Microsoft Excel: $excel_ver"
+    else
+        output "  Microsoft Excel: not installed"
+    fi
+
+    # Microsoft PowerPoint
+    if [ -d "/Applications/Microsoft PowerPoint.app" ]; then
+        ppt_ver=$(defaults read "/Applications/Microsoft PowerPoint.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Microsoft PowerPoint: $ppt_ver"
+    else
+        output "  Microsoft PowerPoint: not installed"
+    fi
+
+    # Microsoft Outlook
+    if [ -d "/Applications/Microsoft Outlook.app" ]; then
+        outlook_ver=$(defaults read "/Applications/Microsoft Outlook.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Microsoft Outlook: $outlook_ver"
+    else
+        output "  Microsoft Outlook: not installed"
+    fi
+
+    # Microsoft Teams
+    if [ -d "/Applications/Microsoft Teams.app" ] || [ -d "/Applications/Microsoft Teams (work or school).app" ]; then
+        teams_ver=$(defaults read "/Applications/Microsoft Teams.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || \
+                    defaults read "/Applications/Microsoft Teams (work or school).app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Microsoft Teams: $teams_ver"
+    else
+        output "  Microsoft Teams: not installed"
+    fi
+
+    # Apple Pages
+    if [ -d "/Applications/Pages.app" ]; then
+        pages_ver=$(defaults read "/Applications/Pages.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Apple Pages: $pages_ver"
+    else
+        output "  Apple Pages: not installed"
+    fi
+
+    # Apple Numbers
+    if [ -d "/Applications/Numbers.app" ]; then
+        numbers_ver=$(defaults read "/Applications/Numbers.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Apple Numbers: $numbers_ver"
+    else
+        output "  Apple Numbers: not installed"
+    fi
+
+    # Apple Keynote
+    if [ -d "/Applications/Keynote.app" ]; then
+        keynote_ver=$(defaults read "/Applications/Keynote.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Apple Keynote: $keynote_ver"
+    else
+        output "  Apple Keynote: not installed"
+    fi
+
+    # LibreOffice
+    if [ -d "/Applications/LibreOffice.app" ]; then
+        libre_ver=$(defaults read "/Applications/LibreOffice.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  LibreOffice: $libre_ver"
+    else
+        output "  LibreOffice: not installed"
+    fi
+
+    # Slack
+    if [ -d "/Applications/Slack.app" ]; then
+        slack_ver=$(defaults read "/Applications/Slack.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Slack: $slack_ver"
+    else
+        output "  Slack: not installed"
+    fi
+
+    # Cisco Webex
+    if [ -d "/Applications/Webex.app" ]; then
+        webex_ver=$(defaults read "/Applications/Webex.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Cisco Webex: $webex_ver"
+    else
+        output "  Cisco Webex: not installed"
+    fi
+
+    # Discord
+    if [ -d "/Applications/Discord.app" ]; then
+        discord_ver=$(defaults read "/Applications/Discord.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Discord: $discord_ver"
+    else
+        output "  Discord: not installed"
+    fi
+
+    # Skype
+    if [ -d "/Applications/Skype.app" ]; then
+        skype_ver=$(defaults read "/Applications/Skype.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo "unknown")
+        output "  Skype: $skype_ver"
+    else
+        output "  Skype: not installed"
+    fi
+
+elif [[ "$(uname)" == "Linux" ]]; then
+    # LibreOffice
+    if command -v libreoffice >/dev/null 2>&1; then
+        output "  LibreOffice: $(libreoffice --version 2>/dev/null | head -1)"
+    else
+        output "  LibreOffice: not installed"
+    fi
+
+    # Slack
+    if command -v slack >/dev/null 2>&1; then
+        output "  Slack: $(slack --version 2>/dev/null || echo "installed")"
+    else
+        output "  Slack: not installed"
+    fi
+
+    # Microsoft Teams
+    if command -v teams >/dev/null 2>&1; then
+        output "  Microsoft Teams: $(teams --version 2>/dev/null || echo "installed")"
+    else
+        output "  Microsoft Teams: not installed"
+    fi
+
+    # Webex
+    if command -v webex >/dev/null 2>&1; then
+        output "  Cisco Webex: $(webex --version 2>/dev/null || echo "installed")"
+    else
+        output "  Cisco Webex: not installed"
+    fi
+
+    # Discord
+    if command -v discord >/dev/null 2>&1; then
+        output "  Discord: $(discord --version 2>/dev/null || echo "installed")"
+    else
+        output "  Discord: not installed"
+    fi
+
+    # Skype
+    if command -v skype >/dev/null 2>&1 || command -v skypeforlinux >/dev/null 2>&1; then
+        output "  Skype: $(skypeforlinux --version 2>/dev/null || skype --version 2>/dev/null || echo "installed")"
+    else
+        output "  Skype: not installed"
+    fi
+fi
+
+output ""
 output "Containers and Virtualization:"
 output "------------------------------"
 
