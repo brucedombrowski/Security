@@ -15,15 +15,15 @@
     and handled according to NIST SP 800-171 and 32 CFR Part 2002
 
 .PARAMETER OutputFile
-    Optional path to save inventory output. If not specified, saves to user's Desktop
-    with filename: host-inventory-COMPUTERNAME-YYYY-MM-DD.txt
+    Optional path to save inventory output. If not specified, saves to user's Documents
+    folder with filename: host-inventory-COMPUTERNAME-YYYY-MM-DD.txt
 
 .PARAMETER NoFile
     If specified, outputs to console instead of saving to a file.
 
 .EXAMPLE
     .\Collect-HostInventory.ps1
-    Saves inventory to user's Desktop
+    Saves inventory to user's Documents folder
 
 .EXAMPLE
     .\Collect-HostInventory.ps1 -NoFile
@@ -57,12 +57,12 @@ param(
 # Use SilentlyContinue to prevent terminating errors
 $ErrorActionPreference = "SilentlyContinue"
 
-# Set default output file to user's Desktop if not specified and -NoFile not used
+# Set default output file to user's Documents folder if not specified and -NoFile not used
 if (-not $OutputFile -and -not $NoFile) {
-    $desktopPath = [Environment]::GetFolderPath("Desktop")
+    $documentsPath = [Environment]::GetFolderPath("MyDocuments")
     $datestamp = (Get-Date).ToString("yyyy-MM-dd")
     $hostname = $env:COMPUTERNAME
-    $OutputFile = Join-Path $desktopPath "host-inventory-$hostname-$datestamp.txt"
+    $OutputFile = Join-Path $documentsPath "host-inventory-$hostname-$datestamp.txt"
 }
 
 # Check if running elevated
