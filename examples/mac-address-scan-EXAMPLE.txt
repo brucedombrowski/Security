@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    74d8776041b29169...                                       #
+#  Source SHA256:    8ae1c9eaa3caa30c...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
-#  Script SHA256:    0f603c2f71583e21...                                       #
-#  Redacted:         2026-01-16T14:05:19Z                                       #
+#  Script SHA256:    2c7829ce7714551c...                                       #
+#  Redacted:         2026-01-16T16:26:20Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -19,39 +19,19 @@
 IEEE 802.3 MAC Address Verification Scan
 =========================================
 Timestamp: 2026-01-16T[REDACTED]Z
-Toolkit: Security Verification Toolkit v1.9.0-5-g5209d7a (5209d7a)
+Toolkit: Security Verification Toolkit v1.14.0 (c5511dd)
 Target: /Users/[REDACTED]
 Repository: Security
 
+Note: Test fixture directories (tests/, test/, fixtures/) are excluded
+
 Checking: Colon-Separated (XX:XX:XX:XX:XX:XX)
-  Result: REVIEW - 9 MAC address(es) found
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
+  Result: PASS (0 matches)
 Checking: Dash-Separated (XX-XX-XX-XX-XX-XX)
-  Result: REVIEW - 6 MAC address(es) found
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
+  Result: PASS (0 matches)
 Checking: Cisco Format (XXXX.XXXX.XXXX)
-  Result: REVIEW - 6 MAC address(es) found
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
-/Users/[REDACTED]
+  Result: PASS (0 matches)
 
 =========================================
-OVERALL RESULT: REVIEW REQUIRED
-21 MAC address(es) found.
-Manual review required to determine if they represent actual hardware identifiers.
+OVERALL RESULT: PASS
+No MAC addresses detected in production code.

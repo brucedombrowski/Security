@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    c0de664df82d4da9...                                       #
+#  Source SHA256:    d512662cf0be48df...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
-#  Script SHA256:    0f603c2f71583e21...                                       #
-#  Redacted:         2026-01-16T14:05:19Z                                       #
+#  Script SHA256:    2c7829ce7714551c...                                       #
+#  Redacted:         2026-01-16T16:26:20Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -27,7 +27,7 @@ Host System Inventory
 =====================
 Generated: [REDACTED]
 Hostname: [REDACTED]
-Toolkit: Security Verification Toolkit v1.9.0-5-g5209d7a (5209d7a)
+Toolkit: Security Verification Toolkit v1.14.0 (c5511dd)
 Source: https://[REDACTED]/brucedombrowski/Security
 
 HANDLING NOTICE:
@@ -82,17 +82,51 @@ Installed Software Packages:
     Backup and Sync: [REDACTED]
 
     ... (list truncated for example)
-Security-Relevant Software:
----------------------------
+Security Tools:
+---------------
   ClamAV: [REDACTED]
   OpenSSL: [REDACTED]
   SSH: [REDACTED]
   GPG: [REDACTED]
   Git: [REDACTED]
+
+Programming Languages:
+----------------------
   Python: [REDACTED]
   Node.js: [REDACTED]
   Java: [REDACTED]
   .NET: [REDACTED]
+  Ruby: [REDACTED]
+  Go: [REDACTED]
+  Rust: [REDACTED]
+  Perl: [REDACTED]
+  PHP: [REDACTED]
+
+Web Browsers:
+-------------
+  Chrome: [REDACTED]
+  Firefox: [REDACTED]
+  Safari: [REDACTED]
+  Edge: [REDACTED]
+  Brave: [REDACTED]
+
+Backup and Restore Software:
+----------------------------
+  Time Machine: [REDACTED]
+  Arq Backup: [REDACTED]
+  Carbon Copy Cloner: [REDACTED]
+  SuperDuper!: [REDACTED]
+  Backblaze: [REDACTED]
+
+Remote Desktop / Control Software:
+-----------------------------------
+  Screen Sharing (built-in): enabled
+  Apple Remote Desktop: [REDACTED]
+  TeamViewer: [REDACTED]
+  AnyDesk: [REDACTED]
+  Zoom: [REDACTED]
+  Microsoft Remote Desktop: [REDACTED]
+  VNC Viewer: [REDACTED]
 
 =====================
 Inventory collection complete.
