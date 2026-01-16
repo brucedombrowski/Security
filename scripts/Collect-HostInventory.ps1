@@ -57,12 +57,43 @@ param(
 # Use SilentlyContinue to prevent terminating errors
 $ErrorActionPreference = "SilentlyContinue"
 
-# Set default output file to user's Documents folder if not specified and -NoFile not used
+# Set default output file if not specified and -NoFile not used
+# Try multiple locations in case of restrictive environments
 if (-not $OutputFile -and -not $NoFile) {
-    $documentsPath = [Environment]::GetFolderPath("MyDocuments")
     $datestamp = (Get-Date).ToString("yyyy-MM-dd")
-    $hostname = $env:COMPUTERNAME
-    $OutputFile = Join-Path $documentsPath "host-inventory-$hostname-$datestamp.txt"
+    $hostname = if ($env:COMPUTERNAME) { $env:COMPUTERNAME } else { "unknown" }
+    $filename = "host-inventory-$hostname-$datestamp.txt"
+
+    # Try locations in order of preference
+    $locations = @(
+        [Environment]::GetFolderPath("MyDocuments"),
+        [Environment]::GetFolderPath("Desktop"),
+        [Environment]::GetFolderPath("LocalApplicationData"),
+        $env:TEMP,
+        $env:USERPROFILE,
+        "C:\Temp",
+        "."
+    )
+
+    foreach ($loc in $locations) {
+        if ($loc -and (Test-Path $loc -ErrorAction SilentlyContinue)) {
+            $testPath = Join-Path $loc $filename
+            try {
+                # Test if we can write to this location
+                [System.IO.File]::WriteAllText($testPath, "test")
+                Remove-Item $testPath -Force -ErrorAction SilentlyContinue
+                $OutputFile = $testPath
+                break
+            } catch {
+                continue
+            }
+        }
+    }
+
+    # If all locations failed, use current directory
+    if (-not $OutputFile) {
+        $OutputFile = $filename
+    }
 }
 
 # Check if running elevated
@@ -75,6 +106,29 @@ $TOOLKIT_SOURCE = "https://github.com/brucedombrowski/Security"
 
 # Output buffer for file writing
 $script:OutputBuffer = @()
+
+# Statistics for tracking what we collected
+$script:SectionsAttempted = 0
+$script:SectionsSucceeded = 0
+$script:SectionsFailed = 0
+$script:FailedSections = @()
+
+function Start-Section {
+    param([string]$Name)
+    $script:CurrentSection = $Name
+    $script:SectionsAttempted++
+}
+
+function Complete-Section {
+    $script:SectionsSucceeded++
+}
+
+function Fail-Section {
+    param([string]$Error = "Unknown error")
+    $script:SectionsFailed++
+    $script:FailedSections += "$($script:CurrentSection): $Error"
+    Write-Output-Line "  [ERROR: $Error - section partially collected]"
+}
 
 function Write-Output-Line {
     param([string]$Line = "")
@@ -199,46 +253,66 @@ Write-Output-Line ""
 # OS AND SYSTEM INFORMATION
 # ============================================================================
 
+Start-Section "OS and System Information"
 Write-Output-Line "Operating System Information:"
 Write-Output-Line "-----------------------------"
 
-$os = Get-CimInstance Win32_OperatingSystem
-$cs = Get-CimInstance Win32_ComputerSystem
-$bios = Get-CimInstance Win32_BIOS
+try {
+    $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
+    $cs = Get-CimInstance Win32_ComputerSystem -ErrorAction Stop
+    $bios = Get-CimInstance Win32_BIOS -ErrorAction SilentlyContinue
 
-Write-Output-Line "  Platform: Windows"
-Write-Output-Line "  OS Version: $($os.Caption) $($os.Version)"
-Write-Output-Line "  Build: $($os.BuildNumber)"
-Write-Output-Line "  Architecture: $($os.OSArchitecture)"
-Write-Output-Line "  Hardware Model: $($cs.Manufacturer) $($cs.Model)"
-Write-Output-Line "  Serial Number: $($bios.SerialNumber)"
-Write-Output-Line "  Domain: $($cs.Domain)"
-Write-Output-Line "  Total Memory: $([math]::Round($cs.TotalPhysicalMemory / 1GB, 2)) GB"
+    Write-Output-Line "  Platform: Windows"
+    Write-Output-Line "  OS Version: $($os.Caption) $($os.Version)"
+    Write-Output-Line "  Build: $($os.BuildNumber)"
+    Write-Output-Line "  Architecture: $($os.OSArchitecture)"
+    Write-Output-Line "  Hardware Model: $($cs.Manufacturer) $($cs.Model)"
+    Write-Output-Line "  Serial Number: $(if ($bios.SerialNumber) { $bios.SerialNumber } else { 'unavailable' })"
+    Write-Output-Line "  Domain: $($cs.Domain)"
+    Write-Output-Line "  Total Memory: $([math]::Round($cs.TotalPhysicalMemory / 1GB, 2)) GB"
+    Complete-Section
+} catch {
+    Write-Output-Line "  Platform: Windows"
+    Write-Output-Line "  [Unable to query detailed system information]"
+    Fail-Section "WMI/CIM access restricted"
+}
 Write-Output-Line ""
 
 # ============================================================================
 # NETWORK INTERFACES WITH MAC ADDRESSES
 # ============================================================================
 
+Start-Section "Network Interfaces"
 Write-Output-Line "Network Interfaces:"
 Write-Output-Line "-------------------"
 
-$adapters = Get-NetAdapter -ErrorAction SilentlyContinue | Where-Object { $_.MacAddress }
+try {
+    $adapters = Get-NetAdapter -ErrorAction Stop | Where-Object { $_.MacAddress }
 
-foreach ($adapter in $adapters) {
-    Write-Output-Line "  $($adapter.Name):"
-    Write-Output-Line "    MAC Address: $($adapter.MacAddress)"
-    Write-Output-Line "    Status: $($adapter.Status)"
-    Write-Output-Line "    Link Speed: $($adapter.LinkSpeed)"
-    Write-Output-Line "    Interface Type: $($adapter.InterfaceDescription)"
+    if ($adapters) {
+        foreach ($adapter in $adapters) {
+            Write-Output-Line "  $($adapter.Name):"
+            Write-Output-Line "    MAC Address: $($adapter.MacAddress)"
+            Write-Output-Line "    Status: $($adapter.Status)"
+            Write-Output-Line "    Link Speed: $($adapter.LinkSpeed)"
+            Write-Output-Line "    Interface Type: $($adapter.InterfaceDescription)"
 
-    # Get IP addresses for this adapter
-    $ipConfig = Get-NetIPAddress -InterfaceIndex $adapter.InterfaceIndex -ErrorAction SilentlyContinue
-    $ipv4 = $ipConfig | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' } | Select-Object -First 1
-    $ipv6 = $ipConfig | Where-Object { $_.AddressFamily -eq 'IPv6' -and $_.IPAddress -notlike 'fe80*' } | Select-Object -First 1
+            # Get IP addresses for this adapter
+            $ipConfig = Get-NetIPAddress -InterfaceIndex $adapter.InterfaceIndex -ErrorAction SilentlyContinue
+            $ipv4 = $ipConfig | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' } | Select-Object -First 1
+            $ipv6 = $ipConfig | Where-Object { $_.AddressFamily -eq 'IPv6' -and $_.IPAddress -notlike 'fe80*' } | Select-Object -First 1
 
-    if ($ipv4) { Write-Output-Line "    IPv4: $($ipv4.IPAddress)" }
-    if ($ipv6) { Write-Output-Line "    IPv6: $($ipv6.IPAddress)" }
+            if ($ipv4) { Write-Output-Line "    IPv4: $($ipv4.IPAddress)" }
+            if ($ipv6) { Write-Output-Line "    IPv6: $($ipv6.IPAddress)" }
+        }
+        Complete-Section
+    } else {
+        Write-Output-Line "  [No network adapters found]"
+        Complete-Section
+    }
+} catch {
+    Write-Output-Line "  [Unable to query network adapters - access may be restricted]"
+    Fail-Section "Network adapter query failed"
 }
 Write-Output-Line ""
 
@@ -246,26 +320,38 @@ Write-Output-Line ""
 # INSTALLED SOFTWARE PACKAGES
 # ============================================================================
 
+Start-Section "Installed Software"
 Write-Output-Line "Installed Software Packages:"
 Write-Output-Line "----------------------------"
 
-$installedSoftware = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
-                                      "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
-                     Where-Object { $_.DisplayName } |
-                     Sort-Object DisplayName |
-                     Select-Object -First 100
+try {
+    $installedSoftware = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+                                          "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
+                         Where-Object { $_.DisplayName } |
+                         Sort-Object DisplayName |
+                         Select-Object -First 100
 
-foreach ($software in $installedSoftware) {
-    $version = if ($software.DisplayVersion) { $software.DisplayVersion } else { "unknown" }
-    Write-Output-Line "    $($software.DisplayName): $version"
-}
+    if ($installedSoftware) {
+        foreach ($software in $installedSoftware) {
+            $version = if ($software.DisplayVersion) { $software.DisplayVersion } else { "unknown" }
+            Write-Output-Line "    $($software.DisplayName): $version"
+        }
 
-$totalCount = (Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
-                                "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
-               Where-Object { $_.DisplayName }).Count
+        $totalCount = (Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+                                        "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
+                       Where-Object { $_.DisplayName }).Count
 
-if ($totalCount -gt 100) {
-    Write-Output-Line "    ... and $($totalCount - 100) more packages (total: $totalCount)"
+        if ($totalCount -gt 100) {
+            Write-Output-Line "    ... and $($totalCount - 100) more packages (total: $totalCount)"
+        }
+        Complete-Section
+    } else {
+        Write-Output-Line "  [No software found in registry]"
+        Complete-Section
+    }
+} catch {
+    Write-Output-Line "  [Unable to query installed software - registry access may be restricted]"
+    Fail-Section "Registry access restricted"
 }
 Write-Output-Line ""
 
@@ -273,6 +359,7 @@ Write-Output-Line ""
 # SECURITY TOOLS
 # ============================================================================
 
+Start-Section "Security Tools"
 Write-Output-Line "Security Tools:"
 Write-Output-Line "---------------"
 
@@ -334,12 +421,14 @@ if ($gitVersion) {
     Write-Output-Line "  Git: not installed"
 }
 
+Complete-Section
 Write-Output-Line ""
 
 # ============================================================================
 # PROGRAMMING LANGUAGES
 # ============================================================================
 
+Start-Section "Programming Languages"
 Write-Output-Line "Programming Languages:"
 Write-Output-Line "----------------------"
 
@@ -800,6 +889,26 @@ if ($mongoVersion) { Write-Output-Line "  MongoDB: $mongoVersion" } else { Write
 # Redis
 $redisVersion = Get-CommandVersion -Command "redis-server" -Arguments "--version"
 if ($redisVersion) { Write-Output-Line "  Redis: $redisVersion" } else { Write-Output-Line "  Redis: not installed" }
+
+Write-Output-Line ""
+
+# ============================================================================
+# COLLECTION SUMMARY
+# ============================================================================
+
+Write-Output-Line "Collection Summary:"
+Write-Output-Line "-------------------"
+Write-Output-Line "  Sections attempted: $($script:SectionsAttempted)"
+Write-Output-Line "  Sections succeeded: $($script:SectionsSucceeded)"
+Write-Output-Line "  Sections with issues: $($script:SectionsFailed)"
+
+if ($script:FailedSections.Count -gt 0) {
+    Write-Output-Line ""
+    Write-Output-Line "  Issues encountered:"
+    foreach ($failure in $script:FailedSections) {
+        Write-Output-Line "    - $failure"
+    }
+}
 
 Write-Output-Line ""
 
