@@ -821,30 +821,57 @@ Write-Output-Line "/////////////////////////////////////////////////////////////
 
 # Write to file if specified
 if ($OutputFile) {
+    $writeSuccess = $false
+
+    # First, try to write the file
     try {
         $script:OutputBuffer | Out-File -FilePath $OutputFile -Encoding UTF8 -Force
-
-        # Set restrictive permissions (owner only)
-        $acl = Get-Acl $OutputFile
-        $acl.SetAccessRuleProtection($true, $false)
-        $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-        $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($currentUser, "FullControl", "Allow")
-        $acl.SetAccessRule($accessRule)
-        Set-Acl -Path $OutputFile -AclObject $acl -ErrorAction SilentlyContinue
-
+        $writeSuccess = $true
         Write-Host ""
-        Write-Host "Inventory saved to: $OutputFile" -ForegroundColor Green
-        Write-Host ""
-        Write-Host "Press any key to exit..." -ForegroundColor Cyan
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        Write-Host "SUCCESS: Inventory saved to:" -ForegroundColor Green
+        Write-Host "  $OutputFile" -ForegroundColor White
     } catch {
         Write-Host ""
-        Write-Host "ERROR: Failed to write output file: $_" -ForegroundColor Red
-        Write-Host "Attempted path: $OutputFile" -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "Press any key to exit..." -ForegroundColor Cyan
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-        exit 1
+        Write-Host "ERROR: Failed to write output file" -ForegroundColor Red
+        Write-Host "  Path: $OutputFile" -ForegroundColor Yellow
+        Write-Host "  Error: $_" -ForegroundColor Yellow
+    }
+
+    # Try to set restrictive permissions (non-critical, may fail without elevation)
+    if ($writeSuccess) {
+        try {
+            $acl = Get-Acl $OutputFile -ErrorAction Stop
+            $acl.SetAccessRuleProtection($true, $false)
+            $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+            $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($currentUser, "FullControl", "Allow")
+            $acl.SetAccessRule($accessRule)
+            Set-Acl -Path $OutputFile -AclObject $acl -ErrorAction Stop
+            Write-Host "  Permissions: Restricted to current user only" -ForegroundColor Green
+        } catch {
+            Write-Host "  Permissions: Could not restrict (run icacls manually)" -ForegroundColor Yellow
+        }
+    }
+}
+
+# Keep window open so user can see results
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Script completed." -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Try multiple methods to pause - some may fail depending on how script is run
+try {
+    Write-Host "Press any key to exit..." -ForegroundColor Cyan
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+} catch {
+    # Fallback: use Read-Host if RawUI fails (e.g., in ISE or some terminals)
+    try {
+        Read-Host "Press Enter to exit"
+    } catch {
+        # Last resort: just wait a few seconds
+        Write-Host "Window will close in 10 seconds..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 10
     }
 }
 
