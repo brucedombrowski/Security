@@ -116,7 +116,7 @@ you're welcome to publish details, blog posts, or conference presentations.
 
 - [AGENTS.md](./AGENTS.md) - Security toolkit architecture
 - [COMPLIANCE.md](./COMPLIANCE.md) - Compliance framework
-- [docs/lynis-macos-false-positives.md](./docs/lynis-macos-false-positives.md) - macOS security notes
+- [docs/false-positives-macos.md](./docs/false-positives-macos.md) - macOS security notes
 
 ---
 

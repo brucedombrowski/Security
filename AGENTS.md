@@ -21,7 +21,7 @@ Security/
 ├── AGENTS.md           # This file (AI agent instructions)
 ├── CHANGELOG.md        # Version history
 ├── LICENSE             # MIT License
-├── .gitignore          # Excludes .scans/ and result files
+├── .gitignore          # Excludes .scans/, .assessments/, and result files
 ├── scripts/
 │   ├── run-all-scans.sh         # Master orchestrator (inventory + scans + PDF)
 │   ├── collect-host-inventory.sh # System inventory (SENSITIVE: MAC addresses, etc.)
@@ -33,10 +33,12 @@ Security/
 │   ├── scan-vulnerabilities.sh  # Comprehensive vuln scanning (Nmap/OpenVAS/Lynis)
 │   ├── secure-delete.sh         # NIST SP 800-88 secure file deletion
 │   └── purge-git-history.sh     # Remove sensitive files from git history
-└── templates/
-    ├── scan_attestation.tex         # Generic attestation LaTeX template
-    ├── security_compliance_statement.tex  # Project-specific compliance template
-    └── logo.png                     # Logo for PDF headers
+├── templates/
+│   ├── scan_attestation.tex         # Generic attestation LaTeX template
+│   ├── security_compliance_statement.tex  # Project-specific compliance template
+│   └── logo.png                     # Logo for PDF headers
+├── .scans/             # Raw scan output (gitignored, auto-generated)
+└── .assessments/       # Security assessment reports (gitignored, PRIVATE)
 ```
 
 ## Script Design Patterns
@@ -53,7 +55,7 @@ All scripts follow these conventions:
 
 ### Output
 - Console output for real-time feedback
-- Results saved to `<target>/.scans/` directory:
+- **Raw scan output** saved to `<target>/.scans/` directory:
   - **Host inventory**: `host-inventory-YYYY-MM-DD.txt` (SENSITIVE - contains MAC addresses)
   - Individual scan logs: `*-scan-YYYY-MM-DD.txt` (reference inventory checksum)
   - Consolidated report: `security-scan-report-YYYY-MM-DD.txt`
@@ -61,6 +63,11 @@ All scripts follow these conventions:
   - PDF attestation: `scan-attestation-YYYY-MM-DD.pdf` (if pdflatex available)
   - ClamAV metadata: `malware-metadata-YYYY-MM-DD/` (JSON with file hashes)
   - ClamAV log: `clamav-log-YYYY-MM-DD.txt`
+  - Vulnerability scans: `nmap-*.txt`, `lynis-*.txt`, etc.
+- **Security assessments** saved to `<target>/.assessments/` directory (PRIVATE):
+  - Assessment reports: `security-assessment-report-YYYY-MM-DD.md`
+  - These contain analysis, recommendations, and findings interpretation
+  - Never commit to version control - contains sensitive system details
 - All outputs include toolkit version and commit hash for traceability
 - Scan results can be shared without exposing sensitive machine data (they only reference inventory checksum)
 - Suitable for CI/CD pipeline integration
@@ -317,8 +324,16 @@ This toolkit operates with the following trust model:
 ```
 Target Directory → Scan Scripts → .scans/ Directory → PDF Attestation
                                        ↓
-                              (gitignored, mode 600)
+                              (gitignored, transient)
+
+                   Analysis/Review → .assessments/ Directory
+                                       ↓
+                              (gitignored, persistent, worth storing)
 ```
+
+**Directory Lifecycle:**
+- `.scans/` - **Transient**: Raw scan output, deleted frequently, regenerated on each scan run
+- `.assessments/` - **Persistent**: Curated assessment reports worth storing for compliance records, audits, and historical reference
 
 ### Privilege Requirements
 
@@ -353,7 +368,7 @@ Target Directory → Scan Scripts → .scans/ Directory → PDF Attestation
 
 3. **Platform-Specific**: Some checks are macOS or Linux specific
    - `check-host-security.sh` has platform-specific code paths
-   - Lynis findings vary by platform (see `docs/lynis-macos-false-positives.md`)
+   - Lynis findings vary by platform (see `docs/false-positives-macos.md`)
 
 4. **Point-in-Time**: Scans reflect state at execution time
    - Code changes invalidate prior attestations

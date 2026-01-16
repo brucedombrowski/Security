@@ -16,7 +16,7 @@ IT security analysis and compliance documentation tools for software projects.
 | [AGENTS.md](AGENTS.md) | Toolkit architecture |
 | [COMPLIANCE.md](COMPLIANCE.md) | NIST control mapping |
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting |
-| [docs/lynis-macos-false-positives.md](docs/lynis-macos-false-positives.md) | macOS-specific guidance |
+| [docs/false-positives-macos.md](docs/false-positives-macos.md) | macOS-specific guidance |
 
 ## Overview
 

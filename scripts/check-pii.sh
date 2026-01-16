@@ -29,6 +29,14 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Source audit logging library
+if [ -f "$SCRIPT_DIR/lib/audit-log.sh" ]; then
+    source "$SCRIPT_DIR/lib/audit-log.sh"
+    AUDIT_AVAILABLE=1
+else
+    AUDIT_AVAILABLE=0
+fi
+
 # Help function
 show_help() {
     cat << 'EOF'
@@ -134,7 +142,15 @@ is_allowlisted() {
     local finding="$1"
     local hash=$(hash_finding "$finding")
     if [ -f "$ALLOWLIST_FILE" ]; then
-        grep -q "^$hash" "$ALLOWLIST_FILE" 2>/dev/null && return 0
+        if grep -q "^$hash" "$ALLOWLIST_FILE" 2>/dev/null; then
+            # Log allowlist match for audit trail
+            if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
+                local file_path=$(echo "$finding" | cut -d: -f1)
+                local line_num=$(echo "$finding" | cut -d: -f2)
+                audit_log_allowlist_match "PII" "$file_path:$line_num" "$hash" || true
+            fi
+            return 0
+        fi
     fi
     return 1
 }
@@ -158,6 +174,11 @@ add_to_allowlist() {
     # Add entry with hash, reason, and truncated finding for reference
     local truncated=$(echo "$finding" | cut -c1-80)
     echo "$hash # $reason # $truncated" >> "$ALLOWLIST_FILE"
+
+    # Log config change for audit trail
+    if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
+        audit_log_config_change "allowlist" "add" "hash=$hash reason=\"$reason\"" || true
+    fi
 }
 
 # Function to prompt user for interactive review
@@ -305,6 +326,11 @@ echo "Target: $TARGET_DIR"
 echo "Repository: $REPO_NAME"
 echo ""
 
+# Initialize audit logging
+if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
+    init_audit_log "$TARGET_DIR" "pii-scan" || true
+fi
+
 # Determine timeout command (GNU coreutils timeout may be gtimeout on macOS)
 if command -v timeout &>/dev/null; then
     TIMEOUT_CMD="timeout 1"
@@ -372,6 +398,13 @@ run_check() {
             fi
 
             new_count=$((new_count + 1))
+
+            # Log finding for audit trail
+            if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
+                local file_path=$(echo "$line" | cut -d: -f1)
+                local line_num=$(echo "$line" | cut -d: -f2)
+                audit_log_finding "$check_name" "$file_path:$line_num" || true
+            fi
 
             # Interactive mode: prompt for each finding
             if [ "$INTERACTIVE" -eq 1 ]; then
@@ -468,6 +501,10 @@ if [ $FOUND_ISSUES -eq 0 ]; then
     else
         echo "No PII patterns detected."
     fi
+    # Finalize audit log with PASS status
+    if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
+        finalize_audit_log "PASS" "findings=0" || true
+    fi
 else
     echo "OVERALL RESULT: REVIEW REQUIRED"
     echo "Potential PII patterns detected. Manual review required."
@@ -475,6 +512,10 @@ else
         echo ""
         echo "Run with -i flag for interactive review:"
         echo "  $0 -i $TARGET_DIR"
+    fi
+    # Finalize audit log with FAIL status
+    if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
+        finalize_audit_log "FAIL" "findings=$FOUND_ISSUES" || true
     fi
 fi
 
