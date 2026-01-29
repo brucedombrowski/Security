@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.2] - 2026-01-29
+
+### Added
+
+- **Automatic GitHub Release Creation**
+  - `release.sh` now creates GitHub releases automatically (not just tags)
+  - Uses `gh release create` after pushing tags
+  - Falls back gracefully if GitHub CLI not installed
+
+## [1.15.1] - 2026-01-29
+
+### Fixed
+
+- **Host Inventory Script Exit Code**
+  - Fixed `collect-host-inventory.sh` exiting with code 1 when macOS apps not installed
+  - Added `|| true` to `find_macos_ide` and `find_macos_browser` calls to prevent `set -e` from triggering
+
+### Changed
+
+- **Documentation Reorganization**
+  - Merged `AGENTS.md` into `CLAUDE.md` (single AI agent instructions file)
+  - Moved `COMPLIANCE.md` to `docs/COMPLIANCE.md`
+  - Moved `MAINTENANCE.md` to `docs/MAINTENANCE.md`
+  - Moved `release.sh` to `scripts/release.sh`
+  - Removed toolkit-specific release workflow from README.md
+
+- **Release Automation**
+  - `release.sh` now auto-deletes old GitHub releases (keeps only latest)
+  - Git tags are preserved for version history
+
+### Added
+
+- `CLAUDE.md` created for Claude Code guidance
+
 ## [1.15.0] - 2026-01-16
 
 ### Added
@@ -363,6 +397,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
+[1.15.2]: https://github.com/brucedombrowski/Security/releases/tag/v1.15.2
+[1.15.1]: https://github.com/brucedombrowski/Security/releases/tag/v1.15.1
 [1.15.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.15.0
 [1.14.1]: https://github.com/brucedombrowski/Security/releases/tag/v1.14.1
 [1.14.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.14.0
