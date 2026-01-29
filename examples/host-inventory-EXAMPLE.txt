@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    e39734a3e7fdfe81...                                       #
+#  Source SHA256:    6c7dec671caeafea...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    4504dce3b3744c10...                                       #
-#  Redacted:         2026-01-16T16:54:25Z                                       #
+#  Redacted:         2026-01-29T17:05:06Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -27,7 +27,7 @@ Host System Inventory
 =====================
 Generated: [REDACTED]
 Hostname: [REDACTED]
-Toolkit: Security Verification Toolkit v1.14.1-3-gb7f59b5 (b7f59b5)
+Toolkit: Security Verification Toolkit v1.15.0-21-gc78abd3 (c78abd3)
 Source: https://[REDACTED]/brucedombrowski/Security
 
 HANDLING NOTICE:
@@ -50,7 +50,7 @@ Operating System Information:
 
 Network Interfaces:
 -------------------
-  anpi0:
+  anpi2:
     MAC Address: [REDACTED]
     Status: inactive
     Media: none
@@ -58,7 +58,7 @@ Network Interfaces:
     MAC Address: [REDACTED]
     Status: inactive
     Media: none
-  anpi2:
+  anpi0:
     MAC Address: [REDACTED]
     Status: inactive
     Media: none
@@ -74,8 +74,10 @@ Installed Software Packages:
     ... (list truncated for example)
   Homebrew Casks:
     basictex [REDACTED]
-    wireshark-app [REDACTED]
+    ngrok 3.35.0,6S1r8a6kUrQ,a
+    powershell [REDACTED]
 
+    ... (list truncated for example)
   Applications (/Applications):
     Audacity: [REDACTED]
     Backup and Sync from Google 2: [REDACTED]
@@ -114,6 +116,23 @@ Programming Languages:
   Haskell (GHC): [REDACTED]
   Julia: [REDACTED]
 
+Development Tools / IDEs:
+-------------------------
+  VS Code: [REDACTED]
+  Visual Studio: not installed
+  Xcode: [REDACTED]
+  IntelliJ IDEA: not installed
+  PyCharm: not installed
+  WebStorm: not installed
+  GoLand: not installed
+  Rider: not installed
+  CLion: not installed
+  DataGrip: not installed
+  Eclipse: not installed
+  Sublime Text: not installed
+  Atom: not installed
+  Android Studio: not installed
+
 Web Browsers:
 -------------
   Chrome: [REDACTED]
@@ -121,6 +140,8 @@ Web Browsers:
   Safari: [REDACTED]
   Edge: [REDACTED]
   Brave: [REDACTED]
+  Opera: not installed
+  Vivaldi: not installed
 
 Backup and Restore Software:
 ----------------------------

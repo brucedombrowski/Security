@@ -6,20 +6,20 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    ca5a8d737a40c9f5...                                       #
+#  Source SHA256:    7fc91657388db18e...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    4504dce3b3744c10...                                       #
-#  Redacted:         2026-01-16T16:54:25Z                                       #
+#  Redacted:         2026-01-29T17:05:06Z                                       #
 #                                                                              #
 ################################################################################
 
 # Host Inventory Reference: [CHECKSUM_REDACTED]
-# Scan Timestamp: 2026-01-16T[REDACTED]Z
+# Scan Timestamp: 2026-01-29T[REDACTED]Z
 
 PII Verification Scan
 =====================
-Timestamp: 2026-01-16T[REDACTED]Z
-Toolkit: Security Verification Toolkit v1.14.1-3-gb7f59b5 (b7f59b5)
+Timestamp: 2026-01-29T[REDACTED]Z
+Toolkit: Security Verification Toolkit v1.15.0-21-gc78abd3 (c78abd3)
 Target: /Users/[REDACTED]
 Repository: Security
 
@@ -34,36 +34,36 @@ Checking: IPv4 Addresses
 /Users/[REDACTED] # Shell command syntax, not PII data # ipv4=$(ifconfig ... grep -v "127.0.0.1")
 /Users/[REDACTED] # X.509 OID for Email Protection (1.3.6.1.5.5.7.3.4) # \item Email Protection (OID ...)
 /Users/[REDACTED] # X.509 OID for Document Signing (1.3.6.1.4.1.311.10.3.12) # \item Document Signing (OID ...)
-  Result: REVIEW - 67 new match(es) found
-  ... and 57 more
+  Result: REVIEW - 69 new match(es) found
+  ... and 59 more
   (13 previously allowlisted)
 Checking: US Phone Numbers (dashed)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555-123-4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555-123-4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
-/Users/[REDACTED] "Detect 555-123-4567"
-/Users/[REDACTED] echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
-/Users/[REDACTED] "Detect 555-123-4567"
-/Users/[REDACTED] echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555-123-4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
-  Result: REVIEW - 14 new match(es) found
-  ... and 4 more
+/Users/[REDACTED] "Detect 555-123-4567"
+/Users/[REDACTED] echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
+/Users/[REDACTED] "Detect 555-123-4567"
+/Users/[REDACTED] echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then
+  Result: REVIEW - 22 new match(es) found
+  ... and 12 more
   (2 previously allowlisted)
 Checking: US Phone Numbers (dotted)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555.123.4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555.123.4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
-/Users/[REDACTED] "Detect 555.123.4567"
-/Users/[REDACTED] echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
-/Users/[REDACTED] "Detect 555.123.4567"
-/Users/[REDACTED] echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555.123.4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
-  Result: REVIEW - 14 new match(es) found
-  ... and 4 more
+/Users/[REDACTED] "Detect 555.123.4567"
+/Users/[REDACTED] echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
+/Users/[REDACTED] "Detect 555.123.4567"
+/Users/[REDACTED] echo "555.123.4567" | grep -qE "$PHONE_PATTERN"; then
+  Result: REVIEW - 22 new match(es) found
+  ... and 12 more
   (2 previously allowlisted)
 Checking: US Phone Numbers (parenthetical)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # 250:Phone: (555) 123-4567
@@ -74,8 +74,8 @@ Checking: US Phone Numbers (parenthetical)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect (555) 123-4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "(555) 123-4567" | grep -qE "$PHONE_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]Phone: (555) 123-4567
-/Users/[REDACTED] "Detect (555) 123-4567"
-/Users/[REDACTED] echo "(555) 123-4567" | grep -qE "$PHONE_PATTERN"; then
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # 250:Phone: (555) 123-4567
+/Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect (555) 123-4567"
   Result: REVIEW - 24 new match(es) found
   ... and 14 more
   (3 previously allowlisted)
@@ -104,8 +104,8 @@ Checking: Credit Card Numbers (16 digit)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect MC format (5500 0000 0000 0004)"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "5500 0000 0000 0004" | grep -qE "$CREDIT_CARD_PATTERN"; then
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect continuous digits (4111111111111111)"
-  Result: REVIEW - 41 new match(es) found
-  ... and 31 more
+  Result: REVIEW - 44 new match(es) found
+  ... and 34 more
   (10 previously allowlisted)
 
 =====================

@@ -11,7 +11,8 @@
 # 3. Creates redacted example files
 # 4. Tags the release
 # 5. Pushes to repository
-# 6. Deletes old GitHub releases (keeps only latest; tags are preserved)
+# 6. Creates GitHub release
+# 7. Deletes old GitHub releases (keeps only latest; tags are preserved)
 #
 # Exit codes:
 #   0 = Success
@@ -231,6 +232,30 @@ push_release() {
     print_success "Release pushed successfully"
 }
 
+# Create GitHub release
+create_github_release() {
+    local version="$1"
+    local tag="v$version"
+
+    if ! command -v gh &> /dev/null; then
+        print_warning "GitHub CLI (gh) not found, skipping GitHub release creation"
+        print_info "Create manually at: https://github.com/brucedombrowski/Security/releases/new?tag=$tag"
+        return 0
+    fi
+
+    print_info "Creating GitHub release..."
+
+    if gh release create "$tag" \
+        --repo brucedombrowski/Security \
+        --title "$tag" \
+        --notes "Release $version - See CHANGELOG.md for details."; then
+        print_success "GitHub release created: https://github.com/brucedombrowski/Security/releases/tag/$tag"
+    else
+        print_warning "Failed to create GitHub release"
+        return 1
+    fi
+}
+
 # Delete old GitHub releases (keeps tags)
 cleanup_old_releases() {
     local current_tag="$1"
@@ -342,6 +367,9 @@ main() {
         git -C "$REPO_ROOT" tag -d "v$version" > /dev/null 2>&1 || true
         exit 1
     fi
+
+    # Create GitHub release
+    create_github_release "$version"
 
     # Clean up old releases (keep only latest)
     cleanup_old_releases "v$version"
