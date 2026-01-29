@@ -32,10 +32,12 @@ All changes must maintain:
 # Non-interactive mode (CI/CD)
 ./scripts/run-all-scans.sh -n /path/to/project
 
-# Release workflow
+# Release workflow (maintainers only)
 ./scripts/release.sh              # Test release
 ./scripts/release.sh 1.16.0       # Specific version
 ```
+
+**Release Policy:** Only the latest release is kept on GitHub. Old releases are automatically deleted by `release.sh`, but all tags are preserved for version history.
 
 ## Repository Structure
 

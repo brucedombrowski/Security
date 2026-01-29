@@ -8,10 +8,10 @@
 # This script:
 # 1. Validates the version format
 # 2. Runs security scans on the toolkit itself
-# 3. Generates compliance statement
-# 4. Creates redacted example files
-# 5. Tags the release
-# 6. Pushes to repository
+# 3. Creates redacted example files
+# 4. Tags the release
+# 5. Pushes to repository
+# 6. Deletes old GitHub releases (keeps only latest; tags are preserved)
 #
 # Exit codes:
 #   0 = Success
@@ -231,6 +231,38 @@ push_release() {
     print_success "Release pushed successfully"
 }
 
+# Delete old GitHub releases (keeps tags)
+cleanup_old_releases() {
+    local current_tag="$1"
+
+    if ! command -v gh &> /dev/null; then
+        print_warning "GitHub CLI (gh) not found, skipping old release cleanup"
+        return 0
+    fi
+
+    print_info "Cleaning up old GitHub releases (keeping only $current_tag)..."
+
+    # Get list of all releases except the current one
+    local old_releases
+    old_releases=$(gh release list --repo brucedombrowski/Security --json tagName -q ".[].tagName" 2>/dev/null | grep -v "^${current_tag}$" || true)
+
+    if [ -z "$old_releases" ]; then
+        print_success "No old releases to clean up"
+        return 0
+    fi
+
+    local count=0
+    for tag in $old_releases; do
+        if gh release delete "$tag" --repo brucedombrowski/Security --yes 2>/dev/null; then
+            count=$((count + 1))
+        fi
+    done
+
+    if [ $count -gt 0 ]; then
+        print_success "Deleted $count old release(s) (tags preserved)"
+    fi
+}
+
 # Summary
 print_summary() {
     local version="$1"
@@ -310,7 +342,10 @@ main() {
         git -C "$REPO_ROOT" tag -d "v$version" > /dev/null 2>&1 || true
         exit 1
     fi
-    
+
+    # Clean up old releases (keep only latest)
+    cleanup_old_releases "v$version"
+
     print_summary "$version"
 }
 
