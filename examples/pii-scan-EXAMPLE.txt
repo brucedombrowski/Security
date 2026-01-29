@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    8e84e8b49c5f6b52...                                       #
+#  Source SHA256:    570f9f569e77ed40...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    4504dce3b3744c10...                                       #
-#  Redacted:         2026-01-29T18:04:52Z                                       #
+#  Redacted:         2026-01-29T18:17:19Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -19,7 +19,7 @@
 PII Verification Scan
 =====================
 Timestamp: 2026-01-29T[REDACTED]Z
-Toolkit: Security Verification Toolkit v1.16.1-2-gc76fa97 (c76fa97)
+Toolkit: Security Verification Toolkit v1.17.0-3-g9c397b0 (9c397b0)
 Target: /Users/[REDACTED]
 Repository: Security
 
@@ -34,9 +34,9 @@ Checking: IPv4 Addresses
 /Users/[REDACTED] # Shell command syntax, not PII data # ipv4=$(ifconfig ... grep -v "127.0.0.1")
 /Users/[REDACTED] # X.509 OID for Email Protection (1.3.6.1.5.5.7.3.4) # \item Email Protection (OID ...)
 /Users/[REDACTED] # X.509 OID for Document Signing (1.3.6.1.4.1.311.10.3.12) # \item Document Signing (OID ...)
-  Result: REVIEW - 69 new match(es) found
-  ... and 59 more
-  (13 previously allowlisted)
+  Result: REVIEW - 73 new match(es) found
+  ... and 63 more
+  (14 previously allowlisted)
 Checking: US Phone Numbers (dashed)
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]test_start "Detect 555-123-4567"
 /Users/[REDACTED] # Placeholder pattern (build-time substitution) # [REDACTED]if echo "555-123-4567" | grep -qE "$PHONE_PATTERN"; then

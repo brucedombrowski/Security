@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    35ccbc2e140d9763...                                       #
+#  Source SHA256:    5af195a30df9926a...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    4504dce3b3744c10...                                       #
-#  Redacted:         2026-01-29T18:04:52Z                                       #
+#  Redacted:         2026-01-29T18:17:19Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -27,7 +27,7 @@ Host System Inventory
 =====================
 Generated: [REDACTED]
 Hostname: [REDACTED]
-Toolkit: Security Verification Toolkit v1.17.0 (c76fa97)
+Toolkit: Security Verification Toolkit v1.17.1 (9c397b0)
 Source: https://[REDACTED]/brucedombrowski/Security
 
 HANDLING NOTICE:
@@ -181,6 +181,21 @@ Containers and Virtualization:
 ------------------------------
   Docker: [REDACTED]
   Podman: [REDACTED]
+    Client:        Podman Engine
+    Version: [REDACTED]
+    API Version: [REDACTED]
+    Go Version:    go1.25.5
+    Built:         Tue Dec  9 [REDACTED] 2025
+    Build Origin:  brew
+    OS/Arch:       darwin/arm64
+    
+    Server:       Podman Engine
+    Version: [REDACTED]
+    API Version: [REDACTED]
+    Go Version:   go1.25.4 X:nodwarf5
+    Git Commit:   f845d14e941889ba4c071f35233d09b29d363c75
+    Built:        Mon Dec  8 [REDACTED] 2025
+    OS/Arch:      linux/arm64
     Running Containers: 0
     Networks:
       - podman (bridge)
