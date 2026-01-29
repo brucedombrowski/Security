@@ -261,7 +261,9 @@ elif [[ "$(uname)" == "Linux" ]]; then
     # Debian/Ubuntu
     if command -v dpkg >/dev/null 2>&1; then
         output "  Debian/Ubuntu Packages (dpkg):"
-        dpkg-query -W -f='    ${Package}: ${Version}\n' 2>/dev/null | head -100
+        while IFS= read -r line; do
+            output "$line"
+        done <<< "$(dpkg-query -W -f='    ${Package}: ${Version}\n' 2>/dev/null | head -100)"
         PKG_COUNT=$(dpkg-query -W -f='${Package}\n' 2>/dev/null | wc -l)
         if [ "$PKG_COUNT" -gt 100 ]; then
             output "    ... and $((PKG_COUNT - 100)) more packages (total: $PKG_COUNT)"
@@ -269,7 +271,9 @@ elif [[ "$(uname)" == "Linux" ]]; then
     # RHEL/CentOS/Fedora
     elif command -v rpm >/dev/null 2>&1; then
         output "  RPM Packages:"
-        rpm -qa --queryformat '    %{NAME}: %{VERSION}-%{RELEASE}\n' 2>/dev/null | sort | head -100
+        while IFS= read -r line; do
+            output "$line"
+        done <<< "$(rpm -qa --queryformat '    %{NAME}: %{VERSION}-%{RELEASE}\n' 2>/dev/null | sort | head -100)"
         PKG_COUNT=$(rpm -qa 2>/dev/null | wc -l)
         if [ "$PKG_COUNT" -gt 100 ]; then
             output "    ... and $((PKG_COUNT - 100)) more packages (total: $PKG_COUNT)"
