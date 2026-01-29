@@ -24,6 +24,23 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Load config from release.config.json
+CONFIG_FILE="$REPO_ROOT/release.config.json"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "ERROR: Config file not found: $CONFIG_FILE" >&2
+    echo "Create release.config.json with: {\"github\": {\"owner\": \"...\", \"repo\": \"...\"}}" >&2
+    exit 2
+fi
+
+GITHUB_OWNER=$(jq -r '.github.owner' "$CONFIG_FILE")
+GITHUB_REPO=$(jq -r '.github.repo' "$CONFIG_FILE")
+GITHUB_REPO_FULL="${GITHUB_OWNER}/${GITHUB_REPO}"
+
+if [ -z "$GITHUB_OWNER" ] || [ "$GITHUB_OWNER" = "null" ] || [ -z "$GITHUB_REPO" ] || [ "$GITHUB_REPO" = "null" ]; then
+    echo "ERROR: Invalid config. Ensure github.owner and github.repo are set in $CONFIG_FILE" >&2
+    exit 2
+fi
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -239,17 +256,17 @@ create_github_release() {
 
     if ! command -v gh &> /dev/null; then
         print_warning "GitHub CLI (gh) not found, skipping GitHub release creation"
-        print_info "Create manually at: https://github.com/brucedombrowski/Security/releases/new?tag=$tag"
+        print_info "Create manually at: https://github.com/${GITHUB_REPO_FULL}/releases/new?tag=$tag"
         return 0
     fi
 
     print_info "Creating GitHub release..."
 
     if gh release create "$tag" \
-        --repo brucedombrowski/Security \
+        --repo "$GITHUB_REPO_FULL" \
         --title "$tag" \
         --notes "Release $version - See CHANGELOG.md for details."; then
-        print_success "GitHub release created: https://github.com/brucedombrowski/Security/releases/tag/$tag"
+        print_success "GitHub release created: https://github.com/${GITHUB_REPO_FULL}/releases/tag/$tag"
     else
         print_warning "Failed to create GitHub release"
         return 1
@@ -269,7 +286,7 @@ cleanup_old_releases() {
 
     # Get list of all releases except the current one
     local old_releases
-    old_releases=$(gh release list --repo brucedombrowski/Security --json tagName -q ".[].tagName" 2>/dev/null | grep -v "^${current_tag}$" || true)
+    old_releases=$(gh release list --repo "$GITHUB_REPO_FULL" --json tagName -q ".[].tagName" 2>/dev/null | grep -v "^${current_tag}$" || true)
 
     if [ -z "$old_releases" ]; then
         print_success "No old releases to clean up"
@@ -278,7 +295,7 @@ cleanup_old_releases() {
 
     local count=0
     for tag in $old_releases; do
-        if gh release delete "$tag" --repo brucedombrowski/Security --yes 2>/dev/null; then
+        if gh release delete "$tag" --repo "$GITHUB_REPO_FULL" --yes 2>/dev/null; then
             count=$((count + 1))
         fi
     done
@@ -298,7 +315,7 @@ print_summary() {
     echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
     echo ""
     echo "Next steps:"
-    echo "  1. Review the release on GitHub: https://github.com/brucedombrowski/Security/releases/tag/v$version"
+    echo "  1. Review the release on GitHub: https://github.com/${GITHUB_REPO_FULL}/releases/tag/v$version"
     echo "  2. Verify example files in: examples/"
     echo "  3. Review scan attestation PDF in: .scans/scan-attestation-*.pdf"
     echo ""
