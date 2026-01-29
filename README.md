@@ -57,11 +57,11 @@ This toolkit provides automated security verification scripts aligned with feder
 
 The recommended workflow for releasing the toolkit:
 
-1. **Run `release.sh`** - Executes non-interactive scans and prepares release
+1. **Run `scripts/release.sh`** - Executes non-interactive scans and prepares release
    ```bash
-   ./release.sh                    # Generate test release (0.0.0-test.TIMESTAMP)
-   ./release.sh 1.12.0             # Prepare specific version release
-   ./release.sh --skip-tests       # Skip scans (not recommended)
+   ./scripts/release.sh                    # Generate test release (0.0.0-test.TIMESTAMP)
+   ./scripts/release.sh 1.12.0             # Prepare specific version release
+   ./scripts/release.sh --skip-tests       # Skip scans (not recommended)
    ```
 
 2. **Review output** - If scans report findings, review and address them

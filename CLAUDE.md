@@ -33,8 +33,8 @@ All changes must maintain:
 ./scripts/run-all-scans.sh -n /path/to/project
 
 # Release workflow
-./release.sh              # Test release
-./release.sh 1.16.0       # Specific version
+./scripts/release.sh              # Test release
+./scripts/release.sh 1.16.0       # Specific version
 ```
 
 ## Architecture
