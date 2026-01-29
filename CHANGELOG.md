@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.7] - 2026-01-29
+
+### Added
+
+- **Integration Test Suite**
+  - New `tests/test-integration.sh` with 16 comprehensive integration tests
+  - Tests end-to-end scan execution, output file creation, exit codes
+  - Validates scan orchestration and report generation
+
+- **Enhanced PII Detection**
+  - Luhn algorithm validation for credit card numbers (reduces false positives)
+  - International phone number patterns (supports country codes, various formats)
+
+- **Documentation**
+  - `docs/FAQ.md` - Troubleshooting guide for common issues
+  - `docs/PERFORMANCE.md` - Performance baselines and benchmarks
+
+### Changed
+
+- **Improved Exit Codes**
+  - `check-malware.sh` now returns exit code 2 when ClamAV is not installed
+  - Distinguishes between scan failures (1) and missing dependencies (2)
+
+- **Better Scan Summary**
+  - `run-all-scans.sh` now tracks and displays skipped scan count
+  - Summary shows Passed/Failed/Skipped counts
+
 ## [1.17.6] - 2026-01-29
 
 ### Added
@@ -513,6 +540,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
+[1.17.7]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.7
+[1.17.6]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.6
+[1.17.5]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.5
 [1.17.4]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.4
 [1.17.3]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.3
 [1.17.2]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.2
