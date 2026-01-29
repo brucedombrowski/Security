@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.9] - 2026-01-29
+
+### Added
+
+- **Unit Tests for Inventory Modules**
+  - New `tests/test-inventory-modules.sh` with 31 comprehensive tests
+  - Tests for output library: `output()`, `init_output()`, CUI functions
+  - Tests for detection library: `detect_tool()`, `detect_macos_app()`, `section_header()`
+  - Tests for all 13 collector modules (verifies each runs without error)
+  - Integration tests for full inventory collection
+  - Test runner now executes 11 test suites
+
 ## [1.17.8] - 2026-01-29
 
 ### Changed
