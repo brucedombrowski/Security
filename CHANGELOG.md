@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2026-01-29
+
+### Added
+
+- **Podman Container Details in Host Inventory**
+  - Running container count
+  - Container details: name, image, and IP address
+  - Podman networks list (name and driver)
+  - pasta and slirp4netns versions (Linux rootless networking tools)
+  - Graceful handling when podman machine not running
+
+### Fixed
+
+- **Release Version in Examples**
+  - Examples now show release version (e.g., v1.17.0) instead of git describe output
+  - Added `TOOLKIT_VERSION_OVERRIDE` environment variable support
+  - Release script exports version before running scans
+
+- **Examples Committed Before Tagging**
+  - Release script now commits staged examples before creating tag
+  - Ensures examples in release match the tagged version
+
 ## [1.16.0] - 2026-01-29
 
 ### Added
@@ -418,6 +440,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
+[1.17.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.0
 [1.16.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.16.0
 [1.15.2]: https://github.com/brucedombrowski/Security/releases/tag/v1.15.2
 [1.15.1]: https://github.com/brucedombrowski/Security/releases/tag/v1.15.1
