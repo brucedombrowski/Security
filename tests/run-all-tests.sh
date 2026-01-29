@@ -9,7 +9,7 @@
 #   0 = All test suites passed
 #   1 = One or more test suites failed
 
-set -e
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

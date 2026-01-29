@@ -16,7 +16,7 @@
 # Usage: ./check-host-security.sh
 #        (No target directory - checks the current host)
 
-set -e
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -87,7 +87,7 @@
 #   See AGENTS.md "Future Enhancements" for details.
 #
 
-set -e
+set -eu
 
 # ============================================================================
 # CONFIGURATION

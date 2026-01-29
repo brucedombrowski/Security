@@ -27,7 +27,7 @@
 #   Format: SHA256 hash of "file:line:content" per line
 #   Allowlisted items are automatically skipped in future scans
 
-set -e
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

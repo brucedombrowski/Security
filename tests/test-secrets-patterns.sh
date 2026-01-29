@@ -11,7 +11,7 @@
 #   0 = All tests passed
 #   1 = One or more tests failed
 
-set -e
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

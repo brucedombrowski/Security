@@ -8,7 +8,7 @@
 # This script is run during release builds to generate sanitized example files
 # showing the structure and format of toolkit outputs without exposing real data.
 
-set -e
+set -eu
 
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <source_scan_dir> <output_example_dir>"

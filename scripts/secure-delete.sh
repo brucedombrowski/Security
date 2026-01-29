@@ -24,7 +24,7 @@
 #   2 = Invalid arguments
 #
 
-set -e
+set -eu
 
 SCRIPT_NAME=$(basename "$0")
 RECURSIVE=false

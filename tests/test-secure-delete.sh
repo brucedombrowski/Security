@@ -13,7 +13,7 @@
 #
 # NOTE: These tests use --dry-run mode to avoid actual file deletion during testing
 
-set -e
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

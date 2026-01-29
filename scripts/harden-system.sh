@@ -14,7 +14,7 @@
 # Run with --check to see what would be changed (no modifications).
 # Run with --apply to apply the hardening changes.
 
-set -e
+set -eu
 
 # Colors for output
 RED='\033[0;31m'

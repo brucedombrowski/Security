@@ -29,7 +29,7 @@
 #        If output_file specified, inventory is written to file
 #        Otherwise, output goes to stdout
 
-set -e
+set -eu
 
 # CRITICAL-004: Set restrictive umask before any file operations
 # This ensures all created files have mode 600 (owner only)

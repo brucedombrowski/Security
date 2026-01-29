@@ -16,7 +16,7 @@
 #   7. Umask protection takes precedence
 #   8. Permission verification logged
 
-set -e
+set -eu
 
 # Color codes for output
 RED='\033[0;31m'

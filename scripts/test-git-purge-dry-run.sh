@@ -5,7 +5,7 @@
 # Purpose: Verify safe git history purge with dry-run, preview, and confirmation
 # NIST Controls: SI-12 (Information Management), CM-3 (Change Control)
 
-set -e
+set -eu
 
 # Color codes
 RED='\033[0;31m'

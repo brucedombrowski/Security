@@ -15,7 +15,7 @@
 #   7. Symlink to system directory ignored
 #   8. Mixed content (files + symlinks) processed correctly
 
-set -e
+set -eu
 
 # Color codes for output
 RED='\033[0;31m'

@@ -4,7 +4,7 @@
 #
 # Tests the progress indicator functions in scripts/lib/progress.sh
 
-set -e
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../scripts/lib"

@@ -20,7 +20,7 @@
 #   1 = Scan failures requiring review (PDF still generated with findings)
 #   2 = Fatal error (missing dependencies, template not found, etc.)
 
-set -e
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
