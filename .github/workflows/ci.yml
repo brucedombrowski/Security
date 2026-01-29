@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck on scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          severity: warning
+
+      - name: Run ShellCheck on tests
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './tests'
+          severity: warning
+
+  test-ubuntu:
+    name: Tests (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq clamav clamav-daemon
+
+      - name: Update ClamAV database
+        run: |
+          sudo systemctl stop clamav-freshclam || true
+          sudo freshclam || true
+
+      - name: Run test suites
+        run: |
+          chmod +x scripts/*.sh tests/*.sh
+          for test in scripts/test-*.sh; do
+            echo "=== Running $test ==="
+            bash "$test"
+          done
+
+      - name: Run pattern tests
+        run: |
+          for test in tests/test-*.sh; do
+            echo "=== Running $test ==="
+            bash "$test"
+          done
+
+  test-macos:
+    name: Tests (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install jq clamav || true
+
+      - name: Update ClamAV database
+        run: |
+          freshclam || true
+
+      - name: Run test suites
+        run: |
+          chmod +x scripts/*.sh tests/*.sh
+          for test in scripts/test-*.sh; do
+            echo "=== Running $test ==="
+            bash "$test"
+          done
+
+      - name: Run pattern tests
+        run: |
+          for test in tests/test-*.sh; do
+            echo "=== Running $test ==="
+            bash "$test"
+          done
+
+  syntax-check:
+    name: Bash Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check script syntax
+        run: |
+          errors=0
+          for script in scripts/*.sh scripts/lib/*.sh tests/*.sh; do
+            if ! bash -n "$script" 2>&1; then
+              echo "Syntax error in $script"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            echo "Found $errors syntax errors"
+            exit 1
+          fi
+          echo "All scripts passed syntax check"
