@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.8] - 2026-01-29
+
+### Changed
+
+- **Modularized Host Inventory Collection**
+  - Refactored `collect-host-inventory.sh` from 1,642 lines to 129 lines (92% reduction)
+  - Extracted reusable detection helpers into `lib/inventory/detect.sh`
+  - Extracted output/CUI handling into `lib/inventory/output.sh`
+  - Split data collection into 13 focused collector modules:
+    - `os-info.sh` - OS, kernel, hardware
+    - `network.sh` - Interfaces, MACs, IPs
+    - `packages.sh` - Homebrew, dpkg, rpm
+    - `security-tools.sh` - ClamAV, OpenSSL, SSH, GPG
+    - `languages.sh` - Programming language runtimes
+    - `ides.sh` - Development environments
+    - `browsers.sh` - Web browsers
+    - `backup.sh` - Backup software
+    - `remote-desktop.sh` - Remote access tools
+    - `productivity.sh` - Office, chat apps
+    - `containers.sh` - Docker, Podman, K8s, VMs
+    - `web-servers.sh` - Apache, Nginx, etc.
+    - `databases.sh` - PostgreSQL, MySQL, etc.
+  - New reusable functions: `detect_tool()`, `detect_macos_app()`, `detect_linux_tool()`
+  - Output and behavior remain identical (full backward compatibility)
+
 ## [1.17.7] - 2026-01-29
 
 ### Added
