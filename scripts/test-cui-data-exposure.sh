@@ -54,13 +54,15 @@ echo ""
 # TEST 1: File created with restricted permissions (600)
 echo -n "TEST 1: File permissions set to 600... "
 test_file="$TEST_DIR/inventory1.txt"
-# Capture exit code and stderr for debugging
-script_exit_code=0
-script_stderr=$(cd "$TEST_DIR" && "$SCRIPT_DIR/collect-host-inventory.sh" "$test_file" 2>&1 >/dev/null) || script_exit_code=$?
+# Run script and capture all output for debugging
+script_output_file="$TEST_DIR/script_output.txt"
+(cd "$TEST_DIR" && bash -x "$SCRIPT_DIR/collect-host-inventory.sh" "$test_file") > "$script_output_file" 2>&1
+script_exit_code=$?
 if [ $script_exit_code -ne 0 ]; then
     echo ""
     echo "DEBUG: Script failed with exit code $script_exit_code"
-    echo "DEBUG: stderr: $script_stderr"
+    echo "DEBUG: Last 50 lines of output:"
+    tail -50 "$script_output_file"
     exit 1
 fi
 file_perms=$(get_file_perms "$test_file")
