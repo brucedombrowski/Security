@@ -1362,10 +1362,14 @@ fi
 
 # Podman
 if command -v podman >/dev/null 2>&1; then
-    output "  Podman: $(podman --version 2>/dev/null)"
+    output "  Podman:"
 
     # Check if podman machine is running (macOS) or podman is accessible
     if podman info >/dev/null 2>&1; then
+        # Capture full podman version output (Client and Server)
+        while IFS= read -r line; do
+            output "    $line"
+        done <<< "$(podman version 2>/dev/null)"
         # List running containers with IPs
         container_count=$(podman ps -q 2>/dev/null | wc -l | tr -d ' ')
         if [ "$container_count" -gt 0 ]; then
