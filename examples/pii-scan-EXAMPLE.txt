@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    4fbb8424f72969cf...                                       #
+#  Source SHA256:    cacc8dea4fa21c79...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    d42c54e5d15a5782...                                       #
-#  Redacted:         2026-01-29T21:49:02Z                                       #
+#  Redacted:         2026-01-29T22:21:27Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -19,12 +19,14 @@
 PII Verification Scan
 =====================
 Timestamp: 2026-01-29T[REDACTED]Z
-Toolkit: Security Verification Toolkit v1.17.6-1-g1da4387 (1da4387)
+Toolkit: Security Verification Toolkit v1.17.7-2-gae42a68 (ae42a68)
 Target: /Users/[REDACTED]
 Repository: Security
 
 Checking: IPv4 Addresses
-  Result: PASS (19 allowlisted)
+/Users/[REDACTED]            ipv4=$(ifconfig "$iface" 2>/dev/null | grep "inet " | grep -v "127.0.0.1" | awk '{print $2}' | head -1)
+  Result: REVIEW - 1 new match(es) found
+  (18 previously allowlisted)
 Checking: US Phone Numbers (dashed)
   Result: PASS (0 matches)
 Checking: US Phone Numbers (dotted)
