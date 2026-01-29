@@ -181,26 +181,44 @@ run_scans() {
 # Create redacted examples
 create_examples() {
     print_info "Creating redacted example files..."
-    
+
     if [ ! -x "$REPO_ROOT/scripts/redact-examples.sh" ]; then
         print_warning "scripts/redact-examples.sh not found, skipping example generation"
         return 0
     fi
-    
+
     # Check if .scans directory exists
     if [ ! -d "$REPO_ROOT/.scans" ]; then
         print_warning "No .scans directory found, skipping example generation"
         return 0
     fi
-    
+
     if "$REPO_ROOT/scripts/redact-examples.sh" "$REPO_ROOT/.scans" "$REPO_ROOT/examples"; then
         print_success "Example files generated and redacted"
-        
+
         # Add examples to staging
         git -C "$REPO_ROOT" add examples/ > /dev/null 2>&1 || true
     else
         print_warning "Example file generation encountered issues"
     fi
+}
+
+# Commit any staged changes before tagging
+commit_staged_changes() {
+    local version="$1"
+
+    # Check if there are staged changes
+    if ! git -C "$REPO_ROOT" diff --cached --quiet; then
+        print_info "Committing staged changes for release..."
+
+        if git -C "$REPO_ROOT" commit -m "chore: update examples for v$version release"; then
+            print_success "Staged changes committed"
+        else
+            print_error "Failed to commit staged changes"
+            return 1
+        fi
+    fi
+    return 0
 }
 
 # Create release tag
@@ -373,7 +391,12 @@ main() {
     
     # Create examples
     create_examples
-    
+
+    # Commit any staged changes (e.g., updated examples) before tagging
+    if ! commit_staged_changes "$version"; then
+        exit 1
+    fi
+
     # Create and push tag
     if ! create_tag "$version"; then
         exit 1
