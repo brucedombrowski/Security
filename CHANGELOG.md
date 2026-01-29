@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.2] - 2026-01-29
+
+### Changed
+
+- **Enhanced Podman Version Output**
+  - Captures complete `podman version` output (Client and Server details)
+  - Includes Version, API Version, Go Version, Build date, OS/Arch, Git Commit
+
+- **Enhanced Rootless Networking Tool Versions**
+  - `slirp4netns --version` now captures full output (version, commit, libslirp, libseccomp)
+  - `pasta --version` captures full output with fallback to package manager (rpm/dpkg) when `--version` produces no output
+
+## [1.17.1] - 2026-01-29
+
+### Changed
+
+- **Complete Podman Version Output**
+  - Now captures full `podman version` instead of just `podman --version`
+  - Shows both Client and Server information
+
 ## [1.17.0] - 2026-01-29
 
 ### Added
@@ -440,6 +460,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
+[1.17.2]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.2
+[1.17.1]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.1
 [1.17.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.17.0
 [1.16.0]: https://github.com/brucedombrowski/Security/releases/tag/v1.16.0
 [1.15.2]: https://github.com/brucedombrowski/Security/releases/tag/v1.15.2
