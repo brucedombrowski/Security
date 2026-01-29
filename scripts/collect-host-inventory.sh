@@ -38,10 +38,14 @@ umask 0077
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Source toolkit info library
+if [ -f "$SCRIPT_DIR/lib/toolkit-info.sh" ]; then
+    source "$SCRIPT_DIR/lib/toolkit-info.sh"
+    init_toolkit_info "$SECURITY_REPO_DIR"
+fi
+
 # Use UTC for consistent timestamps across time zones
 TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-TOOLKIT_VERSION=$(git -C "$SECURITY_REPO_DIR" describe --tags --always 2>/dev/null || echo "unknown")
-TOOLKIT_COMMIT=$(git -C "$SECURITY_REPO_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # Optional output file
 OUTPUT_FILE="$1"
@@ -114,8 +118,8 @@ output "Host System Inventory"
 output "====================="
 output "Generated: $TIMESTAMP"
 output "Hostname: $(hostname)"
-output "Toolkit: Security Verification Toolkit $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
-output "Source: https://github.com/brucedombrowski/Security"
+output "Toolkit: $TOOLKIT_NAME $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
+output "Source: $TOOLKIT_SOURCE"
 output ""
 output "HANDLING NOTICE:"
 output "  This document contains Controlled Unclassified Information (CUI)."

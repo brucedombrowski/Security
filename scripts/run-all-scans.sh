@@ -47,8 +47,10 @@ if [ -f "$SCRIPT_DIR/lib/progress.sh" ]; then
 fi
 
 # Toolkit identification
-TOOLKIT_VERSION=$(git -C "$SECURITY_REPO_DIR" describe --tags --always 2>/dev/null || echo "unknown")
-TOOLKIT_COMMIT=$(git -C "$SECURITY_REPO_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+if [ -f "$SCRIPT_DIR/lib/toolkit-info.sh" ]; then
+    source "$SCRIPT_DIR/lib/toolkit-info.sh"
+    init_toolkit_info "$SECURITY_REPO_DIR"
+fi
 
 # Default to interactive mode
 INTERACTIVE=1
@@ -565,8 +567,8 @@ CHECKSUMS_FILE="$SCANS_DIR/checksums.md"
     echo "# Scan Output Checksums"
     echo ""
     echo "Generated: $TIMESTAMP"
-    echo "Toolkit: Security Verification Toolkit $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
-    echo "Source: https://github.com/brucedombrowski/Security"
+    echo "Toolkit: $TOOLKIT_NAME $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
+    echo "Source: $TOOLKIT_SOURCE"
     echo "Target: $TARGET_DIR"
     echo ""
     echo "## Host Inventory Reference"
@@ -611,7 +613,7 @@ done
 # Generate PDF attestation using external script
 # Export all required variables for the attestation script
 export TARGET_DIR FILE_TIMESTAMP TIMESTAMP DATE_STAMP INVENTORY_CHECKSUM
-export TOOLKIT_VERSION TOOLKIT_COMMIT
+export TOOLKIT_NAME TOOLKIT_VERSION TOOLKIT_COMMIT TOOLKIT_SOURCE
 export PII_RESULT PII_FINDINGS MALWARE_RESULT MALWARE_FINDINGS
 export SECRETS_RESULT SECRETS_FINDINGS MAC_RESULT MAC_FINDINGS
 export HOST_RESULT HOST_FINDINGS VULN_RESULT VULN_FINDINGS

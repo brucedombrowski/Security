@@ -110,6 +110,11 @@ if [ -f "$SCRIPT_DIR/lib/timestamps.sh" ]; then
     TIMESTAMPS_AVAILABLE=1
 fi
 
+if [ -f "$SCRIPT_DIR/lib/toolkit-info.sh" ]; then
+    source "$SCRIPT_DIR/lib/toolkit-info.sh"
+    init_toolkit_info "$SECURITY_REPO_DIR"
+fi
+
 # Use standardized timestamps (UTC for consistency across time zones)
 if [ "$TIMESTAMPS_AVAILABLE" -eq 1 ]; then
     TIMESTAMP=$(get_filename_timestamp)
@@ -119,10 +124,6 @@ else
     DATE_STAMP=$(date -u "+%Y-%m-%d")
 fi
 HOSTNAME_SHORT=$(hostname -s 2>/dev/null || hostname)
-
-# Toolkit version for traceability
-TOOLKIT_VERSION=$(git -C "$SECURITY_REPO_DIR" describe --tags --always 2>/dev/null || echo "unknown")
-TOOLKIT_COMMIT=$(git -C "$SECURITY_REPO_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # Default settings
 TARGET="127.0.0.1"
@@ -200,8 +201,8 @@ print_header() {
     echo "  Target:          $TARGET"
     echo "  Scan Mode:       $SCAN_MODE"
     echo "  Hostname:        $HOSTNAME_SHORT"
-    echo "  Toolkit:         Security Verification Toolkit $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
-    echo "  Source:          https://github.com/brucedombrowski/Security"
+    echo "  Toolkit:         $TOOLKIT_NAME $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
+    echo "  Source:          $TOOLKIT_SOURCE"
     echo ""
     echo "================================================================================"
     echo ""
@@ -844,8 +845,8 @@ main() {
         echo ""
         echo "Generated: $TIMESTAMP"
         echo "Target: $TARGET"
-        echo "Toolkit: Security Verification Toolkit $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
-        echo "Source: https://github.com/brucedombrowski/Security"
+        echo "Toolkit: $TOOLKIT_NAME $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
+        echo "Source: $TOOLKIT_SOURCE"
         echo ""
     } > "$REPORT_FILE"
 

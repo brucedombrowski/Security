@@ -21,17 +21,21 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Source toolkit info library
+if [ -f "$SCRIPT_DIR/lib/toolkit-info.sh" ]; then
+    source "$SCRIPT_DIR/lib/toolkit-info.sh"
+    init_toolkit_info "$SECURITY_REPO_DIR"
+fi
+
 # Use UTC for consistent timestamps across time zones
 TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-TOOLKIT_VERSION=$(git -C "$SECURITY_REPO_DIR" describe --tags --always 2>/dev/null || echo "unknown")
-TOOLKIT_COMMIT=$(git -C "$SECURITY_REPO_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 echo "Host OS Security Verification"
 echo "=============================="
 echo "Timestamp: $TIMESTAMP"
 echo "Host: $(hostname)"
-echo "Toolkit: Security Verification Toolkit $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
-echo "Source: https://github.com/brucedombrowski/Security"
+echo "Toolkit: $TOOLKIT_NAME $TOOLKIT_VERSION ($TOOLKIT_COMMIT)"
+echo "Source: $TOOLKIT_SOURCE"
 echo ""
 
 # Track overall status

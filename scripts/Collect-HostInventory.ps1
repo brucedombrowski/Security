@@ -101,8 +101,47 @@ $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIde
 
 # Script metadata
 $TIMESTAMP = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-$TOOLKIT_VERSION = "1.15.0"
-$TOOLKIT_SOURCE = "https://github.com/brucedombrowski/Security"
+
+# Get toolkit info from config file or git remote
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = Split-Path -Parent $ScriptDir
+$ConfigFile = Join-Path $RepoRoot "release.config.json"
+
+# Default values
+$TOOLKIT_NAME = "Security Verification Toolkit"
+$TOOLKIT_VERSION = "unknown"
+$TOOLKIT_SOURCE = "https://github.com/OWNER/REPO"
+
+# Try to get version from git
+try {
+    $gitVersion = & git -C $RepoRoot describe --tags --always 2>$null
+    if ($gitVersion) { $TOOLKIT_VERSION = $gitVersion }
+} catch { }
+
+# Try to read config file for source URL
+if (Test-Path $ConfigFile -ErrorAction SilentlyContinue) {
+    try {
+        $config = Get-Content $ConfigFile -Raw | ConvertFrom-Json
+        if ($config.github.owner -and $config.github.repo) {
+            $TOOLKIT_SOURCE = "https://github.com/$($config.github.owner)/$($config.github.repo)"
+        }
+    } catch { }
+}
+
+# Fallback: try git remote if config didn't work
+if ($TOOLKIT_SOURCE -eq "https://github.com/OWNER/REPO") {
+    try {
+        $remoteUrl = & git -C $RepoRoot config --get remote.origin.url 2>$null
+        if ($remoteUrl) {
+            # Convert SSH to HTTPS format
+            if ($remoteUrl -match "^git@([^:]+):(.+?)(\.git)?$") {
+                $TOOLKIT_SOURCE = "https://$($Matches[1])/$($Matches[2])"
+            } elseif ($remoteUrl -match "^https://(.+?)(\.git)?$") {
+                $TOOLKIT_SOURCE = "https://$($Matches[1])"
+            }
+        }
+    } catch { }
+}
 
 # Output buffer for file writing
 $script:OutputBuffer = @()
