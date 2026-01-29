@@ -7,9 +7,9 @@
 #
 # Patterns checked:
 #   - IP addresses (IPv4)
-#   - Phone numbers (US formats)
+#   - Phone numbers (US formats + international with country code)
 #   - Social Security Numbers
-#   - Credit Card Numbers
+#   - Credit Card Numbers (validated with Luhn algorithm to reduce false positives)
 #
 # Exit codes:
 #   0 = All checks passed (no PII found, or all reviewed/accepted)
@@ -93,9 +93,10 @@ ARGUMENTS:
 
 PATTERNS DETECTED:
   - IPv4 addresses       192.168.x.x, 10.x.x.x, etc.
-  - Phone numbers        US formats: (xxx) xxx-xxxx, xxx-xxx-xxxx
+  - Phone numbers        US formats: (xxx) xxx-xxxx, xxx-xxx-xxxx, xxx.xxx.xxxx
+  - International phones +XX XXX XXX XXXX (with country code)
   - Social Security      xxx-xx-xxxx format
-  - Credit cards         16-digit patterns (Visa, MC, Amex, Discover)
+  - Credit cards         16-digit patterns with Luhn algorithm validation
 
 ALLOWLIST:
   Accepted findings are stored in <target>/.allowlists/pii-allowlist
@@ -391,6 +392,46 @@ for pattern in "${INCLUDE_PATTERNS[@]}"; do
     INCLUDE_ARGS="$INCLUDE_ARGS --include=$pattern"
 done
 
+# Luhn algorithm validation for credit card numbers
+# Returns 0 if valid, 1 if invalid
+# This reduces false positives by validating the checksum
+luhn_validate() {
+    local number="$1"
+    # Remove spaces, dashes, and dots
+    number=$(echo "$number" | tr -d ' .-')
+
+    # Must be all digits
+    if ! [[ "$number" =~ ^[0-9]+$ ]]; then
+        return 1
+    fi
+
+    local len=${#number}
+    local sum=0
+    local is_second=0
+
+    # Process from right to left
+    for (( i=len-1; i>=0; i-- )); do
+        local digit=${number:$i:1}
+
+        if [ $is_second -eq 1 ]; then
+            digit=$((digit * 2))
+            if [ $digit -gt 9 ]; then
+                digit=$((digit - 9))
+            fi
+        fi
+
+        sum=$((sum + digit))
+        is_second=$((1 - is_second))
+    done
+
+    # Valid if sum is divisible by 10
+    if [ $((sum % 10)) -eq 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Function to run a check and log results
 run_check() {
     local check_name="$1"
@@ -486,6 +527,94 @@ run_check() {
     fi
 }
 
+# Specialized check for credit cards with Luhn validation
+# This reduces false positives by validating the credit card checksum
+run_check_credit_card() {
+    local check_name="$1"
+    local pattern="$2"
+    local description="$3"
+
+    echo "Checking: $check_name"
+
+    local results=""
+    local exclusions
+    exclusions=$(build_exclusions "$TARGET_DIR")
+
+    # Build and execute find command with exclusions
+    results=$(eval "find \"$TARGET_DIR\" -type f -not -type l $exclusions 2>/dev/null" | while read -r file; do
+        $TIMEOUT_CMD grep -H -n -o -E "$pattern" "$file" 2>/dev/null || true
+    done || true)
+
+    local total_count=0
+    local valid_count=0
+    local allowlisted_count=0
+    local issue_count=0
+
+    if [ -n "$results" ]; then
+        total_count=$(echo "$results" | wc -l | tr -d ' ')
+
+        while IFS= read -r line; do
+            if [ -z "$line" ]; then
+                continue
+            fi
+
+            # Extract the matched number (after the last colon)
+            local matched_num=$(echo "$line" | rev | cut -d: -f1 | rev)
+
+            # Validate with Luhn algorithm
+            if ! luhn_validate "$matched_num"; then
+                # Invalid checksum, skip this false positive
+                continue
+            fi
+
+            valid_count=$((valid_count + 1))
+
+            # Reconstruct line for allowlist check (file:line:content format)
+            local file_path=$(echo "$line" | cut -d: -f1)
+            local line_num=$(echo "$line" | cut -d: -f2)
+            local full_line="$file_path:$line_num:$matched_num"
+
+            if is_allowlisted "$full_line"; then
+                allowlisted_count=$((allowlisted_count + 1))
+                continue
+            fi
+
+            # Log finding for audit trail
+            if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
+                audit_log_finding "$check_name" "$file_path:$line_num" || true
+            fi
+
+            if [ "$INTERACTIVE" -eq 1 ]; then
+                prompt_review "$full_line" "$check_name"
+                local review_result=$?
+                if [ $review_result -ne 0 ]; then
+                    issue_count=$((issue_count + 1))
+                fi
+            else
+                if [ $((valid_count - allowlisted_count)) -le 10 ]; then
+                    echo "  $file_path:$line_num: $matched_num (Luhn valid)"
+                fi
+                issue_count=$((issue_count + 1))
+            fi
+        done <<< "$results"
+    fi
+
+    # Report results
+    local filtered=$((total_count - valid_count))
+    if [ "$valid_count" -eq 0 ]; then
+        if [ "$total_count" -gt 0 ]; then
+            echo "  Result: PASS (0 valid, $filtered filtered by Luhn)"
+        else
+            echo "  Result: PASS (0 matches)"
+        fi
+    elif [ "$issue_count" -eq 0 ]; then
+        echo "  Result: PASS ($allowlisted_count allowlisted, $filtered filtered by Luhn)"
+    else
+        echo "  Result: REVIEW - $issue_count valid card(s) found ($filtered filtered by Luhn)"
+        FOUND_ISSUES=1
+    fi
+}
+
 # Run all checks
 run_check "IPv4 Addresses" \
     "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" \
@@ -503,13 +632,17 @@ run_check "US Phone Numbers (parenthetical)" \
     "\([0-9]{3}\)[ ]*[0-9]{3}[-. ][0-9]{4}" \
     "Searches for phone numbers in (XXX) XXX-XXXX format"
 
+run_check "International Phone Numbers" \
+    "\+[0-9]{1,3}[ .-]?[0-9]{1,4}[ .-]?[0-9]{1,4}[ .-]?[0-9]{1,4}[ .-]?[0-9]{0,4}" \
+    "Searches for international phone numbers with country code (+XX XXX...)"
+
 run_check "Social Security Numbers" \
     "[0-9]{3}-[0-9]{2}-[0-9]{4}" \
     "Searches for SSN patterns in XXX-XX-XXXX format"
 
-run_check "Credit Card Numbers (16 digit)" \
+run_check_credit_card "Credit Card Numbers (Luhn validated)" \
     "[0-9]{4}[-. ]?[0-9]{4}[-. ]?[0-9]{4}[-. ]?[0-9]{4}" \
-    "Searches for 16-digit sequences that could be credit card numbers"
+    "Searches for 16-digit credit card numbers validated with Luhn algorithm"
 
 # Summary
 echo ""

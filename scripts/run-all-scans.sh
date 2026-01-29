@@ -327,6 +327,7 @@ log ""
 OVERALL_STATUS="PASS"
 FAIL_COUNT=0
 PASS_COUNT=0
+SKIP_COUNT=0
 
 # Track individual scan results for PDF generation
 PII_RESULT="PASS"
@@ -398,6 +399,17 @@ run_scan() {
             # Update result variable if provided
             if [ -n "$result_var" ]; then
                 eval "$result_var=PASS"
+            fi
+        elif [ $exit_code -eq 2 ]; then
+            # Exit code 2 = dependency missing, skip gracefully
+            log "  Status: SKIPPED (missing dependency)"
+            SKIP_COUNT=$((SKIP_COUNT + 1))
+            # Update result variable if provided
+            if [ -n "$result_var" ]; then
+                eval "$result_var=SKIP"
+            fi
+            if [ -n "$findings_var" ]; then
+                eval "$findings_var=\"Skipped - dependency not installed\""
             fi
         else
             OVERALL_STATUS="FAIL"
@@ -534,8 +546,9 @@ log "========================================================"
 log ""
 log "SCAN SUMMARY"
 log "============"
-log "Passed: $PASS_COUNT"
-log "Failed: $FAIL_COUNT"
+log "Passed:  $PASS_COUNT"
+log "Failed:  $FAIL_COUNT"
+log "Skipped: $SKIP_COUNT"
 if [ "$PROGRESS_AVAILABLE" -eq 1 ] && [ -n "$PROGRESS_START_TIME" ]; then
     elapsed=$(($(date +%s) - PROGRESS_START_TIME))
     log "Elapsed: $(format_elapsed $elapsed)"
@@ -617,7 +630,7 @@ export TOOLKIT_NAME TOOLKIT_VERSION TOOLKIT_COMMIT TOOLKIT_SOURCE
 export PII_RESULT PII_FINDINGS MALWARE_RESULT MALWARE_FINDINGS
 export SECRETS_RESULT SECRETS_FINDINGS MAC_RESULT MAC_FINDINGS
 export HOST_RESULT HOST_FINDINGS VULN_RESULT VULN_FINDINGS
-export OVERALL_STATUS PASS_COUNT FAIL_COUNT
+export OVERALL_STATUS PASS_COUNT FAIL_COUNT SKIP_COUNT
 
 ATTESTATION_SCRIPT="$SCRIPT_DIR/generate-scan-attestation.sh"
 if [ -x "$ATTESTATION_SCRIPT" ]; then
@@ -642,9 +655,9 @@ fi
 # Finalize audit logging
 if [ "$AUDIT_AVAILABLE" -eq 1 ]; then
     if [ "$OVERALL_STATUS" = "PASS" ]; then
-        finalize_audit_log "PASS" "passed=$PASS_COUNT failed=$FAIL_COUNT"
+        finalize_audit_log "PASS" "passed=$PASS_COUNT failed=$FAIL_COUNT skipped=$SKIP_COUNT"
     else
-        finalize_audit_log "FAIL" "passed=$PASS_COUNT failed=$FAIL_COUNT"
+        finalize_audit_log "FAIL" "passed=$PASS_COUNT failed=$FAIL_COUNT skipped=$SKIP_COUNT"
     fi
 fi
 
