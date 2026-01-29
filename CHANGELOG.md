@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Toolkit Info Shared Library**
+  - New `scripts/lib/toolkit-info.sh` centralizes toolkit identification
+  - Provides `TOOLKIT_NAME`, `TOOLKIT_VERSION`, `TOOLKIT_COMMIT`, `TOOLKIT_SOURCE`
+  - Auto-detects source URL with priority: release.config.json → git remote → default
+
+- **Configurable Release Script**
+  - `release.config.json` stores GitHub owner/repo configuration
+  - Projects using toolkit can configure their own repository
+
+### Changed
+
+- **Generic Toolkit Configuration**
+  - Removed all hardcoded repository URLs from scripts
+  - Scripts now use `toolkit-info.sh` library for source attribution
+  - PowerShell script (`Collect-HostInventory.ps1`) also reads from config
+  - Enables toolkit to be used by any project with their own GitHub repo
+
 ## [1.15.2] - 2026-01-29
 
 ### Added
