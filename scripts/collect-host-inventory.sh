@@ -1403,9 +1403,21 @@ if command -v podman >/dev/null 2>&1; then
     # pasta (Linux rootless networking - replacement for slirp4netns)
     if command -v pasta >/dev/null 2>&1; then
         output "    pasta:"
-        while IFS= read -r line; do
-            [ -n "$line" ] && output "      $line"
-        done <<< "$(pasta --version 2>/dev/null)"
+        pasta_ver=$(pasta --version 2>/dev/null)
+        if [ -n "$pasta_ver" ]; then
+            while IFS= read -r line; do
+                [ -n "$line" ] && output "      $line"
+            done <<< "$pasta_ver"
+        else
+            # Fallback: get version from package manager (pasta --version sometimes produces no output)
+            if command -v rpm >/dev/null 2>&1; then
+                output "      $(rpm -q passt 2>/dev/null || echo 'version unknown')"
+            elif command -v dpkg >/dev/null 2>&1; then
+                output "      $(dpkg -l passt 2>/dev/null | grep passt | awk '{print $3}' || echo 'version unknown')"
+            else
+                output "      version unknown"
+            fi
+        fi
     fi
 
     # slirp4netns (Linux rootless networking)
