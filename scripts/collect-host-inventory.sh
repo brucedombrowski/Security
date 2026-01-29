@@ -497,7 +497,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "$HOME/Applications/Visual Studio Code.app"
         "/Applications/Visual Studio Code - Insiders.app"
     )
-    vscode_ver=$(find_macos_ide "${vscode_paths[@]}")
+    vscode_ver=$(find_macos_ide "${vscode_paths[@]}" || true)
     if [ -n "$vscode_ver" ]; then
         output "  VS Code: $vscode_ver"
     else
@@ -509,7 +509,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Visual Studio.app"
         "$HOME/Applications/Visual Studio.app"
     )
-    vs_ver=$(find_macos_ide "${vs_paths[@]}")
+    vs_ver=$(find_macos_ide "${vs_paths[@]}" || true)
     if [ -n "$vs_ver" ]; then
         output "  Visual Studio: $vs_ver"
     else
@@ -521,7 +521,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Xcode.app"
         "/Applications/Xcode-beta.app"
     )
-    xcode_ver=$(find_macos_ide "${xcode_paths[@]}")
+    xcode_ver=$(find_macos_ide "${xcode_paths[@]}" || true)
     if [ -n "$xcode_ver" ]; then
         output "  Xcode: $xcode_ver"
     else
@@ -536,7 +536,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "$HOME/Applications/IntelliJ IDEA.app"
         "$HOME/Applications/IntelliJ IDEA CE.app"
     )
-    idea_ver=$(find_macos_ide "${idea_paths[@]}")
+    idea_ver=$(find_macos_ide "${idea_paths[@]}" || true)
     if [ -n "$idea_ver" ]; then
         output "  IntelliJ IDEA: $idea_ver"
     else
@@ -550,7 +550,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "$HOME/Applications/PyCharm.app"
         "$HOME/Applications/PyCharm CE.app"
     )
-    pycharm_ver=$(find_macos_ide "${pycharm_paths[@]}")
+    pycharm_ver=$(find_macos_ide "${pycharm_paths[@]}" || true)
     if [ -n "$pycharm_ver" ]; then
         output "  PyCharm: $pycharm_ver"
     else
@@ -562,7 +562,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/WebStorm.app"
         "$HOME/Applications/WebStorm.app"
     )
-    webstorm_ver=$(find_macos_ide "${webstorm_paths[@]}")
+    webstorm_ver=$(find_macos_ide "${webstorm_paths[@]}" || true)
     if [ -n "$webstorm_ver" ]; then
         output "  WebStorm: $webstorm_ver"
     else
@@ -574,7 +574,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/GoLand.app"
         "$HOME/Applications/GoLand.app"
     )
-    goland_ver=$(find_macos_ide "${goland_paths[@]}")
+    goland_ver=$(find_macos_ide "${goland_paths[@]}" || true)
     if [ -n "$goland_ver" ]; then
         output "  GoLand: $goland_ver"
     else
@@ -586,7 +586,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Rider.app"
         "$HOME/Applications/Rider.app"
     )
-    rider_ver=$(find_macos_ide "${rider_paths[@]}")
+    rider_ver=$(find_macos_ide "${rider_paths[@]}" || true)
     if [ -n "$rider_ver" ]; then
         output "  Rider: $rider_ver"
     else
@@ -598,7 +598,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/CLion.app"
         "$HOME/Applications/CLion.app"
     )
-    clion_ver=$(find_macos_ide "${clion_paths[@]}")
+    clion_ver=$(find_macos_ide "${clion_paths[@]}" || true)
     if [ -n "$clion_ver" ]; then
         output "  CLion: $clion_ver"
     else
@@ -610,7 +610,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/DataGrip.app"
         "$HOME/Applications/DataGrip.app"
     )
-    datagrip_ver=$(find_macos_ide "${datagrip_paths[@]}")
+    datagrip_ver=$(find_macos_ide "${datagrip_paths[@]}" || true)
     if [ -n "$datagrip_ver" ]; then
         output "  DataGrip: $datagrip_ver"
     else
@@ -623,7 +623,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "$HOME/Applications/Eclipse.app"
         "/Applications/Eclipse IDE.app"
     )
-    eclipse_ver=$(find_macos_ide "${eclipse_paths[@]}")
+    eclipse_ver=$(find_macos_ide "${eclipse_paths[@]}" || true)
     if [ -n "$eclipse_ver" ]; then
         output "  Eclipse: $eclipse_ver"
     else
@@ -635,7 +635,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Sublime Text.app"
         "$HOME/Applications/Sublime Text.app"
     )
-    sublime_ver=$(find_macos_ide "${sublime_paths[@]}")
+    sublime_ver=$(find_macos_ide "${sublime_paths[@]}" || true)
     if [ -n "$sublime_ver" ]; then
         output "  Sublime Text: $sublime_ver"
     else
@@ -647,7 +647,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Atom.app"
         "$HOME/Applications/Atom.app"
     )
-    atom_ver=$(find_macos_ide "${atom_paths[@]}")
+    atom_ver=$(find_macos_ide "${atom_paths[@]}" || true)
     if [ -n "$atom_ver" ]; then
         output "  Atom: $atom_ver"
     else
@@ -659,7 +659,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Android Studio.app"
         "$HOME/Applications/Android Studio.app"
     )
-    android_ver=$(find_macos_ide "${android_paths[@]}")
+    android_ver=$(find_macos_ide "${android_paths[@]}" || true)
     if [ -n "$android_ver" ]; then
         output "  Android Studio: $android_ver"
     else
@@ -874,7 +874,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Chromium.app"
         "$HOME/Applications/Chromium.app"
     )
-    chrome_ver=$(find_macos_browser "Chrome" "${chrome_paths[@]}")
+    chrome_ver=$(find_macos_browser "Chrome" "${chrome_paths[@]}" || true)
     if [ -n "$chrome_ver" ]; then
         output "  Chrome: $chrome_ver"
     else
@@ -888,7 +888,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Firefox Developer Edition.app"
         "/Applications/Firefox Nightly.app"
     )
-    firefox_ver=$(find_macos_browser "Firefox" "${firefox_paths[@]}")
+    firefox_ver=$(find_macos_browser "Firefox" "${firefox_paths[@]}" || true)
     if [ -n "$firefox_ver" ]; then
         output "  Firefox: $firefox_ver"
     else
@@ -904,7 +904,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Microsoft Edge.app"
         "$HOME/Applications/Microsoft Edge.app"
     )
-    edge_ver=$(find_macos_browser "Edge" "${edge_paths[@]}")
+    edge_ver=$(find_macos_browser "Edge" "${edge_paths[@]}" || true)
     if [ -n "$edge_ver" ]; then
         output "  Edge: $edge_ver"
     else
@@ -916,7 +916,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Brave Browser.app"
         "$HOME/Applications/Brave Browser.app"
     )
-    brave_ver=$(find_macos_browser "Brave" "${brave_paths[@]}")
+    brave_ver=$(find_macos_browser "Brave" "${brave_paths[@]}" || true)
     if [ -n "$brave_ver" ]; then
         output "  Brave: $brave_ver"
     else
@@ -928,7 +928,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Opera.app"
         "$HOME/Applications/Opera.app"
     )
-    opera_ver=$(find_macos_browser "Opera" "${opera_paths[@]}")
+    opera_ver=$(find_macos_browser "Opera" "${opera_paths[@]}" || true)
     if [ -n "$opera_ver" ]; then
         output "  Opera: $opera_ver"
     else
@@ -940,7 +940,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
         "/Applications/Vivaldi.app"
         "$HOME/Applications/Vivaldi.app"
     )
-    vivaldi_ver=$(find_macos_browser "Vivaldi" "${vivaldi_paths[@]}")
+    vivaldi_ver=$(find_macos_browser "Vivaldi" "${vivaldi_paths[@]}" || true)
     if [ -n "$vivaldi_ver" ]; then
         output "  Vivaldi: $vivaldi_ver"
     else
