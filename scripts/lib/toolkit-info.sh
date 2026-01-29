@@ -37,6 +37,10 @@ TOOLKIT_SOURCE="https://github.com/OWNER/REPO"
 # Initialize toolkit information from config or git
 # Arguments:
 #   $1 - Repository root directory (optional, defaults to parent of script dir)
+#
+# Environment Variables:
+#   TOOLKIT_VERSION_OVERRIDE - If set, use this version instead of git describe
+#                              (used by release.sh to set version before tag exists)
 init_toolkit_info() {
     local repo_root="${1:-}"
 
@@ -52,8 +56,12 @@ init_toolkit_info() {
         fi
     fi
 
-    # Get version from git tags
-    TOOLKIT_VERSION=$(git -C "$repo_root" describe --tags --always 2>/dev/null || echo "unknown")
+    # Get version: override > git tags > unknown
+    if [ -n "${TOOLKIT_VERSION_OVERRIDE:-}" ]; then
+        TOOLKIT_VERSION="v${TOOLKIT_VERSION_OVERRIDE}"
+    else
+        TOOLKIT_VERSION=$(git -C "$repo_root" describe --tags --always 2>/dev/null || echo "unknown")
+    fi
 
     # Get commit hash
     TOOLKIT_COMMIT=$(git -C "$repo_root" rev-parse --short HEAD 2>/dev/null || echo "unknown")

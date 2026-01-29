@@ -131,17 +131,24 @@ check_dependencies() {
 }
 
 # Run security scans on toolkit itself
+# Arguments:
+#   $1 - Version being released (used to set TOOLKIT_VERSION_OVERRIDE)
 run_scans() {
+    local release_version="$1"
+
     print_info "Running security scans on toolkit..."
     print_warning "ClamAV malware scan typically takes 2-5 minutes. No output shown until complete."
     print_warning "Press Ctrl+C to cancel, or use --skip-tests to bypass."
     echo ""
-    
+
     if [ ! -x "$REPO_ROOT/scripts/run-all-scans.sh" ]; then
         print_error "run-all-scans.sh not found or not executable"
         return 2
     fi
-    
+
+    # Export version override so scans show release version (not git describe)
+    export TOOLKIT_VERSION_OVERRIDE="$release_version"
+
     # Determine which timeout command to use
     local timeout_cmd=""
     if command -v gtimeout &> /dev/null; then
@@ -381,7 +388,7 @@ main() {
     # Note: run_scans calls run-all-scans.sh which already generates PDF attestation
     # Do NOT call generate_compliance here - it would re-run scans and delete .scans/
     if [ "$skip_tests" != "--skip-tests" ]; then
-        if ! run_scans; then
+        if ! run_scans "$version"; then
             print_error "Security scans failed"
             exit 1
         fi
