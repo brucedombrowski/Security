@@ -13,7 +13,7 @@ IT security analysis and compliance documentation tools for software projects.
 | Document | Description |
 |----------|-------------|
 | [INSTALLATION.md](INSTALLATION.md) | Setup and prerequisites |
-| [AGENTS.md](AGENTS.md) | Toolkit architecture |
+| [CLAUDE.md](CLAUDE.md) | AI agent instructions and architecture |
 | [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | NIST control mapping |
 | [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | Maintenance schedules and procedures |
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting |
@@ -161,7 +161,7 @@ sudo ./scripts/scan-vulnerabilities.sh
 - CM-6: Configuration Settings
 - CA-2: Control Assessments
 
-See [AGENTS.md](AGENTS.md#vulnerability-scanning-scan-vulnerabilitiessh) for complete NIST 800-53, 800-171, and FIPS 199/200 control mapping.
+See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for complete NIST control mapping.
 
 ## Prerequisites
 

@@ -208,4 +208,4 @@ This statement is provided for compliance and export review purposes. For furthe
 ## Related Documents
 
 - [README.md](README.md) - Security toolkit overview
-- [AGENTS.md](AGENTS.md) - AI agent development guide
+- [CLAUDE.md](../CLAUDE.md) - AI agent instructions and architecture

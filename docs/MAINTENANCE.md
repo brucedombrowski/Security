@@ -142,7 +142,7 @@ Location: `scripts/check-secrets.sh`
 1. Research new secret format
 2. Add pattern with severity level
 3. Add test case
-4. Document in AGENTS.md
+4. Document in CLAUDE.md
 
 **Current Patterns:**
 - AWS Access Keys / Secret Keys

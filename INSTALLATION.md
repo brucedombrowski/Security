@@ -335,7 +335,7 @@ chmod +x scripts/*.sh
 If you encounter issues not covered here:
 
 1. **Check the README:** General usage and examples
-2. **Check AGENTS.md:** Toolkit architecture and design
+2. **Check CLAUDE.md:** Toolkit architecture and design
 3. **Review logs:** Check `.scans/` directory for detailed logs
 4. **Check GitHub Issues:** Search for similar problems
 5. **Security concerns:** See [SECURITY.md](./SECURITY.md) for responsible disclosure
@@ -345,7 +345,7 @@ If you encounter issues not covered here:
 After successful installation:
 
 1. **Read README.md** for usage examples
-2. **Review AGENTS.md** to understand toolkit design
+2. **Review CLAUDE.md** to understand toolkit design
 3. **Run a test scan** on a safe target
 4. **Set up CI/CD** integration (see README.md)
 5. **Generate attestation** for compliance (optional)
