@@ -55,9 +55,12 @@ echo ""
 echo -n "TEST 1: File permissions set to 600... "
 test_file="$TEST_DIR/inventory1.txt"
 # Run script and capture all output for debugging
+# Disable set -e temporarily to capture exit code
 script_output_file="$TEST_DIR/script_output.txt"
+set +e
 (cd "$TEST_DIR" && bash -x "$SCRIPT_DIR/collect-host-inventory.sh" "$test_file") > "$script_output_file" 2>&1
 script_exit_code=$?
+set -e
 if [ $script_exit_code -ne 0 ]; then
     echo ""
     echo "DEBUG: Script failed with exit code $script_exit_code"
