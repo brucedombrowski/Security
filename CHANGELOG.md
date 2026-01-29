@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.6] - 2026-01-29
+
+### Added
+
+- **Configurable PII Scan Exclusions**
+  - New `.pii-exclude` config file with gitignore-style syntax
+  - Directory exclusions (patterns ending with `/`)
+  - Wildcard patterns (containing `*`)
+  - Specific file exclusions
+  - Comment support (lines starting with `#`)
+  - Replaces hardcoded exclusion paths in `check-pii.sh`
+
+## [1.17.5] - 2026-01-29
+
+### Fixed
+
+- **Browser Detection Compatibility**
+  - Improved recursive directory scanning for browser detection on Linux
+  - Better handling of non-standard browser installation paths
+
 ## [1.17.4] - 2026-01-29
 
 ### Added
