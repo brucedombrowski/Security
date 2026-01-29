@@ -15,6 +15,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Bash syntax validation for all scripts
   - Triggers on push to main and pull requests
 
+### Fixed
+
+- **Cross-Platform Compatibility for `set -eu`**
+  - Fixed `stat` command using platform-specific syntax (macOS: `-f "%OLp"`, Linux: `-c "%a"`)
+  - Added safe variable defaults with `${VAR:-}` syntax for:
+    - Script arguments (`$1`)
+    - Toolkit variables (`TOOLKIT_NAME`, `TOOLKIT_VERSION`, etc.)
+    - OS release variables (`NAME`, `VERSION`, `VERSION_ID`)
+  - Fixed arithmetic increment `((VAR++))` returning exit code 1 when incrementing from 0
+    - Changed to `VAR=$((VAR + 1))` which always succeeds
+  - Added `|| true` to browser detection functions that legitimately return non-zero
+  - Tests now pass on both Ubuntu and macOS CI runners
+
 ## [1.17.3] - 2026-01-29
 
 ### Changed
