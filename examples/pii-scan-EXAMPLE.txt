@@ -6,27 +6,30 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    0af10129cda2717c...                                       #
+#  Source SHA256:    663e4c560ca00c6d...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    d42c54e5d15a5782...                                       #
-#  Redacted:         2026-01-29T22:39:32Z                                       #
+#  Redacted:         2026-01-30T02:55:01Z                                       #
 #                                                                              #
 ################################################################################
 
 # Host Inventory Reference: [CHECKSUM_REDACTED]
-# Scan Timestamp: 2026-01-29T[REDACTED]Z
+# Scan Timestamp: 2026-01-30T[REDACTED]Z
 
 PII Verification Scan
 =====================
-Timestamp: 2026-01-29T[REDACTED]Z
-Toolkit: Security Verification Toolkit v1.17.8-2-g4763541 (4763541)
+Timestamp: 2026-01-30T[REDACTED]Z
+Toolkit: Security Verification Toolkit v1.17.9-2-gdb60cd4 (db60cd4)
 Target: /Users/[REDACTED]
 Repository: Security
 
 Checking: IPv4 Addresses
 /Users/[REDACTED]            ipv4=$(ifconfig "$iface" 2>/dev/null | grep "inet " | grep -v "127.0.0.1" | awk '{print $2}' | head -1)
-  Result: REVIEW - 1 new match(es) found
-  (18 previously allowlisted)
+/Users/[REDACTED]  $script_name [REDACTED]/24            # Scan network range
+/Users/[REDACTED]  $script_name -n [REDACTED]               # Nmap only on specific host
+/Users/[REDACTED]  $script_name -q [REDACTED]            # Quick scan of specific host
+  Result: REVIEW - 4 new match(es) found
+  (15 previously allowlisted)
 Checking: US Phone Numbers (dashed)
   Result: PASS (0 matches)
 Checking: US Phone Numbers (dotted)
