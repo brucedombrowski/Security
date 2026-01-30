@@ -2,29 +2,9 @@
 
 ## Overview
 
-This document describes the threat intelligence sources, certification requirements, and federal reporting integrations for security assessment operations using the Security Verification Toolkit.
+This document describes the threat intelligence sources and federal reporting integrations for security assessment operations using the Security Verification Toolkit.
 
-## Personnel Certification Requirements
-
-### Required Certifications for Security Assessors
-
-Personnel conducting security assessments with this toolkit should hold one or more of the following certifications:
-
-| Certification | Issuing Body | Focus Area | Relevance |
-|---------------|--------------|------------|-----------|
-| **CISSP** | (ISC)² | Certified Information Systems Security Professional | Broad security management, risk assessment, security architecture |
-| **CISM** | ISACA | Certified Information Security Manager | Security program management, incident response, governance |
-| **CEH** | EC-Council | Certified Ethical Hacker | Penetration testing, vulnerability assessment, exploit analysis |
-
-### Certification Alignment with Toolkit Functions
-
-| Toolkit Function | CISSP Domain | CISM Domain | CEH Module |
-|------------------|--------------|-------------|------------|
-| Vulnerability Scanning | Domain 6: Security Assessment | Domain 3: Information Security Program | Module 5: Vulnerability Analysis |
-| Malware Detection | Domain 7: Security Operations | Domain 4: Incident Management | Module 19: Malware Threats |
-| PII/Secrets Detection | Domain 2: Asset Security | Domain 2: Information Risk Management | Module 13: Social Engineering |
-| Host Security Assessment | Domain 3: Security Architecture | Domain 3: Information Security Program | Module 6: System Hacking |
-| Compliance Reporting | Domain 1: Security & Risk Mgmt | Domain 1: Information Security Governance | Module 20: Cryptography |
+For assessor certification requirements, see [ASSESSOR-QUALIFICATIONS.md](ASSESSOR-QUALIFICATIONS.md).
 
 ---
 
@@ -251,11 +231,11 @@ Required Actions:
 
 ---
 
-## Decision Framework for Certified Assessors
+## Decision Framework for Assessors
 
 ### Severity Assessment Matrix
 
-Certified assessors (CISSP/CISM/CEH) should use this matrix when evaluating findings:
+Qualified assessors (see [ASSESSOR-QUALIFICATIONS.md](ASSESSOR-QUALIFICATIONS.md)) should use this matrix when evaluating findings:
 
 | Finding Type | KEV Status | MAR/SOC-MAR Match | Severity | Required Action |
 |--------------|------------|-------------------|----------|-----------------|
@@ -351,6 +331,7 @@ Certified assessors (CISSP/CISM/CEH) should use this matrix when evaluating find
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-16 | Security Team | Initial release |
+| 1.1 | 2026-01-30 | Security Team | Split certification requirements to ASSESSOR-QUALIFICATIONS.md |
 
 **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
 **Review Schedule:** Quarterly or upon new MAR/KEV guidance
