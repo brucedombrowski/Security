@@ -22,14 +22,38 @@ get_cpe_mapping() {
     normalized=$(echo "$package" | tr '[:upper:]' '[:lower:]' | sed 's/-bin$//; s/-dev$//; s/-libs$//')
 
     case "$normalized" in
-        # Security tools
-        openssl)          echo "openssl:openssl" ;;
+        # ===========================================
+        # Security Tools (20+)
+        # ===========================================
+        openssl|libssl)   echo "openssl:openssl" ;;
         openssh|ssh)      echo "openbsd:openssh" ;;
         gnupg|gpg)        echo "gnupg:gnupg" ;;
         clamav)           echo "clamav:clamav" ;;
+        nmap)             echo "nmap:nmap" ;;
+        wireshark|tshark) echo "wireshark:wireshark" ;;
+        fail2ban)         echo "fail2ban:fail2ban" ;;
+        lynis)            echo "cisofy:lynis" ;;
+        openvas|gvm)      echo "greenbone:openvas" ;;
+        snort)            echo "snort:snort" ;;
+        suricata)         echo "oisf:suricata" ;;
+        ossec)            echo "ossec:ossec" ;;
+        tripwire)         echo "tripwire:tripwire" ;;
+        aide)             echo "aide:aide" ;;
+        rkhunter)         echo "rkhunter:rkhunter" ;;
+        chkrootkit)       echo "chkrootkit:chkrootkit" ;;
+        hashcat)          echo "hashcat:hashcat" ;;
+        john|johntheripper) echo "openwall:john_the_ripper" ;;
+        nessus)           echo "tenable:nessus" ;;
+        burpsuite|burp)   echo "portswigger:burp_suite" ;;
+        metasploit)       echo "rapid7:metasploit" ;;
+        nikto)            echo "cirt:nikto" ;;
+        sqlmap)           echo "sqlmap:sqlmap" ;;
+        hydra)            echo "thc:hydra" ;;
 
-        # Programming languages
-        python|python3)   echo "python:python" ;;
+        # ===========================================
+        # Programming Languages & Runtimes (25+)
+        # ===========================================
+        python|python3|python2) echo "python:python" ;;
         node|nodejs)      echo "nodejs:node.js" ;;
         ruby)             echo "ruby-lang:ruby" ;;
         perl)             echo "perl:perl" ;;
@@ -37,51 +61,294 @@ get_cpe_mapping() {
         go|golang)        echo "golang:go" ;;
         rust|rustc)       echo "rust-lang:rust" ;;
         java|openjdk)     echo "oracle:openjdk" ;;
+        scala)            echo "scala-lang:scala" ;;
+        kotlin)           echo "jetbrains:kotlin" ;;
+        swift)            echo "apple:swift" ;;
+        dotnet|.net)      echo "microsoft:.net" ;;
+        mono)             echo "mono-project:mono" ;;
+        erlang)           echo "erlang:erlang" ;;
+        elixir)           echo "elixir-lang:elixir" ;;
+        haskell|ghc)      echo "haskell:ghc" ;;
+        lua)              echo "lua:lua" ;;
+        r|r-lang)         echo "r-project:r" ;;
+        julia)            echo "julialang:julia" ;;
+        dart)             echo "dart:dart" ;;
+        deno)             echo "deno:deno" ;;
+        bun)              echo "oven-sh:bun" ;;
+        zig)              echo "ziglang:zig" ;;
+        clojure)          echo "clojure:clojure" ;;
+        groovy)           echo "apache:groovy" ;;
 
-        # Web servers
+        # ===========================================
+        # Web Servers & Proxies (15+)
+        # ===========================================
         nginx)            echo "nginx:nginx" ;;
         apache|httpd|apache2) echo "apache:http_server" ;;
         caddy)            echo "caddyserver:caddy" ;;
+        lighttpd)         echo "lighttpd:lighttpd" ;;
+        haproxy)          echo "haproxy:haproxy" ;;
+        traefik)          echo "traefik:traefik" ;;
+        envoy)            echo "envoyproxy:envoy" ;;
+        tomcat)           echo "apache:tomcat" ;;
+        jetty)            echo "eclipse:jetty" ;;
+        gunicorn)         echo "gunicorn:gunicorn" ;;
+        uwsgi)            echo "unbit:uwsgi" ;;
+        varnish)          echo "varnish-software:varnish" ;;
+        squid)            echo "squid-cache:squid" ;;
+        pound)            echo "pound:pound" ;;
+        cherokee)         echo "cherokee-project:cherokee" ;;
 
-        # Databases
+        # ===========================================
+        # Databases (25+)
+        # ===========================================
         postgresql|postgres) echo "postgresql:postgresql" ;;
         mysql)            echo "oracle:mysql" ;;
         mariadb)          echo "mariadb:mariadb" ;;
         mongodb)          echo "mongodb:mongodb" ;;
         redis)            echo "redis:redis" ;;
         sqlite|sqlite3)   echo "sqlite:sqlite" ;;
+        elasticsearch)    echo "elastic:elasticsearch" ;;
+        opensearch)       echo "amazon:opensearch" ;;
+        cassandra)        echo "apache:cassandra" ;;
+        couchdb)          echo "apache:couchdb" ;;
+        couchbase)        echo "couchbase:couchbase_server" ;;
+        neo4j)            echo "neo4j:neo4j" ;;
+        influxdb)         echo "influxdata:influxdb" ;;
+        timescaledb)      echo "timescale:timescaledb" ;;
+        clickhouse)       echo "clickhouse:clickhouse" ;;
+        cockroachdb|cockroach) echo "cockroachlabs:cockroachdb" ;;
+        rethinkdb)        echo "rethinkdb:rethinkdb" ;;
+        memcached)        echo "memcached:memcached" ;;
+        etcd)             echo "etcd-io:etcd" ;;
+        consul)           echo "hashicorp:consul" ;;
+        zookeeper)        echo "apache:zookeeper" ;;
+        arangodb)         echo "arangodb:arangodb" ;;
+        firebird)         echo "firebird:firebird" ;;
+        derby)            echo "apache:derby" ;;
+        h2)               echo "h2database:h2" ;;
 
-        # Container tools
+        # ===========================================
+        # Message Queues & Streaming (10+)
+        # ===========================================
+        rabbitmq)         echo "pivotal_software:rabbitmq" ;;
+        kafka)            echo "apache:kafka" ;;
+        activemq)         echo "apache:activemq" ;;
+        zeromq|zmq)       echo "zeromq:zeromq" ;;
+        nats)             echo "nats:nats_server" ;;
+        pulsar)           echo "apache:pulsar" ;;
+        mosquitto)        echo "eclipse:mosquitto" ;;
+        redis-stream)     echo "redis:redis" ;;
+        celery)           echo "celeryproject:celery" ;;
+        sidekiq)          echo "sidekiq:sidekiq" ;;
+
+        # ===========================================
+        # Container & Orchestration (15+)
+        # ===========================================
         docker)           echo "docker:docker" ;;
         podman)           echo "redhat:podman" ;;
+        containerd)       echo "containerd:containerd" ;;
+        runc)             echo "opencontainers:runc" ;;
+        cri-o|crio)       echo "kubernetes:cri-o" ;;
         kubectl)          echo "kubernetes:kubectl" ;;
+        kubernetes|k8s)   echo "kubernetes:kubernetes" ;;
         helm)             echo "helm:helm" ;;
+        istio)            echo "istio:istio" ;;
+        linkerd)          echo "linkerd:linkerd" ;;
+        rancher)          echo "rancher:rancher" ;;
+        openshift)        echo "redhat:openshift" ;;
+        nomad)            echo "hashicorp:nomad" ;;
+        mesos)            echo "apache:mesos" ;;
+        swarm)            echo "docker:swarm" ;;
 
-        # Package managers
+        # ===========================================
+        # Infrastructure & DevOps (20+)
+        # ===========================================
+        terraform)        echo "hashicorp:terraform" ;;
+        ansible)          echo "redhat:ansible" ;;
+        puppet)           echo "puppet:puppet" ;;
+        chef)             echo "chef:chef" ;;
+        saltstack|salt)   echo "saltstack:salt" ;;
+        vagrant)          echo "hashicorp:vagrant" ;;
+        packer)           echo "hashicorp:packer" ;;
+        vault)            echo "hashicorp:vault" ;;
+        jenkins)          echo "jenkins:jenkins" ;;
+        gitlab)           echo "gitlab:gitlab" ;;
+        gitea)            echo "gitea:gitea" ;;
+        gogs)             echo "gogs:gogs" ;;
+        drone)            echo "drone:drone" ;;
+        circleci)         echo "circleci:circleci" ;;
+        argocd|argo-cd)   echo "argoproj:argo-cd" ;;
+        flux)             echo "fluxcd:flux" ;;
+        prometheus)       echo "prometheus:prometheus" ;;
+        grafana)          echo "grafana:grafana" ;;
+        datadog)          echo "datadog:agent" ;;
+        newrelic)         echo "newrelic:agent" ;;
+        jaeger)           echo "jaegertracing:jaeger" ;;
+        zipkin)           echo "apache:zipkin" ;;
+
+        # ===========================================
+        # Package Managers (10+)
+        # ===========================================
         npm)              echo "npmjs:npm" ;;
+        yarn)             echo "yarnpkg:yarn" ;;
+        pnpm)             echo "pnpm:pnpm" ;;
         pip|pip3)         echo "pypa:pip" ;;
-        gem)              echo "rubygems:rubygems" ;;
+        pipenv)           echo "pypa:pipenv" ;;
+        poetry)           echo "python-poetry:poetry" ;;
+        gem|rubygems)     echo "rubygems:rubygems" ;;
+        bundler)          echo "bundler:bundler" ;;
         cargo)            echo "rust-lang:cargo" ;;
+        composer)         echo "getcomposer:composer" ;;
+        maven|mvn)        echo "apache:maven" ;;
+        gradle)           echo "gradle:gradle" ;;
+        nuget)            echo "nuget:nuget" ;;
 
-        # Common utilities
+        # ===========================================
+        # Common Utilities & CLI Tools (25+)
+        # ===========================================
         curl)             echo "curl:curl" ;;
         wget)             echo "gnu:wget" ;;
         git)              echo "git-scm:git" ;;
-        vim)              echo "vim:vim" ;;
+        vim|neovim|nvim)  echo "vim:vim" ;;
+        emacs)            echo "gnu:emacs" ;;
         tmux)             echo "tmux:tmux" ;;
+        screen)           echo "gnu:screen" ;;
         zsh)              echo "zsh:zsh" ;;
         bash)             echo "gnu:bash" ;;
+        fish)             echo "fishshell:fish" ;;
+        jq)               echo "stedolan:jq" ;;
+        yq)               echo "mikefarah:yq" ;;
+        fzf)              echo "junegunn:fzf" ;;
+        ripgrep|rg)       echo "burntsushi:ripgrep" ;;
+        fd)               echo "sharkdp:fd" ;;
+        bat)              echo "sharkdp:bat" ;;
+        exa|eza)          echo "ogham:exa" ;;
+        htop)             echo "htop:htop" ;;
+        sudo)             echo "sudo:sudo" ;;
+        doas)             echo "openbsd:doas" ;;
+        rsync)            echo "samba:rsync" ;;
+        tar)              echo "gnu:tar" ;;
+        make)             echo "gnu:make" ;;
+        cmake)            echo "cmake:cmake" ;;
+        ninja)            echo "ninja-build:ninja" ;;
 
-        # Browsers
-        chrome)           echo "google:chrome" ;;
+        # ===========================================
+        # Browsers & Electron Apps (10+)
+        # ===========================================
+        chrome|chromium)  echo "google:chrome" ;;
         firefox)          echo "mozilla:firefox" ;;
         safari)           echo "apple:safari" ;;
+        edge)             echo "microsoft:edge" ;;
+        brave)            echo "brave:brave" ;;
+        opera)            echo "opera:opera" ;;
+        electron)         echo "electronjs:electron" ;;
+        vscode|code)      echo "microsoft:visual_studio_code" ;;
+        slack)            echo "slack:slack" ;;
+        discord)          echo "discord:discord" ;;
 
-        # Compression
+        # ===========================================
+        # Compression & Archiving (10+)
+        # ===========================================
         gzip)             echo "gnu:gzip" ;;
         bzip2)            echo "bzip:bzip2" ;;
-        xz)               echo "tukaani:xz" ;;
+        xz|liblzma)       echo "tukaani:xz" ;;
         zstd)             echo "facebook:zstandard" ;;
+        lz4)              echo "lz4:lz4" ;;
+        p7zip|7z|7zip)    echo "7-zip:7-zip" ;;
+        unrar|rar)        echo "rarlab:unrar" ;;
+        zip|unzip)        echo "info-zip:unzip" ;;
+        pigz)             echo "pigz:pigz" ;;
+        pbzip2)           echo "compression:pbzip2" ;;
+
+        # ===========================================
+        # Email & Communication (10+)
+        # ===========================================
+        postfix)          echo "postfix:postfix" ;;
+        sendmail)         echo "sendmail:sendmail" ;;
+        exim)             echo "exim:exim" ;;
+        dovecot)          echo "dovecot:dovecot" ;;
+        cyrus-imapd|cyrus) echo "cmu:cyrus_imap" ;;
+        opendkim)         echo "opendkim:opendkim" ;;
+        spamassassin)     echo "apache:spamassassin" ;;
+        amavisd|amavis)   echo "amavis:amavisd-new" ;;
+        mailman)          echo "gnu:mailman" ;;
+        roundcube)        echo "roundcube:roundcube" ;;
+
+        # ===========================================
+        # Virtualization & Emulation (10+)
+        # ===========================================
+        qemu)             echo "qemu:qemu" ;;
+        virtualbox|vbox)  echo "oracle:virtualbox" ;;
+        vmware)           echo "vmware:vmware_workstation" ;;
+        libvirt)          echo "redhat:libvirt" ;;
+        kvm)              echo "linux:kvm" ;;
+        xen)              echo "xen:xen" ;;
+        hyper-v)          echo "microsoft:hyper-v" ;;
+        parallels)        echo "parallels:parallels_desktop" ;;
+        bochs)            echo "bochs:bochs" ;;
+        dosbox)           echo "dosbox:dosbox" ;;
+
+        # ===========================================
+        # Networking Tools (15+)
+        # ===========================================
+        bind|named)       echo "isc:bind" ;;
+        dnsmasq)          echo "thekelleys:dnsmasq" ;;
+        unbound)          echo "nlnetlabs:unbound" ;;
+        dhcpd|isc-dhcp)   echo "isc:dhcp" ;;
+        openvpn)          echo "openvpn:openvpn" ;;
+        wireguard)        echo "wireguard:wireguard" ;;
+        strongswan)       echo "strongswan:strongswan" ;;
+        ipsec)            echo "strongswan:strongswan" ;;
+        iptables)         echo "netfilter:iptables" ;;
+        nftables)         echo "netfilter:nftables" ;;
+        tcpdump)          echo "tcpdump:tcpdump" ;;
+        netcat|nc)        echo "gnu:netcat" ;;
+        socat)            echo "dest-unreach:socat" ;;
+        iperf|iperf3)     echo "iperf:iperf" ;;
+        mtr)              echo "mtr:mtr" ;;
+
+        # ===========================================
+        # Operating System Components (10+)
+        # ===========================================
+        linux|kernel)     echo "linux:linux_kernel" ;;
+        glibc|libc)       echo "gnu:glibc" ;;
+        systemd)          echo "systemd:systemd" ;;
+        dbus)             echo "freedesktop:dbus" ;;
+        polkit)           echo "freedesktop:polkit" ;;
+        pam)              echo "linux-pam:linux-pam" ;;
+        selinux)          echo "selinuxproject:selinux" ;;
+        apparmor)         echo "canonical:apparmor" ;;
+        grub)             echo "gnu:grub" ;;
+        udev)             echo "systemd:systemd" ;;
+
+        # ===========================================
+        # Logging & Monitoring (10+)
+        # ===========================================
+        syslog-ng)        echo "balabit:syslog-ng" ;;
+        rsyslog)          echo "rsyslog:rsyslog" ;;
+        fluentd)          echo "fluentd:fluentd" ;;
+        fluent-bit)       echo "fluentbit:fluent-bit" ;;
+        logstash)         echo "elastic:logstash" ;;
+        filebeat)         echo "elastic:filebeat" ;;
+        telegraf)         echo "influxdata:telegraf" ;;
+        collectd)         echo "collectd:collectd" ;;
+        nagios)           echo "nagios:nagios" ;;
+        zabbix)           echo "zabbix:zabbix" ;;
+
+        # ===========================================
+        # File Sharing & Storage (10+)
+        # ===========================================
+        samba|smb)        echo "samba:samba" ;;
+        nfs-utils|nfs)    echo "linux-nfs:nfs-utils" ;;
+        vsftpd)           echo "beasts:vsftpd" ;;
+        proftpd)          echo "proftpd:proftpd" ;;
+        minio)            echo "minio:minio" ;;
+        nextcloud)        echo "nextcloud:nextcloud" ;;
+        owncloud)         echo "owncloud:owncloud" ;;
+        seafile)          echo "seafile:seafile" ;;
+        syncthing)        echo "syncthing:syncthing" ;;
+        restic)           echo "restic:restic" ;;
+        borgbackup|borg)  echo "borgbackup:borg" ;;
 
         # Unknown package
         *)                echo "" ;;
