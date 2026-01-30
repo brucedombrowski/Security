@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    c22a57b944d2883d...                                       #
+#  Source SHA256:    9cc05bb1fdd2d344...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    d42c54e5d15a5782...                                       #
-#  Redacted:         2026-01-30T04:48:16Z                                       #
+#  Redacted:         2026-01-30T05:12:34Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -19,32 +19,43 @@
 PII Verification Scan
 =====================
 Timestamp: 2026-01-30T[REDACTED]Z
-Toolkit: Security Verification Toolkit v1.18.0-3-g3ea90c1 (3ea90c1)
+Toolkit: Security Verification Toolkit v1.18.1-3-ge1fea5b (e1fea5b)
 Target: /Users/[REDACTED]
 Repository: Security
 
 Checking: IPv4 Addresses
+/Users/[REDACTED]  Test 1: Detect standard IPv4 (192.168.1.1)... [0;32mPASS[0m
+/Users/[REDACTED]  Test 2: Detect private IP (10.0.0.1)... [0;32mPASS[0m
+/Users/[REDACTED]  Test 3: Detect public IP (8.8.8.8)... [0;32mPASS[0m
+/Users/[REDACTED]  Test 4: Detect localhost (127.0.0.1)... [0;32mPASS[0m
+/Users/[REDACTED]  Test 16: Reject X.509 OID (1.3.6.1.5.5.7.3.4)... [0;32mPASS[0m
+/Users/[REDACTED]  Test 17: Reject version number (6.0.0.0)... [1;33mKNOWN[0m (allowlist handles)
+/Users/[REDACTED]  Test 17: Reject version number (1.2.3.4.5.6)... [0;32mPASS[0m
 /Users/[REDACTED]            ipv4=$(ifconfig "$iface" 2>/dev/null | grep "inet " | grep -v "127.0.0.1" | awk '{print $2}' | head -1)
 /Users/[REDACTED]  $script_name [REDACTED]/24            # Scan network range
 /Users/[REDACTED]  $script_name -n [REDACTED]               # Nmap only on specific host
-/Users/[REDACTED]  $script_name -q [REDACTED]            # Quick scan of specific host
-/Users/[REDACTED]            "notes": "https:\/\/fw.[REDACTED].tw\/Vigor2960\/Firmware\/v1.5.1.5\/DrayTek_Vigor2960_V1.5.1.5_01release-note.pdf ; https:\/\/fw.[REDACTED].tw\/Vigor300B\/Firmware\/v1.5.1.5\/DrayTek_Vigor300B_V1.5.1.5_01release-note.pdf ; https:\/\/fw.[REDACTED].tw\/Vigor3900\/Firmware\/v1.5.1.5\/DrayTek_Vigor3900_V1.5.1.5_01release-note.pdf ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2024-12987",
-/Users/[REDACTED]            "notes": "https:\/\/www.[REDACTED]\/prtg\/history\/prtg-18#18.2.41.1652 ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2018-19410",
-/Users/[REDACTED]            "shortDescription": "dnslookup.cgi on NETGEAR DGN2200 devices with firmware through [REDACTED] allows remote authenticated users to execute arbitrary OS commands",
-/Users/[REDACTED]            "shortDescription": "The ExceptionDelegator component in Apache Struts 2 before [REDACTED] contains an improper input validation vulnerability that allows for remote code execution.",
-  Result: REVIEW - 8 new match(es) found
+  Result: REVIEW - 15 new match(es) found
+  ... and 5 more
   (15 previously allowlisted)
 Checking: US Phone Numbers (dashed)
-  Result: PASS (0 matches)
+/Users/[REDACTED]  Test 7: Detect 555-123-4567... [0;32mPASS[0m
+  Result: REVIEW - 1 new match(es) found
 Checking: US Phone Numbers (dotted)
-  Result: PASS (0 matches)
+/Users/[REDACTED]  Test 8: Detect 555.123.4567... [0;32mPASS[0m
+  Result: REVIEW - 1 new match(es) found
 Checking: US Phone Numbers (parenthetical)
-  Result: PASS (0 matches)
+/Users/[REDACTED]  Test 6: Detect (555) 123-4567... [0;32mPASS[0m
+  Result: REVIEW - 1 new match(es) found
 Checking: International Phone Numbers
   Result: PASS (0 matches)
 Checking: Social Security Numbers
-  Result: PASS (0 matches)
+/Users/[REDACTED]  Test 10: Detect valid SSN format (123-45-6789)... [0;32mPASS[0m
+/Users/[REDACTED]  Test 11: Detect SSN in text (SSN: 123-45-6789)... [0;32mPASS[0m
+  Result: REVIEW - 2 new match(es) found
 Checking: Credit Card Numbers (Luhn validated)
+  /Users/[REDACTED] 4111-1111-1111-1111 (Luhn valid)
+  /Users/[REDACTED] 5500 0000 0000 0004 (Luhn valid)
+  /Users/[REDACTED] 4111111111111111 (Luhn valid)
   /Users/[REDACTED] 0000000000000000 (Luhn valid)
   /Users/[REDACTED] 0000000000000000 (Luhn valid)
   /Users/[REDACTED] 0000000000000000 (Luhn valid)
@@ -52,10 +63,7 @@ Checking: Credit Card Numbers (Luhn validated)
   /Users/[REDACTED] 5500000000000004 (Luhn valid)
   /Users/[REDACTED] 0000000000000000 (Luhn valid)
   /Users/[REDACTED] 0000000000000000 (Luhn valid)
-  /Users/[REDACTED] 0000000000000000 (Luhn valid)
-  /Users/[REDACTED] 0000000000000000 (Luhn valid)
-  /Users/[REDACTED] 0000000000000000 (Luhn valid)
-  Result: REVIEW - 15 valid card(s) found (6 filtered by Luhn)
+  Result: REVIEW - 18 valid card(s) found (6 filtered by Luhn)
 
 =====================
 Allowlist: /Users/[REDACTED] (74 entries)
