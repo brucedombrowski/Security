@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] - 2026-01-29
+
+### Added
+
+- **Offline KEV Support for Air-Gapped Systems**
+  - Bundled CISA KEV catalog in `data/kev-catalog.json` (1,501 known exploited vulnerabilities)
+  - SHA256 integrity hash in `data/kev-catalog.json.sha256`
+  - `check-kev.sh` automatically falls back to bundled catalog when network unavailable
+  - `release.sh` downloads and bundles latest KEV catalog with each release
+
+- **Upgrade Helper Script** (`scripts/upgrade.sh`)
+  - Interactive upgrade process showing pending changes
+  - Warns about uncommitted local changes before upgrade
+  - Shows if KEV catalog will be updated
+  - Displays what's preserved during upgrades (project-specific data)
+
+- **KEV Unit Tests** (`tests/test-kev.sh`)
+  - 72 comprehensive unit tests for check-kev.sh functionality
+  - Tests for CVE extraction, JSON parsing, offline fallback, and more
+
+### Changed
+
+- **Documentation Updates**
+  - Added upgrade guide to INSTALLATION.md
+  - Documented offline KEV mode in docs/THREAT-INTELLIGENCE.md
+  - Added upgrade.sh and data/ directory to CLAUDE.md structure
+  - Added upgrade.sh to README.md scripts table
+
+### Removed
+
+- Deprecated test fixtures (replaced with inline test data)
+
 ## [1.17.15] - 2026-01-30
 
 ### Added
