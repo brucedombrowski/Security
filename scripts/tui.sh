@@ -115,6 +115,42 @@ get_scan_name() { echo "$1" | cut -d'|' -f2; }
 get_scan_control() { echo "$1" | cut -d'|' -f3; }
 get_scan_desc() { echo "$1" | cut -d'|' -f4; }
 
+# Run command with spinner and elapsed time
+# Returns the exit code of the command
+run_with_spinner() {
+    local cmd="$1"
+    local start_time=$(date +%s)
+    local spinner_chars='|/-\'
+    local spinner_idx=0
+
+    # Start command in background
+    eval "$cmd" >/dev/null 2>&1 &
+    local cmd_pid=$!
+
+    # Show spinner while command runs
+    while kill -0 $cmd_pid 2>/dev/null; do
+        local elapsed=$(($(date +%s) - start_time))
+        local mins=$((elapsed / 60))
+        local secs=$((elapsed % 60))
+        local char="${spinner_chars:$spinner_idx:1}"
+        printf "\r  ${CYAN}%-25s${RESET} ${DIM}[%s]${RESET} %dm%02ds " "$current_scan_name..." "$char" "$mins" "$secs"
+        spinner_idx=$(( (spinner_idx + 1) % 4 ))
+        sleep 0.2
+    done
+
+    # Get exit status
+    wait $cmd_pid
+    local exit_code=$?
+
+    # Clear spinner line and show result
+    local elapsed=$(($(date +%s) - start_time))
+    local mins=$((elapsed / 60))
+    local secs=$((elapsed % 60))
+    printf "\r  ${CYAN}%-25s${RESET} " "$current_scan_name..."
+
+    return $exit_code
+}
+
 # Bash-based menu (fallback)
 show_bash_menu() {
     local selection=""
@@ -172,16 +208,17 @@ run_all_scans() {
         script=$(get_scan_script "$data")
         name=$(get_scan_name "$data")
 
-        printf "  ${CYAN}%-25s${RESET} " "$name..."
-
         if [ ! -f "$SCRIPT_DIR/$script" ]; then
+            printf "  ${CYAN}%-25s${RESET} " "$name..."
             echo "${YELLOW}SKIPPED${RESET} (not found)"
             skipped=$((skipped + 1))
             idx=$((idx + 1))
             continue
         fi
 
-        if "$SCRIPT_DIR/$script" "$TARGET_DIR" >/dev/null 2>&1; then
+        # Run with spinner showing elapsed time
+        current_scan_name="$name"
+        if run_with_spinner "\"$SCRIPT_DIR/$script\" \"$TARGET_DIR\""; then
             echo "${GREEN}PASS${RESET}"
             passed=$((passed + 1))
         else
@@ -308,9 +345,9 @@ run_selected_scans() {
             script=$(get_scan_script "$data")
             name=$(get_scan_name "$data")
 
-            printf "  ${CYAN}%-25s${RESET} " "$name..."
-
-            if "$SCRIPT_DIR/$script" "$TARGET_DIR" >/dev/null 2>&1; then
+            # Run with spinner showing elapsed time
+            current_scan_name="$name"
+            if run_with_spinner "\"$SCRIPT_DIR/$script\" \"$TARGET_DIR\""; then
                 echo "${GREEN}PASS${RESET}"
                 passed=$((passed + 1))
             else
