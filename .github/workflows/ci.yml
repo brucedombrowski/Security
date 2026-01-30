@@ -44,8 +44,8 @@ jobs:
             fi
           done
           echo "Checking lib..."
-          for script in scripts/lib/*.sh scripts/lib/*/*.sh 2>/dev/null; do
-            if [ -f "$script" ] && ! bash -n "$script" 2>&1; then
+          for script in $(find scripts/lib -name "*.sh" -type f 2>/dev/null); do
+            if ! bash -n "$script" 2>&1; then
               echo "Syntax error in $script"
               errors=$((errors + 1))
             fi
