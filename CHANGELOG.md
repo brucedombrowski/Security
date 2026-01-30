@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 2026-01-29
+
+### Added
+
+- **Verification Package Generation** (`scripts/generate-verification-report.sh`)
+  - Comprehensive PDF verification packages for compliance submittals
+  - Includes executive summary, requirements traceability, test results, scan results
+  - NIST 800-53 control implementation mapping
+  - Formal attestation with SHA256 checksums
+  - Supports external projects with their own requirements.json
+  - Tests-only mode for faster generation (--tests-only)
+
+- **Advanced Integration Tests** (`tests/test-integration-advanced.sh`)
+  - 30 new integration tests covering cross-component interactions
+  - KEV catalog integration and hash verification
+  - NVD CVE offline mode and CPE mapping
+  - PDF generation, error handling, concurrent execution
+  - Library dependency chains and version consistency
+  - NIST control coverage verification
+
+### Changed
+
+- **External Project Support**
+  - Projects can create their own requirements.json linking to NIST controls
+  - Verification reports include project-specific requirements
+  - Output goes to project's .verification/ directory
+
+- **Documentation**
+  - Updated verification/README.md with usage guide
+  - Added generate-verification-report.sh to README.md scripts table
+
 ## [1.18.1] - 2026-01-29
 
 ### Added
