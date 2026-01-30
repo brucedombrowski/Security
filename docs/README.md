@@ -9,6 +9,7 @@ Supplementary documentation for the Security Verification Toolkit.
 | [COMPLIANCE.md](COMPLIANCE.md) | NIST control mapping and compliance workflow |
 | [FAQ.md](FAQ.md) | Frequently asked questions |
 | [false-positives-macos.md](false-positives-macos.md) | macOS-specific false positive guidance |
+| [LIBRARY-API.md](LIBRARY-API.md) | Shell library API reference for contributors |
 | [MAINTENANCE.md](MAINTENANCE.md) | Maintenance schedules and update procedures |
 | [PERFORMANCE.md](PERFORMANCE.md) | Performance optimization and benchmarks |
 | [THREAT-INTELLIGENCE.md](THREAT-INTELLIGENCE.md) | CISA KEV, DHS MARs, NASA SOC-MARs integration |

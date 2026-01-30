@@ -57,6 +57,18 @@ This toolkit provides automated security verification scripts aligned with feder
 | `secure-delete.sh` | SP 800-88 | Securely delete files (NIST Clear method) |
 | `upgrade.sh` | - | Upgrade toolkit to latest version |
 
+### Security Validation Scripts
+
+These scripts validate the toolkit's own security controls:
+
+| Script | NIST Control | Description |
+|--------|--------------|-------------|
+| `test-cui-data-exposure.sh` | AC-3, MP-2, MP-6 | Verify CUI protection in host inventory |
+| `test-git-purge-dry-run.sh` | SI-12, CM-3 | Verify safe git history purge with dry-run |
+| `test-latex-injection.sh` | SI-10 | Test LaTeX special character escaping |
+| `test-rm-rf-validation.sh` | SI-10 | Test destructive command validation |
+| `test-symlink-attacks.sh` | SI-4, SI-10 | Verify symlink attack prevention |
+
 ## Usage
 
 ```bash
