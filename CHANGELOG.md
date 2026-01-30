@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-01-30
+
+### Added
+
+- **NVD CVE Check in TUI**
+  - Added check-nvd-cves.sh as 8th scan option
+  - Cross-references installed software against NVD vulnerability database
+
+### Changed
+
+- **Documentation Review**
+  - Updated SECURITY.md last updated date
+  - Verified all documentation current through v2.0.2
+
 ## [2.0.1] - 2026-01-30
 
 ### Fixed
