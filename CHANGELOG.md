@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.10] - 2026-01-30
+
+### Changed
+
+- **Modularized Vulnerability Scanner**
+  - Refactored `scan-vulnerabilities.sh` from 930 to 295 lines (68% reduction)
+  - Extracted scanner modules into `lib/scanners/`:
+    - `common.sh` - Logging helpers, dependency checking
+    - `nist-controls.sh` - NIST 800-53/171 control definitions (reusable)
+    - `nmap.sh` - Nmap network vulnerability scanning
+    - `openvas.sh` - OpenVAS/GVM vulnerability assessment
+    - `lynis.sh` - Lynis system security auditing
+    - `report.sh` - Compliance report generation
+  - Maintain identical output and full backward compatibility
+
+### Added
+
+- **Scanner Module Documentation**
+  - Step-by-step guide in CLAUDE.md for adding new scanner modules
+  - Complete template with required functions and structure
+  - NIST control mapping instructions
+  - Full Trivy container scanner example
+
 ## [1.17.9] - 2026-01-29
 
 ### Added
