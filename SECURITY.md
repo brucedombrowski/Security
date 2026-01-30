@@ -121,4 +121,4 @@ you're welcome to publish details, blog posts, or conference presentations.
 
 ---
 
-Last Updated: January 15, 2026
+Last Updated: January 30, 2026

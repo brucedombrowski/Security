@@ -90,9 +90,10 @@ SCAN_DATA_2="check-malware.sh|Malware Scanning|SI-3|ClamAV virus and trojan dete
 SCAN_DATA_3="check-mac-addresses.sh|MAC Address Scan|SC-8|IEEE 802.3 hardware identifiers"
 SCAN_DATA_4="check-host-security.sh|Host Security|CM-6|OS security configuration"
 SCAN_DATA_5="check-kev.sh|KEV Vulnerability Check|RA-5|CISA Known Exploited Vulnerabilities"
-SCAN_DATA_6="scan-vulnerabilities.sh|Vulnerability Scan|RA-5|Nmap/Lynis assessment"
+SCAN_DATA_6="check-nvd-cves.sh|NVD CVE Check|RA-5, SI-2|Cross-reference software against NVD database"
+SCAN_DATA_7="scan-vulnerabilities.sh|Vulnerability Scan|RA-5|Nmap/Lynis assessment"
 
-SCAN_COUNT=7
+SCAN_COUNT=8
 
 # Get scan data by index
 get_scan_data() {
@@ -105,6 +106,7 @@ get_scan_data() {
         4) echo "$SCAN_DATA_4" ;;
         5) echo "$SCAN_DATA_5" ;;
         6) echo "$SCAN_DATA_6" ;;
+        7) echo "$SCAN_DATA_7" ;;
         *) echo "" ;;
     esac
 }
@@ -286,7 +288,7 @@ select_individual_scans() {
         read -r choice
 
         case "$choice" in
-            [1-7])
+            [1-8])
                 local toggle_idx=$((choice - 1))
                 if [ $toggle_idx -lt $SCAN_COUNT ]; then
                     if echo "$selected" | grep -q ":${toggle_idx}:"; then
