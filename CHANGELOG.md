@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-01-30
+
+### Fixed
+
+- **TUI Bash 3.2 Compatibility**
+  - Replaced associative arrays with indexed variables for macOS default bash
+  - Works on Bash 3.2+ (macOS ships with 3.2 due to licensing)
+
+- **Version Display**
+  - Fixed double "v" prefix in TUI header (was showing "vv2.0.0")
+
+### Added
+
+- **TUI Progress Indicator**
+  - Spinner with elapsed time during scans (e.g., `[-] 2m34s`)
+  - Shows scan is active during long-running operations like malware scanning
+
+### Changed
+
+- **README Documentation**
+  - Added dedicated "Interactive TUI Mode" section
+  - Documented all TUI features and menu options
+
 ## [2.0.0] - 2026-01-29
 
 ### Added
