@@ -94,3 +94,12 @@ Thumbs.db
 
 # Threat intelligence cache (KEV catalog, IOCs)
 .cache/
+
+# Demo/test environment outputs
+demo/**/scan-results/
+demo/**/.scans/
+demo/**/.vagrant/
+demo/**/**.log
+
+# Homebrew tap (separate repo)
+homebrew-tap/

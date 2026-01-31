@@ -1,0 +1,259 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# Vulnerable Lab VM for KEV Detection Demo
+#
+# This VM installs known vulnerable software versions for testing
+# the Security Verification Toolkit's KEV detection capabilities.
+#
+# WARNING: This VM has KNOWN VULNERABILITIES - use only in isolated environments
+#
+# Platform Support:
+#   - Intel Mac/Linux: VirtualBox (default)
+#   - Apple Silicon (ARM): VMware Fusion or Parallels Desktop
+#     Install: vagrant plugin install vagrant-vmware-desktop
+#     Run: vagrant up --provider=vmware_desktop
+#
+# Usage:
+#   vagrant up
+#   vagrant ssh
+#   cd /vagrant/toolkit && ./scripts/run-all-scans.sh /vagrant/toolkit
+#
+
+Vagrant.configure("2") do |config|
+  # Detect architecture and set appropriate box
+  if RUBY_PLATFORM.include?("arm64") || RUBY_PLATFORM.include?("aarch64")
+    # ARM64 (Apple Silicon, ARM Linux)
+    config.vm.box = "bento/ubuntu-22.04-arm64"
+  else
+    # x86_64 (Intel Mac, Intel Linux, Windows)
+    config.vm.box = "ubuntu/jammy64"
+  end
+
+  config.vm.hostname = "vulnerable-lab"
+
+  # Network configuration - isolated by default
+  config.vm.network "private_network", type: "dhcp"
+
+  # Forward ports for vulnerable services (optional - for testing exploits)
+  config.vm.network "forwarded_port", guest: 3000, host: 3000   # Grafana
+  config.vm.network "forwarded_port", guest: 8080, host: 8080   # Jenkins
+  config.vm.network "forwarded_port", guest: 9200, host: 9200   # Elasticsearch
+  config.vm.network "forwarded_port", guest: 8161, host: 8161   # ActiveMQ
+
+  # VirtualBox provider (Intel Macs, Linux, Windows)
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "4096"
+    vb.cpus = 2
+    vb.name = "vulnerable-lab"
+  end
+
+  # VMware provider (Apple Silicon, Intel)
+  config.vm.provider "vmware_desktop" do |vmw|
+    vmw.vmx["memsize"] = "4096"
+    vmw.vmx["numvcpus"] = "2"
+    vmw.gui = false
+  end
+
+  # Parallels provider (Apple Silicon, Intel Mac)
+  config.vm.provider "parallels" do |prl|
+    prl.memory = 4096
+    prl.cpus = 2
+  end
+
+  # Sync the toolkit into the VM
+  config.vm.synced_folder "../../", "/vagrant/toolkit"
+
+  # Provisioning script to install vulnerable software
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    echo "=============================================="
+    echo "  Installing Vulnerable Software for KEV Demo"
+    echo "=============================================="
+
+    # Update package lists
+    apt-get update
+
+    # Install dependencies
+    apt-get install -y curl wget gnupg2 apt-transport-https openjdk-11-jdk jq unzip
+
+    # Create directory for vulnerable software
+    mkdir -p /opt/vulnerable
+
+    #############################################
+    # 1. Grafana 8.3.0 - CVE-2021-43798
+    #    Path Traversal / Arbitrary File Read
+    #############################################
+    echo ""
+    echo "[1/5] Installing Grafana 8.3.0 (CVE-2021-43798)..."
+
+    wget -q https://dl.grafana.com/oss/release/grafana_8.3.0_amd64.deb -O /tmp/grafana.deb
+    dpkg -i /tmp/grafana.deb || apt-get install -f -y
+
+    # Start Grafana
+    systemctl enable grafana-server
+    systemctl start grafana-server || true
+
+    echo "  Grafana installed: $(grafana-server -v 2>/dev/null || echo '8.3.0')"
+
+    #############################################
+    # 2. Jenkins 2.441 - CVE-2024-23897
+    #    Arbitrary File Read via CLI
+    #############################################
+    echo ""
+    echo "[2/5] Installing Jenkins 2.441 (CVE-2024-23897)..."
+
+    # Add Jenkins repo
+    curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+    echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+    apt-get update
+
+    # Install specific version
+    apt-get install -y jenkins=2.441 || apt-get install -y jenkins
+
+    # Disable setup wizard for testing
+    echo 'JAVA_ARGS="-Djenkins.install.runSetupWizard=false"' >> /etc/default/jenkins
+
+    systemctl enable jenkins
+    systemctl start jenkins || true
+
+    echo "  Jenkins installed"
+
+    #############################################
+    # 3. Elasticsearch 1.4.2 - CVE-2015-1427
+    #    Groovy Sandbox Bypass RCE
+    #############################################
+    echo ""
+    echo "[3/5] Installing Elasticsearch 1.4.2 (CVE-2015-1427)..."
+
+    cd /opt/vulnerable
+    wget -q https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz
+    tar -xzf elasticsearch-1.4.2.tar.gz
+
+    # Create systemd service
+    cat > /etc/systemd/system/elasticsearch.service << 'EOF'
+[Unit]
+Description=Elasticsearch 1.4.2 (Vulnerable)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/vulnerable/elasticsearch-1.4.2/bin/elasticsearch
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable elasticsearch
+    systemctl start elasticsearch || true
+
+    echo "  Elasticsearch 1.4.2 installed"
+
+    #############################################
+    # 4. Apache Tomcat 9.0.30 - CVE-2020-1938
+    #    AJP Ghostcat
+    #############################################
+    echo ""
+    echo "[4/5] Installing Apache Tomcat 9.0.30 (CVE-2020-1938)..."
+
+    cd /opt/vulnerable
+    wget -q https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.30/bin/apache-tomcat-9.0.30.tar.gz
+    tar -xzf apache-tomcat-9.0.30.tar.gz
+
+    # Enable AJP connector (vulnerable by default in this version)
+    # Create systemd service
+    cat > /etc/systemd/system/tomcat.service << 'EOF'
+[Unit]
+Description=Apache Tomcat 9.0.30 (Vulnerable)
+After=network.target
+
+[Service]
+Type=forking
+Environment=JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+Environment=CATALINA_HOME=/opt/vulnerable/apache-tomcat-9.0.30
+ExecStart=/opt/vulnerable/apache-tomcat-9.0.30/bin/startup.sh
+ExecStop=/opt/vulnerable/apache-tomcat-9.0.30/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable tomcat
+    systemctl start tomcat || true
+
+    echo "  Tomcat 9.0.30 installed"
+
+    #############################################
+    # 5. Apache ActiveMQ 5.18.2 - CVE-2023-46604
+    #    Deserialization RCE
+    #############################################
+    echo ""
+    echo "[5/5] Installing Apache ActiveMQ 5.18.2 (CVE-2023-46604)..."
+
+    cd /opt/vulnerable
+    wget -q https://archive.apache.org/dist/activemq/5.18.2/apache-activemq-5.18.2-bin.tar.gz
+    tar -xzf apache-activemq-5.18.2-bin.tar.gz
+
+    # Create systemd service
+    cat > /etc/systemd/system/activemq.service << 'EOF'
+[Unit]
+Description=Apache ActiveMQ 5.18.2 (Vulnerable)
+After=network.target
+
+[Service]
+Type=forking
+Environment=JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ExecStart=/opt/vulnerable/apache-activemq-5.18.2/bin/activemq start
+ExecStop=/opt/vulnerable/apache-activemq-5.18.2/bin/activemq stop
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable activemq
+    systemctl start activemq || true
+
+    echo "  ActiveMQ 5.18.2 installed"
+
+    #############################################
+    # Install ClamAV for malware scanning
+    #############################################
+    echo ""
+    echo "Installing ClamAV for toolkit..."
+    apt-get install -y clamav clamav-daemon
+    systemctl stop clamav-freshclam || true
+    freshclam || true
+
+    #############################################
+    # Summary
+    #############################################
+    echo ""
+    echo "=============================================="
+    echo "  Vulnerable Lab VM Ready"
+    echo "=============================================="
+    echo ""
+    echo "Installed vulnerable software:"
+    echo "  - Grafana 8.3.0        (CVE-2021-43798)"
+    echo "  - Jenkins 2.441        (CVE-2024-23897)"
+    echo "  - Elasticsearch 1.4.2  (CVE-2015-1427)"
+    echo "  - Tomcat 9.0.30        (CVE-2020-1938)"
+    echo "  - ActiveMQ 5.18.2      (CVE-2023-46604)"
+    echo ""
+    echo "To run the Security Verification Toolkit:"
+    echo "  cd /vagrant/toolkit"
+    echo "  ./scripts/collect-host-inventory.sh"
+    echo "  ./scripts/check-nvd-cves.sh"
+    echo "  ./scripts/check-kev.sh"
+    echo ""
+    echo "Or run all scans:"
+    echo "  ./scripts/run-all-scans.sh ."
+    echo ""
+  SHELL
+end

@@ -1,0 +1,79 @@
+# Vulnerable Lab for KEV Detection Demo
+# WARNING: These containers have KNOWN VULNERABILITIES
+# Run only in isolated environments for testing purposes
+#
+# Usage:
+#   docker-compose up -d
+#   # Run inventory collection from host or inside container
+#   # Then run check-kev.sh to detect KEV matches
+
+services:
+  # Grafana 8.3.0 - CVE-2021-43798 (Path Traversal / Arbitrary File Read)
+  # CISA KEV: Yes
+  grafana:
+    image: docker.io/grafana/grafana:8.3.0
+    container_name: vuln-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    labels:
+      - "vuln.cve=CVE-2021-43798"
+      - "vuln.description=Path traversal vulnerability"
+
+  # Apache ActiveMQ 5.11.1 - CVE-2023-46604 (Remote Code Execution)
+  # CISA KEV: Yes (affects versions < 5.18.3)
+  activemq:
+    image: docker.io/vulhub/activemq:5.11.1
+    container_name: vuln-activemq
+    ports:
+      - "8161:8161"   # Web console
+      - "61616:61616" # OpenWire
+    labels:
+      - "vuln.cve=CVE-2023-46604"
+      - "vuln.description=Deserialization RCE"
+
+  # Jenkins 2.441 - CVE-2024-23897 (Arbitrary File Read via CLI)
+  # CISA KEV: Yes
+  jenkins:
+    image: docker.io/jenkins/jenkins:2.441
+    container_name: vuln-jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    labels:
+      - "vuln.cve=CVE-2024-23897"
+      - "vuln.description=Arbitrary file read via CLI"
+
+  # Elasticsearch 1.4.2 - CVE-2015-1427 (Groovy Sandbox Bypass RCE)
+  # CISA KEV: Yes
+  elasticsearch:
+    image: docker.io/library/elasticsearch:1.4.2
+    container_name: vuln-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    labels:
+      - "vuln.cve=CVE-2015-1427"
+      - "vuln.description=Groovy sandbox bypass RCE"
+
+  # Apache Tomcat 9.0.30 - CVE-2020-1938 (AJP Ghostcat)
+  # CISA KEV: Yes
+  tomcat:
+    image: docker.io/library/tomcat:9.0.30
+    container_name: vuln-tomcat
+    ports:
+      - "8888:8080"
+      - "8009:8009"  # AJP port (vulnerable)
+    labels:
+      - "vuln.cve=CVE-2020-1938"
+      - "vuln.description=AJP Ghostcat file read/inclusion"
+
+networks:
+  default:
+    name: vulnerable-lab
