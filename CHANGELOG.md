@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.5] - 2026-01-31
+
+### Added
+
+- **Container Security Scanning** (`scripts/check-containers.sh`)
+  - Scan running Docker, Podman, or nerdctl containers
+  - Auto-detect container runtime
+  - Extract software versions from container images
+  - Cross-reference with NVD CVE database and CISA KEV catalog
+  - NIST Controls: CM-8 (Inventory), RA-5 (Vulnerability Scanning)
+
+- **Vulnerable Lab Demo** (`demo/vulnerable-lab/`)
+  - Docker Compose setup with 5 KEV-listed vulnerabilities:
+    - Grafana 8.3.0 (CVE-2021-43798)
+    - Jenkins 2.441 (CVE-2024-23897)
+    - Elasticsearch 1.4.2 (CVE-2015-1427)
+    - Tomcat 9.0.30 (CVE-2020-1938)
+    - ActiveMQ 5.11.1 (CVE-2023-46604)
+  - Vagrant VM for full host simulation (VirtualBox/VMware/Parallels)
+  - Wrapper script for quick demo: `./scan-containers.sh --lab`
+
+- **Homebrew Tap** (`brucedombrowski/homebrew-security-toolkit`)
+  - Install via: `brew tap brucedombrowski/security-toolkit && brew install security-toolkit`
+  - Commands: `security-scan`, `security-tui`, `security-pii`, `security-secrets`, etc.
+
+### Changed
+
+- Repository renamed from `Security` to `security-toolkit`
+
 ## [2.0.4] - 2026-01-30
 
 ### Fixed
