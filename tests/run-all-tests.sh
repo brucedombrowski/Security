@@ -81,6 +81,8 @@ run_test_suite "Secure Delete" "$SCRIPT_DIR/test-secure-delete.sh"
 run_test_suite "Run All Scans Orchestration" "$SCRIPT_DIR/test-run-all-scans.sh"
 run_test_suite "Inventory Modules" "$SCRIPT_DIR/test-inventory-modules.sh"
 run_test_suite "Scanner Modules" "$SCRIPT_DIR/test-scanner-modules.sh"
+run_test_suite "Container Scanner" "$SCRIPT_DIR/test-containers.sh"
+run_test_suite "Edge Cases" "$SCRIPT_DIR/test-edge-cases.sh"
 run_test_suite "Integration Tests" "$SCRIPT_DIR/test-integration.sh"
 run_test_suite "NVD CVE Lookup" "$SCRIPT_DIR/test-nvd-cves.sh"
 
