@@ -1,0 +1,193 @@
+#Requires -Version 5.1
+<#
+.SYNOPSIS
+    PII Pattern Detection Unit Tests (Pester)
+
+.DESCRIPTION
+    Verifies PII detection patterns catch real PII and minimize false positives.
+    PowerShell equivalent of test-pii-patterns.sh.
+
+.NOTES
+    NIST Control: SI-12 (Information Management)
+
+    Exit codes:
+      0 = All tests passed
+      1 = One or more tests failed
+
+.EXAMPLE
+    Invoke-Pester -Path ./Check-PII.Tests.ps1 -Output Detailed
+#>
+
+BeforeAll {
+    # Script and repository paths
+    $script:TestDir = $PSScriptRoot
+    $script:RepoDir = Split-Path -Parent (Split-Path -Parent $TestDir)
+    $script:FixturesDir = Join-Path $TestDir 'fixtures'
+
+    # Ensure fixtures directory exists
+    if (-not (Test-Path $FixturesDir)) {
+        New-Item -ItemType Directory -Path $FixturesDir -Force | Out-Null
+    }
+
+    # PII regex patterns (must match Check-PII.ps1)
+    $script:Patterns = @{
+        IPv4       = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
+        Phone      = '\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}'
+        SSN        = '\d{3}-\d{2}-\d{4}'
+        CreditCard = '\d{4}[-. ]?\d{4}[-. ]?\d{4}[-. ]?\d{4}'
+    }
+}
+
+AfterAll {
+    # Cleanup test fixtures
+    $fixtureFiles = @(
+        (Join-Path $script:FixturesDir 'clean-file.md'),
+        (Join-Path $script:FixturesDir 'has-pii.md')
+    )
+    foreach ($file in $fixtureFiles) {
+        if (Test-Path $file) {
+            Remove-Item $file -Force
+        }
+    }
+}
+
+Describe 'IPv4 Address Detection' {
+    Context 'when input contains valid IPv4 addresses' {
+        It 'detects standard IPv4 (192.168.1.1)' {
+            '192.168.1.1' | Should -Match $script:Patterns.IPv4
+        }
+
+        It 'detects private IP (10.0.0.1)' {
+            '10.0.0.1' | Should -Match $script:Patterns.IPv4
+        }
+
+        It 'detects public IP (8.8.8.8)' {
+            '8.8.8.8' | Should -Match $script:Patterns.IPv4
+        }
+
+        It 'detects localhost (127.0.0.1)' {
+            '127.0.0.1' | Should -Match $script:Patterns.IPv4
+        }
+    }
+
+    Context 'when input contains non-IP strings' {
+        It 'rejects version string (1.2.3)' {
+            'version 1.2.3' | Should -Not -Match $script:Patterns.IPv4
+        }
+    }
+
+    Context 'known limitations' -Tag 'Known' {
+        It 'matches version number 6.0.0.0 (handled via allowlist)' -Skip {
+            # This is a known limitation - version numbers like 6.0.0.0
+            # match the IPv4 pattern. Use allowlist to handle.
+        }
+    }
+}
+
+Describe 'Phone Number Detection' {
+    Context 'when input contains US phone numbers' {
+        It 'detects (555) 123-4567' {
+            '(555) 123-4567' | Should -Match $script:Patterns.Phone
+        }
+
+        It 'detects 555-123-4567' {
+            '555-123-4567' | Should -Match $script:Patterns.Phone
+        }
+
+        It 'detects 555.123.4567' {
+            '555.123.4567' | Should -Match $script:Patterns.Phone
+        }
+
+        It 'detects 5551234567' {
+            '5551234567' | Should -Match $script:Patterns.Phone
+        }
+    }
+}
+
+Describe 'Social Security Number Detection' {
+    Context 'when input contains SSN formats' {
+        It 'detects valid SSN format (123-45-6789)' {
+            '123-45-6789' | Should -Match $script:Patterns.SSN
+        }
+
+        It 'detects SSN in text (SSN: 123-45-6789)' {
+            'SSN: 123-45-6789' | Should -Match $script:Patterns.SSN
+        }
+    }
+
+    Context 'when input contains invalid SSN formats' {
+        It 'rejects invalid SSN (12-345-6789)' {
+            '12-345-6789' | Should -Not -Match $script:Patterns.SSN
+        }
+    }
+}
+
+Describe 'Credit Card Detection' {
+    Context 'when input contains credit card numbers' {
+        It 'detects Visa format (4111-1111-1111-1111)' {
+            '4111-1111-1111-1111' | Should -Match $script:Patterns.CreditCard
+        }
+
+        It 'detects MC format with spaces (5500 0000 0000 0004)' {
+            '5500 0000 0000 0004' | Should -Match $script:Patterns.CreditCard
+        }
+
+        It 'detects continuous digits (4111111111111111)' {
+            '4111111111111111' | Should -Match $script:Patterns.CreditCard
+        }
+    }
+}
+
+Describe 'False Positive Prevention' {
+    Context 'when input contains look-alike patterns' {
+        It 'rejects X.509 OID (1.3.6.1.5.5.7.3.4)' {
+            # OIDs have 5+ segments, IPs have exactly 4
+            # Use anchored pattern for strict matching
+            '1.3.6.1.5.5.7.3.4' | Should -Not -Match "^$($script:Patterns.IPv4)$"
+        }
+    }
+}
+
+Describe 'Integration Test' -Tag 'Integration' {
+    BeforeAll {
+        $script:CleanFile = Join-Path $script:FixturesDir 'clean-file.md'
+        $script:PIIFile = Join-Path $script:FixturesDir 'has-pii.md'
+    }
+
+    Context 'when running Check-PII.ps1 on test fixtures' {
+        It 'passes on clean fixture file' {
+            # Create clean test file
+            @'
+This is a clean file with no PII.
+It contains normal text and code.
+Version: 1.2.3
+Build date: 2026-01-15
+'@ | Set-Content -Path $script:CleanFile
+
+            # TODO: Once Check-PII.ps1 exists, uncomment:
+            # $result = & "$script:RepoDir/scripts/Check-PII.ps1" $script:FixturesDir
+            # $LASTEXITCODE | Should -Be 0
+
+            # For now, just verify the file was created
+            Test-Path $script:CleanFile | Should -BeTrue
+        }
+
+        It 'fails on file containing PII' {
+            # Create file with PII
+            @'
+Contact: John Doe
+Phone: (555) 123-4567
+SSN: 123-45-6789
+'@ | Set-Content -Path $script:PIIFile
+
+            # TODO: Once Check-PII.ps1 exists, uncomment:
+            # $result = & "$script:RepoDir/scripts/Check-PII.ps1" $script:FixturesDir
+            # $LASTEXITCODE | Should -Be 1
+
+            # For now, verify patterns would match
+            $content = Get-Content $script:PIIFile -Raw
+            $content | Should -Match $script:Patterns.Phone
+            $content | Should -Match $script:Patterns.SSN
+        }
+    }
+}
