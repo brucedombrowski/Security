@@ -13,6 +13,47 @@ The toolkit provides 27 shell library modules organized into 4 subsystems:
 | Scanners | `lib/scanners/` | Vulnerability scanner integration |
 | NVD | `lib/nvd/` | National Vulnerability Database lookup |
 
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MAIN ENTRY POINTS                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  run-all-scans.sh    tui.sh    scan-vulnerabilities.sh    check-*.sh        │
+└────────┬────────────────┬──────────────┬───────────────────────┬────────────┘
+         ▼                ▼              ▼                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CORE UTILITIES (lib/*.sh)                           │
+├──────────────────┬──────────────────┬──────────────────┬────────────────────┤
+│   audit-log.sh   │   progress.sh    │  timestamps.sh   │  toolkit-info.sh   │
+│  (NIST AU-2/3)   │  (TTY-aware)     │  (ISO 8601 UTC)  │  (version info)    │
+└──────────────────┴──────────────────┴──────────────────┴────────────────────┘
+         │                                      │
+         ▼                                      ▼
+┌────────────────────────────┐    ┌────────────────────────────────────────────┐
+│  INVENTORY SUBSYSTEM       │    │           SCANNER SUBSYSTEM                │
+│  lib/inventory/            │    │           lib/scanners/                    │
+│  ┌─────────────────────┐   │    │  common.sh → nmap.sh / lynis.sh / openvas  │
+│  │ 13 collectors for   │   │    │              ↓                             │
+│  │ OS, network, pkgs,  │   │    │         report.sh                          │
+│  │ browsers, DBs, etc. │   │    └────────────────────────────────────────────┘
+│  └─────────────────────┘   │                     │
+└────────────────────────────┘                     ▼
+                              ┌────────────────────────────────────────────┐
+                              │         NVD SUBSYSTEM (lib/nvd/)           │
+                              │   api.sh (NVD 2.0 client with caching)     │
+                              │   matcher.sh (package → CPE mapping)       │
+                              └────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+```
+Target Directory → Scanners → .scans/ (output) → PDF Attestation
+                      ↓
+                 Audit Log (JSON Lines)
+```
+
 ## Usage
 
 Source libraries in your scripts:
@@ -185,21 +226,18 @@ collect_<category>() {
 
 ### lib/scanners/common.sh
 
-Shared scanner utilities.
+Shared scanner utilities for logging and dependency checking.
 
 | Function | Description |
 |----------|-------------|
+| `log_info` | Log info message (blue `[INFO]`) |
+| `log_success` | Log success message (green `[PASS]`) |
+| `log_warning` | Log warning message (yellow `[WARN]`) |
+| `log_error` | Log error message (red `[FAIL]`) |
 | `check_root` | Check if running as root |
-| `check_scanner_deps` | Verify scanner dependencies |
-| `init_scanner_output` | Initialize scanner output directory |
-| `print_scan_header` | Print scanner header with target info |
-| `print_scan_summary` | Print scan summary with findings |
-| `print_scanner_section` | Print section divider |
-| `print_scanner_usage` | Print usage information |
-| `log_info` | Log info message |
-| `log_warning` | Log warning message |
-| `log_error` | Log error message |
-| `log_success` | Log success message |
+| `check_scanner_deps` | Verify scanner dependencies (nmap, openvas, lynis) |
+| `init_scanner_output` | Initialize output directory and report file |
+| `print_scanner_section` | Print section divider with title |
 
 ### lib/scanners/nist-controls.sh
 
@@ -240,12 +278,15 @@ OpenVAS/GVM vulnerability scanner integration.
 
 ### lib/scanners/report.sh
 
-Report generation utilities.
+Report generation and display utilities.
 
 | Function | Description |
 |----------|-------------|
-| `init_report_file` | Initialize report file |
+| `print_scan_header` | Print scanner header with target info and timestamp |
+| `init_report_file` | Initialize report file with header |
 | `generate_compliance_report` | Generate NIST compliance report |
+| `print_scan_summary` | Print scan summary with pass/fail counts |
+| `print_scanner_usage` | Print usage information for scan-vulnerabilities.sh |
 
 ---
 

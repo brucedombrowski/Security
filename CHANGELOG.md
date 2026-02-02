@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-02
+
+*Multi-agent integration release - first version developed collaboratively by multiple AI agents.*
+
+### Added
+
+- **Multi-Agent Development Workflow**
+  - Git worktree-based development separating `main` (releases) from `dev` (active work)
+  - Terminal tab naming convention for agent identification in concurrent sessions
+  - Documented coordination process for multiple AI agents working on the codebase
+  - Branch protection enforcing PR-based workflow (no direct pushes to main)
+
+- **Branch Protection** (Active on GitHub)
+  - Require pull request with 1 approval before merge
+  - Require CI status checks (ShellCheck, syntax, tests on Ubuntu + macOS)
+  - Dismiss stale approvals on new commits
+  - Enforce for administrators
+
+- **Dependencies Documentation** (`docs/DEPENDENCIES.md`)
+  - Complete version requirements for all toolkit dependencies
+  - Platform compatibility matrix (macOS, Linux, Windows WSL)
+  - Version check script for quick dependency audit
+  - Upgrade instructions per package manager
+
+- **Troubleshooting Guide** (`docs/TROUBLESHOOTING.md`)
+  - Exit codes reference
+  - ClamAV, NVD API, allowlist, PDF generation diagnostics
+  - macOS and Linux-specific issues
+  - Debug output instructions
+
+- **Initialization Library** (`scripts/lib/init.sh`)
+  - Centralized boilerplate for script initialization
+  - Library availability flags
+  - Common variable setup (TIMESTAMP, TOOLKIT_VERSION, etc.)
+  - Reduces ~20 lines of boilerplate per script
+
+### Fixed
+
+- **ShellCheck Compliance** (`scripts/check-containers.sh`)
+  - Use `awk` for numeric version comparison instead of bash string comparison (SC2072)
+
+- **KEV Catalog Checksum** (`data/kev-catalog.json.sha256`)
+  - Use relative path for portability across environments
+  - Fixed `release.sh` to generate relative paths in checksum files
+
+### Changed
+
+- **Test Helpers**
+  - Added `test_known()` function to test scripts for documenting known limitations
+
 ## [2.0.6] - 2026-02-02
 
 ### Added
@@ -957,6 +1007,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
+[2.1.0]: https://github.com/brucedombrowski/Security/releases/tag/v2.1.0
 [2.0.6]: https://github.com/brucedombrowski/Security/releases/tag/v2.0.6
 [2.0.5]: https://github.com/brucedombrowski/Security/releases/tag/v2.0.5
 [2.0.4]: https://github.com/brucedombrowski/Security/releases/tag/v2.0.4

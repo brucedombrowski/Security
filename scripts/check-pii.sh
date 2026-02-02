@@ -615,7 +615,14 @@ run_check_credit_card() {
     fi
 }
 
-# Run all checks
+# ============================================================================
+# PII PATTERN DEFINITIONS (NIST SI-12)
+# ============================================================================
+# Patterns balance detection sensitivity vs false positives.
+# Known false positives: version numbers (1.2.3.4), OIDs, build numbers
+# Use .pii-exclude or allowlist to suppress known-good matches.
+# ============================================================================
+
 run_check "IPv4 Addresses" \
     "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" \
     "Searches for IP address patterns that could identify network infrastructure"
