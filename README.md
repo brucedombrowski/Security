@@ -306,7 +306,7 @@ Scan results are saved to `<target_project>/.scans/` for submittal purposes:
 .scans/
 ├── security-scan-report-2026-01-14.txt  # Consolidated report
 ├── pii-scan-2026-01-14.txt              # PII pattern scan
-├── malware-scan-2026-01-14.txt          # ClamAV malware scan
+├── malware-scan-2026-01-14.txt          # Malware scan
 ├── secrets-scan-2026-01-14.txt          # Secrets/credentials scan
 ├── mac-address-scan-2026-01-14.txt      # MAC address scan
 └── host-security-scan-2026-01-14.txt    # Host security scan

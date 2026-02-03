@@ -609,7 +609,7 @@ Host inventory contains Controlled Unclassified Information (MAC addresses, seri
 ## Dependencies
 
 - **Required**: Bash 4.0+, grep, git
-- **Required for malware scan**: ClamAV (`clamscan`, `freshclam`)
+- **Required for malware scan**: Malware scanner (ClamAV on macOS/Linux; Windows Defender support planned)
 - **Optional**: pdflatex, Nmap, Lynis
 
 ## Testing
