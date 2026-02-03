@@ -23,11 +23,11 @@
     Output to console only, don't create scan results file.
 
 .EXAMPLE
-    .\Check-PII.ps1
+    .\Check-PersonalInfo.ps1
     Scan parent directory
 
 .EXAMPLE
-    .\Check-PII.ps1 -Interactive C:\Projects\MyApp
+    .\Check-PersonalInfo.ps1 -Interactive C:\Projects\MyApp
     Interactive mode for specific directory
 
 .NOTES
@@ -560,7 +560,7 @@ if ($script:FoundIssues -eq 0) {
     if (-not $Interactive) {
         Write-Host ""
         Write-Host "Run with -Interactive flag for interactive review:"
-        Write-Host "  .\Check-PII.ps1 -Interactive $TargetDir"
+        Write-Host "  .\Check-PersonalInfo.ps1 -Interactive $TargetDir"
     }
 }
 
