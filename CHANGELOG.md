@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2026-02-03
+
+*Sprint review release - Windows CI and expanded test coverage.*
+
+### Added
+
+- **Windows CI Runner** (PR #18, Issue #6)
+  - PowerShell tests now run on Windows in GitHub Actions
+  - 67 Pester tests passing on Windows Server 2022
+  - Pester 5.x with proper test discovery
+
+- **Cloud Provider Secret Patterns** (PR #22, Issue #3)
+  - Stripe live/test key detection
+  - Twilio API key detection
+  - SendGrid API key detection
+  - Google Cloud API key detection
+  - DigitalOcean access token detection
+  - NPM/PyPI token detection
+
+- **International Phone Format Tests** (PR #22)
+  - Japan, China, India, Brazil, Mexico, UK formats
+  - Pattern boundary edge case tests
+
+### Fixed
+
+- **Pester Test Runner** (`tests/powershell/Invoke-AllTests.ps1`)
+  - Fixed `Filter.FullName` misconfiguration causing 0 tests to run
+  - Added `NotRun` count to test summary
+  - Improved exit logic for edge cases
+
+- **GitHub Token Test Length**
+  - Corrected test tokens to 36 characters (was 34)
+
 ## [2.1.1] - 2026-02-03
 
 ### Added
