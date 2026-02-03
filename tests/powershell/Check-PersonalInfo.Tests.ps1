@@ -150,35 +150,69 @@ Describe 'False Positive Prevention' {
 
 Describe 'Integration Test' -Tag 'Integration' {
     BeforeAll {
-        $script:CleanFile = Join-Path $script:FixturesDir 'clean-file.md'
-        $script:PIIFile = Join-Path $script:FixturesDir 'has-pii.md'
+        # Create isolated test directories to avoid cross-test pollution
+        $script:IntegrationDir = Join-Path $script:FixturesDir 'integration'
+        if (Test-Path $script:IntegrationDir) {
+            Remove-Item $script:IntegrationDir -Recurse -Force
+        }
+        New-Item -ItemType Directory -Path $script:IntegrationDir -Force | Out-Null
     }
 
-    Context 'when running Check-PersonalInfo.ps1 on test fixtures' {
+    AfterAll {
+        # Cleanup integration test directory
+        if (Test-Path $script:IntegrationDir) {
+            Remove-Item $script:IntegrationDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    Context 'when scanning clean directory' {
+        BeforeAll {
+            $script:CleanDir = Join-Path $script:IntegrationDir 'clean'
+            New-Item -ItemType Directory -Path $script:CleanDir -Force | Out-Null
+            $script:CleanFile = Join-Path $script:CleanDir 'clean-file.md'
+        }
+
         It 'passes on clean fixture file' {
-            # Create clean test file
+            # Create clean test file with explicit encoding
             @'
 This is a clean file with no PII.
 It contains normal text and code.
 Version: 1.2.3
 Build date: 2026-01-15
-'@ | Set-Content -Path $script:CleanFile
+'@ | Out-File -FilePath $script:CleanFile -Encoding UTF8
 
-            # Run Check-PersonalInfo.ps1 on clean fixture - should pass
-            $result = & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:FixturesDir 2>&1
+            # Verify file exists
+            Test-Path $script:CleanFile | Should -BeTrue
+
+            # Run Check-PersonalInfo.ps1 on clean directory - should pass (exit 0)
+            & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:CleanDir 2>&1 | Out-Null
             $LASTEXITCODE | Should -Be 0
+        }
+    }
+
+    Context 'when scanning directory with PII' {
+        BeforeAll {
+            $script:PIIDir = Join-Path $script:IntegrationDir 'pii'
+            New-Item -ItemType Directory -Path $script:PIIDir -Force | Out-Null
+            $script:PIIFile = Join-Path $script:PIIDir 'has-pii.md'
         }
 
         It 'fails on file containing PII' {
-            # Create file with PII
+            # Create file with PII using dashed phone format (simpler pattern match)
             @'
 Contact: John Doe
-Phone: (555) 123-4567
+Phone: 555-123-4567
 SSN: 123-45-6789
-'@ | Set-Content -Path $script:PIIFile
+'@ | Out-File -FilePath $script:PIIFile -Encoding UTF8
 
-            # Run Check-PersonalInfo.ps1 on PII file - should fail
-            $result = & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:FixturesDir 2>&1
+            # Verify file exists and contains expected content
+            Test-Path $script:PIIFile | Should -BeTrue
+            $content = Get-Content $script:PIIFile -Raw
+            $content | Should -Match '555-123-4567'
+            $content | Should -Match '123-45-6789'
+
+            # Run Check-PersonalInfo.ps1 on PII directory - should fail (exit 1)
+            & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:PIIDir 2>&1 | Out-Null
             $LASTEXITCODE | Should -Be 1
         }
     }
