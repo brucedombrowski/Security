@@ -173,19 +173,14 @@ Describe 'Integration Test' -Tag 'Integration' {
         }
 
         It 'passes on clean fixture file' {
-            # Create clean test file with explicit encoding
-            @'
-This is a clean file with no PII.
-It contains normal text and code.
-Version: 1.2.3
-Build date: 2026-01-15
-'@ | Out-File -FilePath $script:CleanFile -Encoding UTF8
+            # Create clean test file - use Set-Content with ASCII to avoid BOM issues
+            "This is a clean file with no PII.`r`nVersion: 1.2.3`r`nBuild date: 2026-01-15" | Set-Content -Path $script:CleanFile -Encoding ASCII
 
             # Verify file exists
             Test-Path $script:CleanFile | Should -BeTrue
 
             # Run Check-PersonalInfo.ps1 on clean directory - should pass (exit 0)
-            & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:CleanDir 2>&1 | Out-Null
+            $output = & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:CleanDir 2>&1
             $LASTEXITCODE | Should -Be 0
         }
     }
@@ -198,12 +193,8 @@ Build date: 2026-01-15
         }
 
         It 'fails on file containing PII' {
-            # Create file with PII using dashed phone format (simpler pattern match)
-            @'
-Contact: John Doe
-Phone: 555-123-4567
-SSN: 123-45-6789
-'@ | Out-File -FilePath $script:PIIFile -Encoding UTF8
+            # Create file with PII - use Set-Content with ASCII to avoid BOM issues
+            "Contact: John Doe`r`nPhone: 555-123-4567`r`nSSN: 123-45-6789" | Set-Content -Path $script:PIIFile -Encoding ASCII
 
             # Verify file exists and contains expected content
             Test-Path $script:PIIFile | Should -BeTrue
@@ -212,7 +203,7 @@ SSN: 123-45-6789
             $content | Should -Match '123-45-6789'
 
             # Run Check-PersonalInfo.ps1 on PII directory - should fail (exit 1)
-            & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:PIIDir 2>&1 | Out-Null
+            $output = & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:PIIDir 2>&1
             $LASTEXITCODE | Should -Be 1
         }
     }
