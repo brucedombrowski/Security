@@ -126,12 +126,12 @@ $script:SecretsPatterns = [ordered]@{
         Description = 'AWS Access Key ID format'
     }
     'AWS Secret Keys' = @{
-        Pattern = "['\"][A-Za-z0-9/+=]{40}['\"]"
+        Pattern = '[''"][A-Za-z0-9/+=]{40}[''""]'
         Severity = 'CRITICAL'
-        Description = 'Potential AWS Secret Access Key (40 char base64)'
+        Description = 'Potential AWS Secret Access Key - 40 char base64'
     }
     'Generic API Keys' = @{
-        Pattern = "(api[_-]?key|apikey)['\"]?\s*[:=]\s*['\"][A-Za-z0-9]{16,}"
+        Pattern = '(api[_-]?key|apikey)[''"]?\s*[:=]\s*[''"][A-Za-z0-9]{16,}'
         Severity = 'HIGH'
         Description = 'Generic API key assignment'
     }
@@ -146,7 +146,7 @@ $script:SecretsPatterns = [ordered]@{
         Description = 'Database connection string with embedded credentials'
     }
     'Hardcoded Passwords' = @{
-        Pattern = "(password|passwd|pwd)['\"]?\s*[:=]\s*['\"][^'\"]{8,}"
+        Pattern = '(password|passwd|pwd)[''"]?\s*[:=]\s*[''"][^''"]{8,}'
         Severity = 'HIGH'
         Description = 'Hardcoded password assignment'
     }
@@ -166,7 +166,7 @@ $script:SecretsPatterns = [ordered]@{
         Description = 'Slack API token'
     }
     'Shell Command Injection' = @{
-        Pattern = 'eval\s+"\$'
+        Pattern = 'eval\s+[''"]\$'
         Severity = 'MEDIUM'
         Description = 'Potential shell command injection via eval'
     }
