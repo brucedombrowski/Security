@@ -154,7 +154,7 @@ Describe 'Integration Test' -Tag 'Integration' {
         $script:PIIFile = Join-Path $script:FixturesDir 'has-pii.md'
     }
 
-    Context 'when running Check-PII.ps1 on test fixtures' {
+    Context 'when running Check-PersonalInfo.ps1 on test fixtures' {
         It 'passes on clean fixture file' {
             # Create clean test file
             @'
@@ -164,12 +164,9 @@ Version: 1.2.3
 Build date: 2026-01-15
 '@ | Set-Content -Path $script:CleanFile
 
-            # TODO: Once Check-PII.ps1 exists, uncomment:
-            # $result = & "$script:RepoDir/scripts/Check-PII.ps1" $script:FixturesDir
-            # $LASTEXITCODE | Should -Be 0
-
-            # For now, just verify the file was created
-            Test-Path $script:CleanFile | Should -BeTrue
+            # Run Check-PersonalInfo.ps1 on clean fixture - should pass
+            $result = & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:FixturesDir 2>&1
+            $LASTEXITCODE | Should -Be 0
         }
 
         It 'fails on file containing PII' {
@@ -180,14 +177,9 @@ Phone: (555) 123-4567
 SSN: 123-45-6789
 '@ | Set-Content -Path $script:PIIFile
 
-            # TODO: Once Check-PII.ps1 exists, uncomment:
-            # $result = & "$script:RepoDir/scripts/Check-PII.ps1" $script:FixturesDir
-            # $LASTEXITCODE | Should -Be 1
-
-            # For now, verify patterns would match
-            $content = Get-Content $script:PIIFile -Raw
-            $content | Should -Match $script:Patterns.Phone
-            $content | Should -Match $script:Patterns.SSN
+            # Run Check-PersonalInfo.ps1 on PII file - should fail
+            $result = & "$script:RepoDir/scripts/Check-PersonalInfo.ps1" $script:FixturesDir 2>&1
+            $LASTEXITCODE | Should -Be 1
         }
     }
 }
