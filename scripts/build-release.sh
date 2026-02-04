@@ -35,16 +35,20 @@ NC='\033[0m'
 CLAMAV_VERSION="1.4.2"
 CLAMAV_BASE_URL="https://www.clamav.net/downloads/production"
 
-# Platform-specific ClamAV download info
-declare -A CLAMAV_URLS=(
-    ["macos-arm64"]="clamav-${CLAMAV_VERSION}.macos.arm64.pkg"
-    ["macos-x64"]="clamav-${CLAMAV_VERSION}.macos.x86_64.pkg"
-    ["linux-x64"]="clamav-${CLAMAV_VERSION}.linux.x86_64.tar.gz"
-    ["windows-x64"]="clamav-${CLAMAV_VERSION}.win.x64.zip"
-)
-
 # Supported platforms
-PLATFORMS=("macos-arm64" "macos-x64" "linux-x64" "windows-x64")
+PLATFORMS="macos-arm64 macos-x64 linux-x64 windows-x64"
+
+# Get ClamAV filename for a platform
+get_clamav_filename() {
+    local platform="$1"
+    case "$platform" in
+        macos-arm64) echo "clamav-${CLAMAV_VERSION}.macos.arm64.pkg" ;;
+        macos-x64)   echo "clamav-${CLAMAV_VERSION}.macos.x86_64.pkg" ;;
+        linux-x64)   echo "clamav-${CLAMAV_VERSION}.linux.x86_64.tar.gz" ;;
+        windows-x64) echo "clamav-${CLAMAV_VERSION}.win.x64.zip" ;;
+        *) echo "" ;;
+    esac
+}
 
 print_header() {
     echo -e "${BLUE}=================================="
@@ -105,7 +109,8 @@ check_dependencies() {
 download_clamav() {
     local platform="$1"
     local dest_dir="$2"
-    local clamav_file="${CLAMAV_URLS[$platform]}"
+    local clamav_file
+    clamav_file=$(get_clamav_filename "$platform")
     local download_url="${CLAMAV_BASE_URL}/${clamav_file}"
     local temp_dir
     temp_dir=$(mktemp -d)
@@ -126,33 +131,10 @@ download_clamav() {
 
     case "$platform" in
         macos-arm64|macos-x64)
-            # macOS PKG files need special handling
-            # Extract using pkgutil or xar
-            if command -v pkgutil &>/dev/null; then
-                local expand_dir="${temp_dir}/expanded"
-                mkdir -p "$expand_dir"
-                pkgutil --expand "$download_path" "$expand_dir" 2>/dev/null || {
-                    # Fallback: try xar
-                    if command -v xar &>/dev/null; then
-                        (cd "$expand_dir" && xar -xf "$download_path")
-                    else
-                        print_warning "Cannot extract PKG, downloading portable tarball instead..."
-                        # Fallback to Homebrew bottle or manual build
-                        download_clamav_homebrew "$platform" "$dest_dir"
-                        rm -rf "$temp_dir"
-                        return $?
-                    fi
-                }
-                # Find and copy binaries
-                find "$expand_dir" -name "clamscan" -o -name "freshclam" -o -name "sigtool" 2>/dev/null | \
-                    while read -r bin; do
-                        cp "$bin" "$dest_dir/" 2>/dev/null || true
-                    done
-            else
-                download_clamav_homebrew "$platform" "$dest_dir"
-                rm -rf "$temp_dir"
-                return $?
-            fi
+            # macOS: Use Homebrew bottles directly (more reliable than PKG extraction)
+            rm -rf "$temp_dir"
+            download_clamav_homebrew "$platform" "$dest_dir"
+            return $?
             ;;
         linux-x64)
             # Linux tarball
@@ -208,62 +190,57 @@ download_clamav() {
     return 0
 }
 
-# Alternative: Download from Homebrew bottles (macOS)
+# Alternative: Copy from local Homebrew installation (macOS)
 download_clamav_homebrew() {
     local platform="$1"
     local dest_dir="$2"
 
-    print_info "Attempting Homebrew bottle download for ${platform}..."
+    print_info "Looking for local Homebrew ClamAV installation..."
 
-    # Get the bottle URL from Homebrew API
-    local bottle_info
-    bottle_info=$(curl -sSL "https://formulae.brew.sh/api/formula/clamav.json" 2>/dev/null)
+    # Check common Homebrew paths
+    local homebrew_prefix=""
+    if [ -d "/opt/homebrew" ]; then
+        homebrew_prefix="/opt/homebrew"
+    elif [ -d "/usr/local" ]; then
+        homebrew_prefix="/usr/local"
+    fi
 
-    if [ -z "$bottle_info" ]; then
-        print_error "Failed to fetch Homebrew bottle info"
+    if [ -z "$homebrew_prefix" ]; then
+        print_error "Homebrew not found"
         return 1
     fi
 
-    local bottle_tag
-    case "$platform" in
-        macos-arm64) bottle_tag="arm64_sonoma" ;;
-        macos-x64) bottle_tag="sonoma" ;;
-        *) print_error "Homebrew bottles only available for macOS"; return 1 ;;
-    esac
-
-    local bottle_url
-    bottle_url=$(echo "$bottle_info" | jq -r ".bottle.stable.files.${bottle_tag}.url // empty")
-
-    if [ -z "$bottle_url" ]; then
-        print_warning "No Homebrew bottle available for ${bottle_tag}"
+    local clamscan_path="$homebrew_prefix/bin/clamscan"
+    if [ ! -x "$clamscan_path" ]; then
+        print_error "ClamAV not installed via Homebrew. Install with: brew install clamav"
         return 1
     fi
 
-    local temp_dir
-    temp_dir=$(mktemp -d)
-    local bottle_file="${temp_dir}/clamav.tar.gz"
+    print_info "Copying ClamAV binaries from Homebrew..."
 
-    if ! curl -sSL -o "$bottle_file" "$bottle_url"; then
-        print_error "Failed to download Homebrew bottle"
-        rm -rf "$temp_dir"
-        return 1
-    fi
+    # Copy binaries
+    cp "$homebrew_prefix/bin/clamscan" "$dest_dir/" 2>/dev/null || true
+    cp "$homebrew_prefix/bin/freshclam" "$dest_dir/" 2>/dev/null || true
+    cp "$homebrew_prefix/bin/sigtool" "$dest_dir/" 2>/dev/null || true
+    cp "$homebrew_prefix/bin/clamdscan" "$dest_dir/" 2>/dev/null || true
 
-    tar -xzf "$bottle_file" -C "$temp_dir"
-
-    # Find binaries in Homebrew structure
-    find "$temp_dir" -path "*/bin/clamscan" -o -path "*/bin/freshclam" -o -path "*/bin/sigtool" 2>/dev/null | \
-        while read -r bin; do
-            cp "$bin" "$dest_dir/" 2>/dev/null || true
+    # Copy required libraries
+    if [ -d "$homebrew_prefix/lib" ]; then
+        mkdir -p "$dest_dir/lib"
+        # Copy ClamAV libraries
+        cp "$homebrew_prefix/lib/libclamav"* "$dest_dir/lib/" 2>/dev/null || true
+        cp "$homebrew_prefix/lib/libfreshclam"* "$dest_dir/lib/" 2>/dev/null || true
+        # Copy dependencies (json-c, openssl, etc)
+        for lib in libjson-c libssl libcrypto libpcre2 libxml2 libbz2 liblzma libz libcurl libiconv libcharset; do
+            cp "$homebrew_prefix/lib/${lib}"*.dylib "$dest_dir/lib/" 2>/dev/null || true
         done
-
-    rm -rf "$temp_dir"
+    fi
 
     if [ -f "$dest_dir/clamscan" ]; then
-        print_success "ClamAV binaries extracted from Homebrew bottle"
+        print_success "ClamAV binaries copied from Homebrew"
         return 0
     else
-        print_error "Failed to extract ClamAV from Homebrew bottle"
+        print_error "Failed to copy ClamAV binaries"
         return 1
     fi
 }
@@ -527,7 +504,7 @@ main() {
     # Validate platform if specified
     if [ -n "$platform" ]; then
         local valid=false
-        for p in "${PLATFORMS[@]}"; do
+        for p in $PLATFORMS; do
             if [ "$p" = "$platform" ]; then
                 valid=true
                 break
@@ -535,7 +512,7 @@ main() {
         done
         if [ "$valid" = false ]; then
             print_error "Invalid platform: $platform"
-            echo "Valid platforms: ${PLATFORMS[*]}"
+            echo "Valid platforms: $PLATFORMS"
             exit 1
         fi
     fi
@@ -556,7 +533,7 @@ main() {
 
     # Build platform-specific releases
     if [ "$all_platforms" = true ]; then
-        for p in "${PLATFORMS[@]}"; do
+        for p in $PLATFORMS; do
             echo ""
             build_platform_release "$version" "$p" "$output_dir" || {
                 print_warning "Failed to build ${p} release, continuing..."
