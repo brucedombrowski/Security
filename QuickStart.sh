@@ -181,9 +181,10 @@ select_scans() {
     echo "  1) Quick scan     - PII + Secrets only (fastest)"
     echo "  2) Standard scan  - PII + Secrets + MAC addresses"
     echo "  3) Full scan      - All scans including malware (requires ClamAV)"
-    echo "  4) Custom         - Select individual scans"
+    echo "  4) System malware - Full system malware scan only (thorough)"
+    echo "  5) Custom         - Select individual scans"
     echo ""
-    echo -n "Select option [1-4]: "
+    echo -n "Select option [1-5]: "
 
     read -r choice
 
@@ -192,6 +193,7 @@ select_scans() {
     RUN_MAC=false
     RUN_MALWARE=false
     RUN_KEV=false
+    MALWARE_FULL_SYSTEM=false
 
     case "$choice" in
         1)
@@ -211,6 +213,17 @@ select_scans() {
             RUN_KEV=true
             ;;
         4)
+            # System-wide malware scan only
+            RUN_MALWARE=true
+            MALWARE_FULL_SYSTEM=true
+            echo ""
+            echo -e "${YELLOW}Note: System malware scan will check:${NC}"
+            echo "  - Home directory (~)"
+            echo "  - Applications (/Applications)"
+            echo "  - Temp files (/tmp)"
+            echo "This may take several minutes depending on file count."
+            ;;
+        5)
             echo ""
             echo "Select scans (y/n for each):"
             echo -n "  PII detection? [y/N]: "
@@ -221,6 +234,10 @@ select_scans() {
             read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_MAC=true
             echo -n "  Malware scan (requires ClamAV)? [y/N]: "
             read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_MALWARE=true
+            if [ "$RUN_MALWARE" = true ]; then
+                echo -n "    Scan full system (not just target)? [y/N]: "
+                read -r ans && [[ "$ans" =~ ^[Yy] ]] && MALWARE_FULL_SYSTEM=true
+            fi
             echo -n "  CISA KEV check? [y/N]: "
             read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_KEV=true
             ;;
@@ -284,21 +301,34 @@ run_scans() {
     # Malware Scan
     if [ "$RUN_MALWARE" = true ]; then
         if command -v clamscan &>/dev/null; then
-            print_step "Malware Scan (this may take a while)..."
-            echo ""
-            # Run malware scan with visible output so user sees progress
             # Capture exit code before if-test (can't use $? inside else block)
             local malware_exit=0
-            "$SCRIPTS_DIR/check-malware.sh" "$TARGET_DIR" || malware_exit=$?
-            if [ "$malware_exit" -eq 0 ]; then
-                print_success "Malware scan passed"
-                ((passed++))
-            elif [ "$malware_exit" -eq 2 ]; then
-                print_warning "Malware scan skipped (dependency missing)"
-                ((skipped++))
+            if [ "$MALWARE_FULL_SYSTEM" = true ]; then
+                print_step "Full System Malware Scan (this may take a while)..."
+                "$SCRIPTS_DIR/check-malware.sh" --full-system || malware_exit=$?
+                if [ "$malware_exit" -eq 0 ]; then
+                    print_success "Full system malware scan passed"
+                    ((passed++))
+                elif [ "$malware_exit" -eq 2 ]; then
+                    print_warning "Malware scan skipped (dependency missing)"
+                    ((skipped++))
+                else
+                    print_warning "Full system malware scan found potential issues"
+                    ((failed++))
+                fi
             else
-                print_warning "Malware scan found potential issues"
-                ((failed++))
+                print_step "Malware Scan (this may take a while)..."
+                "$SCRIPTS_DIR/check-malware.sh" "$TARGET_DIR" || malware_exit=$?
+                if [ "$malware_exit" -eq 0 ]; then
+                    print_success "Malware scan passed"
+                    ((passed++))
+                elif [ "$malware_exit" -eq 2 ]; then
+                    print_warning "Malware scan skipped (dependency missing)"
+                    ((skipped++))
+                else
+                    print_warning "Malware scan found potential issues"
+                    ((failed++))
+                fi
             fi
             echo ""
         else
