@@ -18,24 +18,45 @@ set -eu
 # ============================================================================
 
 FORCE_CLI=false
+CONFIG_FILE=""
+
 for arg in "$@"; do
     case "$arg" in
         --no-tui|--cli)
             FORCE_CLI=true
             ;;
+        --config=*)
+            CONFIG_FILE="${arg#--config=}"
+            ;;
+        *.conf|*.config)
+            CONFIG_FILE="$arg"
+            ;;
         -h|--help)
-            echo "Usage: ./QuickStart.sh [OPTIONS]"
+            echo "Usage: ./QuickStart.sh [OPTIONS] [config_file]"
             echo ""
             echo "Options:"
             echo "  --no-tui, --cli    Force CLI mode (disable TUI even if available)"
+            echo "  --config=FILE      Load configuration from file"
             echo "  -h, --help         Show this help message"
             echo ""
-            echo "Interactive demo for the Security Toolkit."
-            echo "If dialog or whiptail is installed, a TUI interface is used."
+            echo "Config file format (shell variables):"
+            echo "  REMOTE_HOST=10.0.0.223"
+            echo "  REMOTE_USER=payload"
+            echo "  PROJECT_NAME=Payload"
+            echo "  SCAN_MODE=remote"
+            echo "  AUTH_MODE=credentialed"
+            echo ""
+            echo "Example: ./QuickStart.sh myhost.conf"
             exit 0
             ;;
     esac
 done
+
+# Load config file if specified
+if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
+    echo "Loading config from: $CONFIG_FILE"
+    source "$CONFIG_FILE"
+fi
 
 # ============================================================================
 # Configuration
