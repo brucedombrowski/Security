@@ -1137,8 +1137,29 @@ run_remote_ssh_scans() {
             fi
         else
             print_warning "Lynis not installed on remote host"
-            echo "  To install: sudo apt install lynis (Debian/Ubuntu)"
-            ((skipped++))
+            echo -n "  Install Lynis now? [y/N]: "
+            read -r install_ans
+            if [[ "$install_ans" =~ ^[Yy] ]]; then
+                echo "  Installing Lynis on remote host..."
+                if ssh_cmd "sudo apt install -y lynis 2>&1" | tail -5; then
+                    print_success "Lynis installed"
+                    # Now run the audit
+                    local lynis_file="$output_dir/remote-lynis-$timestamp.txt"
+                    echo "  Running Lynis audit..."
+                    if ssh_cmd "sudo lynis audit system --quick 2>&1" > "$lynis_file" 2>&1; then
+                        print_success "Remote Lynis audit saved: $lynis_file"
+                        ((passed++))
+                    else
+                        print_warning "Remote Lynis audit had issues"
+                        ((failed++))
+                    fi
+                else
+                    print_error "Lynis installation failed"
+                    ((skipped++))
+                fi
+            else
+                ((skipped++))
+            fi
         fi
     fi
 
@@ -1188,25 +1209,63 @@ run_remote_ssh_scans() {
                 ((passed++))
             fi
         else
-            {
-                echo "Remote Malware Scan (ClamAV)"
-                echo "============================="
-                echo "Host: $REMOTE_HOST"
-                echo "Checked: $timestamp"
-                echo ""
-                echo "ClamAV not installed on remote host."
-                echo ""
-                echo "To install:"
-                echo "  Debian/Ubuntu: sudo apt install clamav"
-                echo "  RHEL/CentOS:   sudo yum install clamav"
-                echo "  Arch:          sudo pacman -S clamav"
-                echo "  macOS:         brew install clamav"
-            } > "$malware_file" 2>&1
+            print_warning "ClamAV not installed on remote host"
+            echo -n "  Install ClamAV now? [y/N]: "
+            read -r install_ans
+            if [[ "$install_ans" =~ ^[Yy] ]]; then
+                echo "  Installing ClamAV on remote host..."
+                if ssh_cmd "sudo apt install -y clamav 2>&1" | tail -5; then
+                    print_success "ClamAV installed"
+                    echo "  Updating virus database (this may take a minute)..."
+                    ssh_cmd "sudo freshclam 2>&1" | tail -3 || true
+                    # Now run the scan
+                    {
+                        echo "Remote Malware Scan (ClamAV)"
+                        echo "============================="
+                        echo "Host: $REMOTE_HOST"
+                        echo "Scanned: $timestamp"
+                        echo ""
+                        echo "--- ClamAV Version ---"
+                        ssh_cmd "clamscan --version" 2>/dev/null || echo "(version check failed)"
+                        echo ""
+                        echo "--- Scan Results ---"
+                        ssh_cmd "clamscan --recursive --infected \
+                            --exclude-dir='.git' \
+                            --exclude-dir='node_modules' \
+                            --exclude-dir='.cache' \
+                            ~/ 2>&1" 2>/dev/null || echo "(scan completed)"
+                    } > "$malware_file" 2>&1
 
-            print_warning "ClamAV not installed on remote host (skipped)"
-            echo "  To install: sudo apt install clamav (Debian/Ubuntu)"
-            REMOTE_MALWARE_RESULT="SKIP"
-            ((skipped++))
+                    if grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
+                        print_success "No malware detected"
+                        REMOTE_MALWARE_RESULT="PASS"
+                        ((passed++))
+                    elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
+                        print_fail "Malware detected! Check $malware_file"
+                        REMOTE_MALWARE_RESULT="FAIL"
+                        ((failed++))
+                    else
+                        print_success "Malware scan completed: $malware_file"
+                        REMOTE_MALWARE_RESULT="PASS"
+                        ((passed++))
+                    fi
+                else
+                    print_error "ClamAV installation failed"
+                    REMOTE_MALWARE_RESULT="SKIP"
+                    ((skipped++))
+                fi
+            else
+                {
+                    echo "Remote Malware Scan (ClamAV)"
+                    echo "============================="
+                    echo "Host: $REMOTE_HOST"
+                    echo "Checked: $timestamp"
+                    echo ""
+                    echo "ClamAV not installed - user declined installation."
+                } > "$malware_file" 2>&1
+                REMOTE_MALWARE_RESULT="SKIP"
+                ((skipped++))
+            fi
         fi
     fi
 
