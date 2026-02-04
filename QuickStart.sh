@@ -285,13 +285,22 @@ run_scans() {
     if [ "$RUN_MALWARE" = true ]; then
         if command -v clamscan &>/dev/null; then
             print_step "Malware Scan (this may take a while)..."
-            if "$SCRIPTS_DIR/check-malware.sh" "$TARGET_DIR" > /dev/null 2>&1; then
+            echo ""
+            # Run malware scan with visible output so user sees progress
+            # Capture exit code before if-test (can't use $? inside else block)
+            local malware_exit=0
+            "$SCRIPTS_DIR/check-malware.sh" "$TARGET_DIR" || malware_exit=$?
+            if [ "$malware_exit" -eq 0 ]; then
                 print_success "Malware scan passed"
                 ((passed++))
+            elif [ "$malware_exit" -eq 2 ]; then
+                print_warning "Malware scan skipped (dependency missing)"
+                ((skipped++))
             else
                 print_warning "Malware scan found potential issues"
                 ((failed++))
             fi
+            echo ""
         else
             print_warning "Skipping malware scan (ClamAV not installed)"
             ((skipped++))
