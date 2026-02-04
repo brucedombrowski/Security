@@ -434,6 +434,16 @@ PRIVILEGE_LEVEL=""    # "admin" or "standard"
 SCAN_SCOPE=""         # "full" or "directory"
 REMOTE_HOST=""        # Remote hostname/IP
 REMOTE_USER=""        # Remote username (for credentialed)
+REMOTE_OS=""          # Detected remote OS (Linux, Darwin, etc.)
+
+# Remote scan options
+RUN_NMAP_PORTS=false       # Port scan
+RUN_NMAP_SERVICES=false    # Service version detection
+RUN_NMAP_OS=false          # OS fingerprinting
+RUN_NMAP_VULN=false        # Vulnerability scripts
+RUN_REMOTE_INVENTORY=false # Host inventory via SSH
+RUN_REMOTE_SECURITY=false  # Security check via SSH
+RUN_REMOTE_LYNIS=false     # Lynis audit via SSH
 
 # ============================================================================
 # Level 1: Scan Environment Selection
@@ -690,6 +700,461 @@ select_remote_config() {
     print_success "Target: $REMOTE_HOST"
     [ -n "$REMOTE_USER" ] && print_success "User: $REMOTE_USER"
     echo ""
+}
+
+# ============================================================================
+# Remote Scan Selection
+# ============================================================================
+
+# Test SSH connectivity and detect remote OS
+test_ssh_connection() {
+    print_step "Testing SSH connection to $REMOTE_USER@$REMOTE_HOST..."
+
+    # Test connection with timeout
+    if ssh -o ConnectTimeout=10 -o BatchMode=yes "$REMOTE_USER@$REMOTE_HOST" "echo connected" &>/dev/null; then
+        print_success "SSH connection successful (key-based auth)"
+    else
+        # Try with password prompt
+        print_warning "Key-based auth failed, will prompt for password"
+        if ! ssh -o ConnectTimeout=10 "$REMOTE_USER@$REMOTE_HOST" "echo connected" 2>/dev/null; then
+            print_error "Cannot connect to $REMOTE_USER@$REMOTE_HOST"
+            return 1
+        fi
+        print_success "SSH connection successful"
+    fi
+
+    # Detect remote OS
+    REMOTE_OS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "uname -s" 2>/dev/null || echo "Unknown")
+    print_success "Remote OS: $REMOTE_OS"
+    echo ""
+    return 0
+}
+
+# Scan selection for remote credentialed (SSH) scans
+select_remote_scans_ssh_tui() {
+    local selections
+    selections=$(tui_checklist "Remote Scan Selection (SSH)" "Select scans to run on $REMOTE_HOST:" 18 70 5 \
+        "inventory" "Host inventory (system info, packages)" "on" \
+        "security" "Security configuration check" "on" \
+        "lynis" "Lynis security audit (if installed)" "off" \
+        "ports" "Port scan (nmap from local)" "off" \
+        "services" "Service version detection (nmap)" "off")
+
+    if [ -z "$selections" ]; then
+        print_error "No scans selected"
+        exit 1
+    fi
+
+    # Parse selections
+    [[ "$selections" =~ inventory ]] && RUN_REMOTE_INVENTORY=true
+    [[ "$selections" =~ security ]] && RUN_REMOTE_SECURITY=true
+    [[ "$selections" =~ lynis ]] && RUN_REMOTE_LYNIS=true
+    [[ "$selections" =~ ports ]] && RUN_NMAP_PORTS=true
+    [[ "$selections" =~ services ]] && RUN_NMAP_SERVICES=true
+}
+
+select_remote_scans_ssh_cli() {
+    echo -e "${BOLD}Select Remote Scans (SSH)${NC}"
+    echo ""
+    echo "Select scans (y/n for each):"
+    echo -n "  Host inventory (system info, packages)? [Y/n]: "
+    read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_REMOTE_INVENTORY=true
+    echo -n "  Security configuration check? [Y/n]: "
+    read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_REMOTE_SECURITY=true
+    echo -n "  Lynis security audit (if installed)? [y/N]: "
+    read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_REMOTE_LYNIS=true
+    echo -n "  Port scan (nmap from local)? [y/N]: "
+    read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_PORTS=true
+    echo -n "  Service version detection (nmap)? [y/N]: "
+    read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_SERVICES=true
+    echo ""
+}
+
+# Scan selection for remote uncredentialed (Nmap) scans
+select_remote_scans_nmap_tui() {
+    local choice
+    choice=$(tui_menu "Network Scan Type" "Select scan type for $REMOTE_HOST:" 16 70 4 \
+        "quick" "Quick scan - Top 100 ports only" \
+        "standard" "Standard scan - Top 1000 ports + services" \
+        "full" "Full scan - All ports + OS detection + vuln scripts" \
+        "custom" "Custom - Select individual options")
+
+    if [ -z "$choice" ]; then
+        print_error "Cancelled"
+        exit 1
+    fi
+
+    case "$choice" in
+        quick)
+            RUN_NMAP_PORTS=true
+            ;;
+        standard)
+            RUN_NMAP_PORTS=true
+            RUN_NMAP_SERVICES=true
+            ;;
+        full)
+            RUN_NMAP_PORTS=true
+            RUN_NMAP_SERVICES=true
+            RUN_NMAP_OS=true
+            RUN_NMAP_VULN=true
+            ;;
+        custom)
+            local selections
+            selections=$(tui_checklist "Custom Network Scan" "Select scan options:" 16 70 4 \
+                "ports" "Port scan (TCP)" "on" \
+                "services" "Service version detection (-sV)" "on" \
+                "os" "OS fingerprinting (-O, requires root)" "off" \
+                "vuln" "Vulnerability scripts (--script vuln)" "off")
+
+            [[ "$selections" =~ ports ]] && RUN_NMAP_PORTS=true
+            [[ "$selections" =~ services ]] && RUN_NMAP_SERVICES=true
+            [[ "$selections" =~ os ]] && RUN_NMAP_OS=true
+            [[ "$selections" =~ vuln ]] && RUN_NMAP_VULN=true
+            ;;
+    esac
+}
+
+select_remote_scans_nmap_cli() {
+    echo -e "${BOLD}Select Network Scan Type${NC}"
+    echo ""
+    echo "  1) Quick scan    - Top 100 ports only (fast)"
+    echo "  2) Standard scan - Top 1000 ports + service detection"
+    echo "  3) Full scan     - All ports + OS + vulnerability scripts"
+    echo "  4) Custom        - Select individual options"
+    echo ""
+    echo -n "Select [1-4]: "
+    read -r choice
+
+    case "$choice" in
+        1)
+            RUN_NMAP_PORTS=true
+            ;;
+        2)
+            RUN_NMAP_PORTS=true
+            RUN_NMAP_SERVICES=true
+            ;;
+        3)
+            RUN_NMAP_PORTS=true
+            RUN_NMAP_SERVICES=true
+            RUN_NMAP_OS=true
+            RUN_NMAP_VULN=true
+            ;;
+        4)
+            echo ""
+            echo "Select options (y/n for each):"
+            echo -n "  Port scan (TCP)? [Y/n]: "
+            read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_NMAP_PORTS=true
+            echo -n "  Service version detection? [Y/n]: "
+            read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_NMAP_SERVICES=true
+            echo -n "  OS fingerprinting (requires sudo)? [y/N]: "
+            read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_OS=true
+            echo -n "  Vulnerability scripts? [y/N]: "
+            read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_VULN=true
+            ;;
+        *)
+            print_error "Invalid selection"
+            exit 1
+            ;;
+    esac
+    echo ""
+}
+
+select_remote_scans() {
+    if [ "$AUTH_MODE" = "credentialed" ]; then
+        # Test SSH connection first
+        if ! test_ssh_connection; then
+            exit 1
+        fi
+
+        if use_tui; then
+            select_remote_scans_ssh_tui
+        else
+            select_remote_scans_ssh_cli
+        fi
+    else
+        # Uncredentialed = Nmap only
+        if use_tui; then
+            select_remote_scans_nmap_tui
+        else
+            select_remote_scans_nmap_cli
+        fi
+    fi
+}
+
+# ============================================================================
+# Remote Scan Execution
+# ============================================================================
+
+# Run SSH-based remote scans
+run_remote_ssh_scans() {
+    local passed=0
+    local failed=0
+    local skipped=0
+
+    local output_dir
+    output_dir=$(get_scans_dir "$(pwd)")
+    mkdir -p "$output_dir"
+
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H%M%SZ")
+
+    echo -e "${BOLD}Running remote scans via SSH...${NC}"
+    echo ""
+
+    # Remote Host Inventory
+    if [ "$RUN_REMOTE_INVENTORY" = true ]; then
+        print_step "Collecting remote host inventory..."
+        local inv_file="$output_dir/remote-inventory-$REMOTE_HOST-$timestamp.txt"
+
+        {
+            echo "Remote Host Inventory"
+            echo "====================="
+            echo "Host: $REMOTE_HOST"
+            echo "User: $REMOTE_USER"
+            echo "Collected: $timestamp"
+            echo "Remote OS: $REMOTE_OS"
+            echo ""
+
+            echo "--- System Information ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "uname -a" 2>/dev/null || echo "(failed)"
+            echo ""
+
+            echo "--- Hostname ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "hostname -f 2>/dev/null || hostname" 2>/dev/null || echo "(failed)"
+            echo ""
+
+            echo "--- OS Release ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "cat /etc/os-release 2>/dev/null || sw_vers 2>/dev/null || echo 'Unknown'" 2>/dev/null
+            echo ""
+
+            echo "--- CPU Information ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "lscpu 2>/dev/null || sysctl -n machdep.cpu.brand_string 2>/dev/null || echo 'Unknown'" 2>/dev/null
+            echo ""
+
+            echo "--- Memory ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "free -h 2>/dev/null || vm_stat 2>/dev/null || echo 'Unknown'" 2>/dev/null
+            echo ""
+
+            echo "--- Disk Usage ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "df -h" 2>/dev/null || echo "(failed)"
+            echo ""
+
+            echo "--- Network Interfaces ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "ip addr 2>/dev/null || ifconfig 2>/dev/null" 2>/dev/null || echo "(failed)"
+            echo ""
+
+            echo "--- Installed Packages (sample) ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "dpkg -l 2>/dev/null | head -50 || rpm -qa 2>/dev/null | head -50 || brew list 2>/dev/null | head -50 || echo 'Unknown package manager'" 2>/dev/null
+            echo ""
+
+            echo "--- Running Services ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "systemctl list-units --type=service --state=running 2>/dev/null | head -30 || launchctl list 2>/dev/null | head -30 || echo 'Unknown'" 2>/dev/null
+
+        } > "$inv_file" 2>&1
+
+        if [ -s "$inv_file" ]; then
+            print_success "Remote inventory saved: $inv_file"
+            ((passed++))
+        else
+            print_warning "Remote inventory collection had issues"
+            ((failed++))
+        fi
+    fi
+
+    # Remote Security Check
+    if [ "$RUN_REMOTE_SECURITY" = true ]; then
+        print_step "Checking remote security configuration..."
+        local sec_file="$output_dir/remote-security-$REMOTE_HOST-$timestamp.txt"
+
+        {
+            echo "Remote Security Configuration Check"
+            echo "===================================="
+            echo "Host: $REMOTE_HOST"
+            echo "Checked: $timestamp"
+            echo ""
+
+            echo "--- SSH Configuration ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "grep -E '^(PermitRootLogin|PasswordAuthentication|PubkeyAuthentication|PermitEmptyPasswords)' /etc/ssh/sshd_config 2>/dev/null || echo 'Cannot read sshd_config'" 2>/dev/null
+            echo ""
+
+            echo "--- Firewall Status ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "sudo ufw status 2>/dev/null || sudo iptables -L -n 2>/dev/null | head -20 || sudo firewall-cmd --state 2>/dev/null || echo 'Firewall status unknown'" 2>/dev/null
+            echo ""
+
+            echo "--- Users with Shell Access ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "grep -E '/bin/(bash|sh|zsh)$' /etc/passwd 2>/dev/null || dscl . -list /Users 2>/dev/null || echo 'Cannot enumerate users'" 2>/dev/null
+            echo ""
+
+            echo "--- Sudo Configuration ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "sudo cat /etc/sudoers 2>/dev/null | grep -v '^#' | grep -v '^$' || echo 'Cannot read sudoers'" 2>/dev/null
+            echo ""
+
+            echo "--- Listening Ports ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || lsof -i -P -n | grep LISTEN 2>/dev/null || echo 'Cannot list ports'" 2>/dev/null
+            echo ""
+
+            echo "--- Failed Login Attempts (last 10) ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "sudo grep 'Failed password' /var/log/auth.log 2>/dev/null | tail -10 || sudo grep 'Failed password' /var/log/secure 2>/dev/null | tail -10 || echo 'Cannot read auth logs'" 2>/dev/null
+            echo ""
+
+            echo "--- Kernel Security Parameters ---"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "sysctl -a 2>/dev/null | grep -E '(randomize|protect|secure)' | head -20 || echo 'Cannot read sysctl'" 2>/dev/null
+
+        } > "$sec_file" 2>&1
+
+        if [ -s "$sec_file" ]; then
+            print_success "Remote security check saved: $sec_file"
+            ((passed++))
+        else
+            print_warning "Remote security check had issues"
+            ((failed++))
+        fi
+    fi
+
+    # Remote Lynis Audit
+    if [ "$RUN_REMOTE_LYNIS" = true ]; then
+        print_step "Running Lynis audit on remote host..."
+
+        # Check if Lynis is installed remotely
+        if ssh "$REMOTE_USER@$REMOTE_HOST" "command -v lynis" &>/dev/null; then
+            local lynis_file="$output_dir/remote-lynis-$REMOTE_HOST-$timestamp.txt"
+
+            echo "  Note: Lynis running on remote host (may take a while)..."
+            if ssh "$REMOTE_USER@$REMOTE_HOST" "sudo lynis audit system --quick 2>&1" > "$lynis_file" 2>&1; then
+                print_success "Remote Lynis audit saved: $lynis_file"
+                ((passed++))
+            else
+                print_warning "Remote Lynis audit had issues (check $lynis_file)"
+                ((failed++))
+            fi
+        else
+            print_warning "Lynis not installed on remote host"
+            ((skipped++))
+        fi
+    fi
+
+    # Also run local nmap if selected
+    if [ "$RUN_NMAP_PORTS" = true ] || [ "$RUN_NMAP_SERVICES" = true ]; then
+        run_nmap_scan "$output_dir" "$timestamp"
+        if [ $? -eq 0 ]; then
+            ((passed++))
+        else
+            ((failed++))
+        fi
+    fi
+
+    echo ""
+
+    SCANS_PASSED=$passed
+    SCANS_FAILED=$failed
+    SCANS_SKIPPED=$skipped
+}
+
+# Run Nmap network scan
+run_nmap_scan() {
+    local output_dir="$1"
+    local timestamp="$2"
+    local nmap_file="$output_dir/nmap-$REMOTE_HOST-$timestamp.txt"
+
+    print_step "Running Nmap scan against $REMOTE_HOST..."
+
+    if ! command -v nmap &>/dev/null; then
+        print_error "Nmap not installed"
+        return 1
+    fi
+
+    # Build nmap command
+    local nmap_args=("-v")
+
+    if [ "$RUN_NMAP_PORTS" = true ]; then
+        # Default is top 1000, use -F for fast (top 100)
+        if [ "$RUN_NMAP_SERVICES" != true ] && [ "$RUN_NMAP_OS" != true ]; then
+            nmap_args+=("-F")  # Fast scan for quick mode
+        fi
+    fi
+
+    if [ "$RUN_NMAP_SERVICES" = true ]; then
+        nmap_args+=("-sV")  # Service version detection
+    fi
+
+    if [ "$RUN_NMAP_OS" = true ]; then
+        nmap_args+=("-O")  # OS detection (requires root)
+        echo "  Note: OS detection requires sudo"
+    fi
+
+    if [ "$RUN_NMAP_VULN" = true ]; then
+        nmap_args+=("--script=vuln")  # Vulnerability scripts
+    fi
+
+    nmap_args+=("$REMOTE_HOST")
+
+    echo "  Running: nmap ${nmap_args[*]}"
+    echo ""
+
+    {
+        echo "Nmap Scan Results"
+        echo "================="
+        echo "Target: $REMOTE_HOST"
+        echo "Scanned: $timestamp"
+        echo "Command: nmap ${nmap_args[*]}"
+        echo ""
+    } > "$nmap_file"
+
+    # Run nmap (with sudo if OS detection requested)
+    if [ "$RUN_NMAP_OS" = true ]; then
+        sudo nmap "${nmap_args[@]}" >> "$nmap_file" 2>&1
+    else
+        nmap "${nmap_args[@]}" >> "$nmap_file" 2>&1
+    fi
+
+    local exit_code=$?
+
+    if [ $exit_code -eq 0 ]; then
+        print_success "Nmap scan saved: $nmap_file"
+
+        # Show quick summary
+        echo ""
+        echo "  Open ports found:"
+        grep -E "^[0-9]+/(tcp|udp)" "$nmap_file" | head -10 | while read -r line; do
+            echo "    $line"
+        done
+        local port_count
+        port_count=$(grep -cE "^[0-9]+/(tcp|udp).*open" "$nmap_file" 2>/dev/null || echo "0")
+        echo "  Total: $port_count open ports"
+        return 0
+    else
+        print_error "Nmap scan failed (exit code: $exit_code)"
+        return 1
+    fi
+}
+
+# Run uncredentialed (Nmap only) scans
+run_remote_nmap_scans() {
+    local passed=0
+    local failed=0
+    local skipped=0
+
+    local output_dir
+    output_dir=$(get_scans_dir "$(pwd)")
+    mkdir -p "$output_dir"
+
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H%M%SZ")
+
+    echo -e "${BOLD}Running network scan (uncredentialed)...${NC}"
+    echo ""
+
+    if run_nmap_scan "$output_dir" "$timestamp"; then
+        ((passed++))
+    else
+        ((failed++))
+    fi
+
+    echo ""
+
+    SCANS_PASSED=$passed
+    SCANS_FAILED=$failed
+    SCANS_SKIPPED=$skipped
 }
 
 # ============================================================================
@@ -987,6 +1452,13 @@ select_scans_cli() {
 }
 
 select_scans() {
+    # Remote scans have different options
+    if [ "$SCAN_MODE" = "remote" ]; then
+        select_remote_scans
+        return
+    fi
+
+    # Local scans
     if use_tui; then
         select_scans_tui
         echo ""
@@ -1000,6 +1472,17 @@ select_scans() {
 # ============================================================================
 
 run_scans() {
+    # Route to appropriate scan runner based on mode
+    if [ "$SCAN_MODE" = "remote" ]; then
+        if [ "$AUTH_MODE" = "credentialed" ]; then
+            run_remote_ssh_scans
+        else
+            run_remote_nmap_scans
+        fi
+        return
+    fi
+
+    # Local scans
     local passed=0
     local failed=0
     local skipped=0
@@ -1146,23 +1629,44 @@ print_summary() {
     echo -e "${BOLD}                         Scan Summary                            ${NC}"
     echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
     echo ""
-    echo "  Target:  $TARGET_DIR"
+
+    # Show target info based on scan mode
+    if [ "$SCAN_MODE" = "remote" ]; then
+        echo "  Target:  $REMOTE_HOST (remote)"
+        [ -n "$REMOTE_USER" ] && echo "  User:    $REMOTE_USER"
+        [ -n "$REMOTE_OS" ] && echo "  OS:      $REMOTE_OS"
+    else
+        echo "  Target:  $TARGET_DIR"
+    fi
     echo ""
     echo -e "  ${GREEN}Passed:${NC}  $SCANS_PASSED"
     echo -e "  ${YELLOW}Issues:${NC}  $SCANS_FAILED"
     echo -e "  ${BLUE}Skipped:${NC} $SCANS_SKIPPED"
     echo ""
 
+    # Determine output directory
+    local output_dir
+    if [ "$SCAN_MODE" = "remote" ]; then
+        output_dir=$(get_scans_dir "$(pwd)")
+    else
+        output_dir="$TARGET_DIR/.scans/"
+    fi
+
     if [ "$SCANS_FAILED" -gt 0 ]; then
         echo -e "${YELLOW}Some scans found potential issues.${NC}"
         echo ""
-        echo "To see detailed results, run:"
-        echo "  $SCRIPTS_DIR/run-all-scans.sh \"$TARGET_DIR\""
-        echo ""
+        if [ "$SCAN_MODE" != "remote" ]; then
+            echo "To see detailed results, run:"
+            echo "  $SCRIPTS_DIR/run-all-scans.sh \"$TARGET_DIR\""
+            echo ""
+        fi
         echo "Results are saved to:"
-        echo "  $TARGET_DIR/.scans/"
+        echo "  $output_dir"
     else
         echo -e "${GREEN}All scans passed!${NC}"
+        echo ""
+        echo "Results are saved to:"
+        echo "  $output_dir"
     fi
 
     echo ""
