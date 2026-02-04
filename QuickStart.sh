@@ -83,9 +83,11 @@ if [ -f "$SCRIPTS_DIR/lib/toolkit-info.sh" ]; then
     init_toolkit_info "$SCRIPT_DIR"
 fi
 
-# TUI detection (dialog or whiptail)
+# TUI detection (prefer gum, fall back to dialog/whiptail)
 TUI_CMD=""
-if command -v dialog &>/dev/null; then
+if command -v gum &>/dev/null; then
+    TUI_CMD="gum"
+elif command -v dialog &>/dev/null; then
     TUI_CMD="dialog"
 elif command -v whiptail &>/dev/null; then
     TUI_CMD="whiptail"
@@ -152,7 +154,7 @@ print_error() {
 }
 
 # ============================================================================
-# TUI Functions (dialog/whiptail)
+# TUI Functions (gum preferred, dialog/whiptail fallback)
 # ============================================================================
 
 # Show a TUI menu and return the selected option
@@ -166,13 +168,36 @@ tui_menu() {
     shift 5
 
     local result
-    result=$($TUI_CMD --title "$title" --menu "$prompt" "$height" "$width" "$menu_height" "$@" 3>&1 1>&2 2>&3)
-    local exit_code=$?
 
-    if [ $exit_code -ne 0 ]; then
-        # User cancelled
-        echo ""
-        return 1
+    if [ "$TUI_CMD" = "gum" ]; then
+        # Build array of display items and tags
+        local -a tags=()
+        local -a items=()
+        while [ $# -ge 2 ]; do
+            tags+=("$1")
+            items+=("$1|$2")
+            shift 2
+        done
+
+        echo -e "${BOLD}$title${NC}" >&2
+        [ -n "$prompt" ] && echo "$prompt" >&2
+        echo "" >&2
+
+        result=$(printf '%s\n' "${items[@]}" | gum choose --height="$menu_height" | cut -d'|' -f1)
+        local exit_code=$?
+
+        if [ $exit_code -ne 0 ] || [ -z "$result" ]; then
+            echo ""
+            return 1
+        fi
+    else
+        result=$($TUI_CMD --title "$title" --menu "$prompt" "$height" "$width" "$menu_height" "$@" 3>&1 1>&2 2>&3)
+        local exit_code=$?
+
+        if [ $exit_code -ne 0 ]; then
+            echo ""
+            return 1
+        fi
     fi
 
     echo "$result"
@@ -187,12 +212,24 @@ tui_input() {
     local default="$3"
 
     local result
-    result=$($TUI_CMD --title "$title" --inputbox "$prompt" 10 60 "$default" 3>&1 1>&2 2>&3)
-    local exit_code=$?
 
-    if [ $exit_code -ne 0 ]; then
-        echo ""
-        return 1
+    if [ "$TUI_CMD" = "gum" ]; then
+        echo -e "${BOLD}$title${NC}" >&2
+        result=$(gum input --placeholder "$prompt" --value "$default")
+        local exit_code=$?
+
+        if [ $exit_code -ne 0 ]; then
+            echo ""
+            return 1
+        fi
+    else
+        result=$($TUI_CMD --title "$title" --inputbox "$prompt" 10 60 "$default" 3>&1 1>&2 2>&3)
+        local exit_code=$?
+
+        if [ $exit_code -ne 0 ]; then
+            echo ""
+            return 1
+        fi
     fi
 
     echo "$result"
@@ -210,12 +247,47 @@ tui_checklist() {
     shift 5
 
     local result
-    result=$($TUI_CMD --title "$title" --checklist "$prompt" "$height" "$width" "$list_height" "$@" 3>&1 1>&2 2>&3)
-    local exit_code=$?
 
-    if [ $exit_code -ne 0 ]; then
-        echo ""
-        return 1
+    if [ "$TUI_CMD" = "gum" ]; then
+        # Build array of items, tracking which are pre-selected
+        local -a items=()
+        local -a selected=()
+        while [ $# -ge 3 ]; do
+            local tag="$1"
+            local desc="$2"
+            local state="$3"
+            items+=("$tag|$desc")
+            if [ "$state" = "on" ] || [ "$state" = "ON" ]; then
+                selected+=("$tag|$desc")
+            fi
+            shift 3
+        done
+
+        echo -e "${BOLD}$title${NC}" >&2
+        [ -n "$prompt" ] && echo "$prompt" >&2
+        echo "" >&2
+
+        # Build selected args
+        local -a gum_args=(--no-limit --height="$list_height")
+        for sel in "${selected[@]}"; do
+            gum_args+=(--selected="$sel")
+        done
+
+        result=$(printf '%s\n' "${items[@]}" | gum choose "${gum_args[@]}" | cut -d'|' -f1 | tr '\n' ' ')
+        local exit_code=$?
+
+        if [ $exit_code -ne 0 ]; then
+            echo ""
+            return 1
+        fi
+    else
+        result=$($TUI_CMD --title "$title" --checklist "$prompt" "$height" "$width" "$list_height" "$@" 3>&1 1>&2 2>&3)
+        local exit_code=$?
+
+        if [ $exit_code -ne 0 ]; then
+            echo ""
+            return 1
+        fi
     fi
 
     echo "$result"
@@ -228,8 +300,14 @@ tui_yesno() {
     local title="$1"
     local prompt="$2"
 
-    $TUI_CMD --title "$title" --yesno "$prompt" 10 60
-    return $?
+    if [ "$TUI_CMD" = "gum" ]; then
+        echo -e "${BOLD}$title${NC}" >&2
+        gum confirm "$prompt"
+        return $?
+    else
+        $TUI_CMD --title "$title" --yesno "$prompt" 10 60
+        return $?
+    fi
 }
 
 # Show a TUI message box
@@ -238,7 +316,14 @@ tui_msgbox() {
     local title="$1"
     local message="$2"
 
-    $TUI_CMD --title "$title" --msgbox "$message" 12 70
+    if [ "$TUI_CMD" = "gum" ]; then
+        echo ""
+        gum style --border normal --padding "1 2" --border-foreground 212 "$title" "" "$message"
+        echo ""
+        read -rp "Press Enter to continue..."
+    else
+        $TUI_CMD --title "$title" --msgbox "$message" 12 70
+    fi
 }
 
 check_dependency() {
@@ -349,11 +434,11 @@ declare_dependency_categories() {
     DEPS_REMOTE_DESC=("Network vulnerability scanning" "Remote host access")
     DEPS_REMOTE_PKG=("nmap" "openssh")
 
-    # UI enhancement
-    DEPS_UI_CMD=("dialog")
-    DEPS_UI_NAME=("dialog")
-    DEPS_UI_DESC=("TUI menus")
-    DEPS_UI_PKG=("dialog")
+    # UI enhancement (gum preferred, dialog fallback)
+    DEPS_UI_CMD=("gum")
+    DEPS_UI_NAME=("gum")
+    DEPS_UI_DESC=("Modern TUI (brew install gum)")
+    DEPS_UI_PKG=("gum")
 }
 
 check_dependencies() {
@@ -403,8 +488,9 @@ check_dependencies() {
             print_success "$TUI_CMD found (TUI enabled)"
         fi
     else
-        print_warning "dialog/whiptail not found - using CLI mode"
-        missing_ui+=("dialog")
+        print_warning "No TUI found - using CLI mode"
+        echo "         For better UI: brew install gum"
+        missing_ui+=("gum")
     fi
     echo ""
 
@@ -444,7 +530,9 @@ check_dependencies() {
             esac
 
             # Re-check TUI after potential install
-            if command -v dialog &>/dev/null; then
+            if command -v gum &>/dev/null; then
+                TUI_CMD="gum"
+            elif command -v dialog &>/dev/null; then
                 TUI_CMD="dialog"
             elif command -v whiptail &>/dev/null; then
                 TUI_CMD="whiptail"
