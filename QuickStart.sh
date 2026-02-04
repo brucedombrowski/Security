@@ -123,9 +123,16 @@ fi
 
 print_banner() {
     echo ""
+    local width=64
+    local ver_text="Version: ${TOOLKIT_VERSION}"
+    local ver_len=${#ver_text}
+    local pad_left=$(( (width - ver_len) / 2 ))
+    local pad_right=$(( width - ver_len - pad_left ))
+    local ver_line=$(printf "%${pad_left}s%s%${pad_right}s" "" "$ver_text" "")
+
     echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║${NC}${BOLD}            Security Toolkit - QuickStart                       ${NC}${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}                      Version: ${TOOLKIT_VERSION}                            ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}${ver_line}${CYAN}║${NC}"
     echo -e "${CYAN}╠════════════════════════════════════════════════════════════════╣${NC}"
     echo -e "${CYAN}║${NC}  Security verification for local and remote systems:           ${CYAN}║${NC}"
     echo -e "${CYAN}║${NC}    • PII Detection (SSN, Phone Numbers, etc.)                  ${CYAN}║${NC}"
