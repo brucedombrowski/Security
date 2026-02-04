@@ -1103,7 +1103,8 @@ run_nmap_scan() {
     fi
 
     # Build nmap command
-    local nmap_args=("-v")
+    # -Pn skips host discovery (ping) - many hosts block ICMP
+    local nmap_args=("-v" "-Pn")
 
     if [ "$RUN_NMAP_PORTS" = true ]; then
         # Default is top 1000, use -F for fast (top 100)
