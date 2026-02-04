@@ -341,6 +341,154 @@ else
     printf '\\multicolumn{2}{c}{None}' > "$PDF_BUILD_DIR/secrets_entries.tex"
 fi
 
+# ============================================================================
+# APPENDIX GENERATION - Extract findings from scan files
+# ============================================================================
+
+# Function to escape text for LaTeX verbatim-like environments
+escape_for_listing() {
+    local input="$1"
+    # Escape special characters for lstlisting
+    echo "$input" | sed -e 's/\\/\\\\/g' -e 's/{/\\{/g' -e 's/}/\\}/g'
+}
+
+# Generate Appendix A: Open Ports (from nmap)
+generate_ports_appendix() {
+    local appendix_file="$PDF_BUILD_DIR/appendix_ports.tex"
+
+    # Find nmap output file
+    local nmap_file
+    nmap_file=$(ls -t "$SCANS_DIR"/nmap-*.txt 2>/dev/null | head -1)
+
+    if [ -z "$nmap_file" ] || [ ! -f "$nmap_file" ]; then
+        echo '\subsection*{No network scan data available}' > "$appendix_file"
+        return
+    fi
+
+    local nmap_basename
+    nmap_basename=$(basename "$nmap_file")
+
+    {
+        echo "\\subsection*{Source: \\texttt{$nmap_basename}}"
+        echo ""
+        echo "\\begin{lstlisting}[basicstyle=\\ttfamily\\small,breaklines=true]"
+
+        # Extract open ports section with line numbers
+        local line_num=0
+        local in_ports=false
+        while IFS= read -r line; do
+            ((line_num++))
+            # Look for port lines
+            if [[ "$line" =~ ^[0-9]+/(tcp|udp) ]]; then
+                printf "L%d: %s\n" "$line_num" "$line"
+            elif [[ "$line" =~ "PORT" && "$line" =~ "STATE" ]]; then
+                in_ports=true
+                printf "L%d: %s\n" "$line_num" "$line"
+            elif [[ "$line" =~ "Nmap scan report" ]]; then
+                printf "L%d: %s\n" "$line_num" "$line"
+            elif [[ "$line" =~ "Host is up" ]]; then
+                printf "L%d: %s\n" "$line_num" "$line"
+            fi
+        done < "$nmap_file"
+
+        echo "\\end{lstlisting}"
+    } > "$appendix_file"
+}
+
+# Generate Appendix B: Security Configuration
+generate_security_appendix() {
+    local appendix_file="$PDF_BUILD_DIR/appendix_security.tex"
+
+    # Find security check file
+    local sec_file
+    sec_file=$(ls -t "$SCANS_DIR"/remote-security-*.txt "$SCANS_DIR"/host-security-scan-*.txt 2>/dev/null | head -1)
+
+    if [ -z "$sec_file" ] || [ ! -f "$sec_file" ]; then
+        echo '\subsection*{No security configuration data available}' > "$appendix_file"
+        return
+    fi
+
+    local sec_basename
+    sec_basename=$(basename "$sec_file")
+
+    {
+        echo "\\subsection*{Source: \\texttt{$sec_basename}}"
+        echo ""
+        echo "\\begin{lstlisting}[basicstyle=\\ttfamily\\small,breaklines=true]"
+
+        # Extract key sections with line numbers
+        local line_num=0
+        while IFS= read -r line; do
+            ((line_num++))
+            # Include section headers and important findings
+            if [[ "$line" =~ ^--- ]] || \
+               [[ "$line" =~ LISTEN ]] || \
+               [[ "$line" =~ "root:" ]] || \
+               [[ "$line" =~ "/bin/bash" ]] || \
+               [[ "$line" =~ "/bin/zsh" ]] || \
+               [[ "$line" =~ "PermitRoot" ]] || \
+               [[ "$line" =~ "Password" ]] || \
+               [[ "$line" =~ "randomize" ]] || \
+               [[ "$line" =~ "protect" ]]; then
+                printf "L%d: %s\n" "$line_num" "$line"
+            fi
+        done < "$sec_file" | head -50
+
+        echo "\\end{lstlisting}"
+    } > "$appendix_file"
+}
+
+# Generate Appendix C: System Summary
+generate_system_appendix() {
+    local appendix_file="$PDF_BUILD_DIR/appendix_system.tex"
+
+    # Find inventory file
+    local inv_file
+    inv_file=$(ls -t "$SCANS_DIR"/remote-inventory-*.txt "$SCANS_DIR"/host-inventory-*.txt 2>/dev/null | head -1)
+
+    if [ -z "$inv_file" ] || [ ! -f "$inv_file" ]; then
+        echo '\subsection*{No system inventory data available}' > "$appendix_file"
+        return
+    fi
+
+    local inv_basename
+    inv_basename=$(basename "$inv_file")
+
+    {
+        echo "\\subsection*{Source: \\texttt{$inv_basename}}"
+        echo ""
+        echo "\\begin{lstlisting}[basicstyle=\\ttfamily\\small,breaklines=true]"
+
+        # Extract key system info with line numbers
+        local line_num=0
+        local in_section=""
+        while IFS= read -r line; do
+            ((line_num++))
+            # Include section headers and key info
+            if [[ "$line" =~ ^--- ]]; then
+                in_section="$line"
+                printf "L%d: %s\n" "$line_num" "$line"
+            elif [[ "$line" =~ "Linux " ]] || \
+                 [[ "$line" =~ "Darwin " ]] || \
+                 [[ "$line" =~ "PRETTY_NAME" ]] || \
+                 [[ "$line" =~ "Model name" ]] || \
+                 [[ "$line" =~ "CPU(s):" ]] || \
+                 [[ "$line" =~ "Mem:" ]] || \
+                 [[ "$line" =~ "/dev/" && "$line" =~ "%" ]] || \
+                 [[ "$line" =~ "inet " ]]; then
+                printf "L%d: %s\n" "$line_num" "$line"
+            fi
+        done < "$inv_file" | head -40
+
+        echo "\\end{lstlisting}"
+    } > "$appendix_file"
+}
+
+# Generate all appendices
+generate_ports_appendix
+generate_security_appendix
+generate_system_appendix
+
 # Run pdflatex (twice for references)
 cd "$PDF_BUILD_DIR"
 PDFLATEX_LOG="$PDF_BUILD_DIR/pdflatex.log"

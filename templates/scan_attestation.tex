@@ -12,6 +12,7 @@
 \usepackage{hyperref}
 \usepackage{tabularx}
 \usepackage{booktabs}
+\usepackage{listings}
 
 % ============================================================================
 % DOCUMENT VARIABLES - These are replaced by the generation script
@@ -352,5 +353,24 @@ This document certifies that:
 \end{enumerate}
 
 \end{enumerate}
+
+% ============================================================================
+% APPENDICES - Detailed Findings with Line References
+% ============================================================================
+\newpage
+\section*{Appendices}
+
+The following appendices contain detailed findings extracted from scan output files. Line numbers (L\#) reference the original source files for verification.
+
+\subsection*{Appendix A: Network Ports \& Services}
+\input{appendix_ports.tex}
+
+\vspace{12pt}
+\subsection*{Appendix B: Security Configuration}
+\input{appendix_security.tex}
+
+\vspace{12pt}
+\subsection*{Appendix C: System Summary}
+\input{appendix_system.tex}
 
 \end{document}
