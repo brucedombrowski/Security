@@ -434,6 +434,7 @@ PRIVILEGE_LEVEL=""    # "admin" or "standard"
 SCAN_SCOPE=""         # "full" or "directory"
 REMOTE_HOST=""        # Remote hostname/IP
 REMOTE_USER=""        # Remote username (for credentialed)
+PROJECT_NAME=""       # User-provided project/target alias (no IP in filenames)
 REMOTE_OS=""          # Detected remote OS (Linux, Darwin, etc.)
 SSH_CONTROL_PATH=""   # SSH multiplexing socket path
 SSH_OPTS=""           # SSH options for connection reuse
@@ -659,6 +660,15 @@ select_local_config() {
 # ============================================================================
 
 select_remote_config_tui() {
+    # Project name first (used in filenames instead of IP for security)
+    PROJECT_NAME=$(tui_input "Project Name" "Enter a name for this scan (used in filenames):" "")
+    if [ -z "$PROJECT_NAME" ]; then
+        print_error "Project name required"
+        exit 1
+    fi
+    # Sanitize project name for filenames
+    PROJECT_NAME=$(echo "$PROJECT_NAME" | sed 's/[^a-zA-Z0-9_-]/_/g')
+
     REMOTE_HOST=$(tui_input "Remote Host" "Enter hostname or IP address:" "")
     if [ -z "$REMOTE_HOST" ]; then
         print_error "Cancelled"
@@ -679,6 +689,16 @@ select_remote_config_tui() {
 }
 
 select_remote_config_cli() {
+    # Project name first (used in filenames instead of IP for security)
+    echo -n "Enter project name (used in filenames): "
+    read -r PROJECT_NAME
+    if [ -z "$PROJECT_NAME" ]; then
+        print_error "Project name required"
+        exit 1
+    fi
+    # Sanitize project name for filenames
+    PROJECT_NAME=$(echo "$PROJECT_NAME" | sed 's/[^a-zA-Z0-9_-]/_/g')
+
     echo -n "Enter remote hostname or IP: "
     read -r REMOTE_HOST
 
@@ -733,14 +753,21 @@ init_scan_session() {
     mkdir -p "$SCAN_OUTPUT_DIR"
     chmod 700 "$SCAN_OUTPUT_DIR"
 
-    # Write session metadata
+    # Write session metadata (IP stored here only, not in filenames)
     {
         echo "Session: $SCAN_SESSION_ID"
         echo "Started: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-        echo "Target: $target_name"
+        echo "Project: $target_name"
+        if [ "$SCAN_MODE" = "remote" ]; then
+            echo "Host: $REMOTE_HOST"  # Actual IP/hostname stored here only
+            echo "User: $REMOTE_USER"
+        else
+            echo "Path: $TARGET_DIR"
+        fi
         echo "Mode: $SCAN_MODE"
         echo "Auth: $AUTH_MODE"
     } > "$SCAN_OUTPUT_DIR/session.txt"
+    chmod 600 "$SCAN_OUTPUT_DIR/session.txt"
 
     print_success "Scan session: $SCAN_SESSION_ID"
     echo ""
@@ -980,7 +1007,7 @@ run_remote_ssh_scans() {
     # Remote Host Inventory
     if [ "$RUN_REMOTE_INVENTORY" = true ]; then
         print_step "Collecting remote host inventory..."
-        local inv_file="$output_dir/remote-inventory-$REMOTE_HOST-$timestamp.txt"
+        local inv_file="$output_dir/remote-inventory-$timestamp.txt"
 
         {
             echo "Remote Host Inventory"
@@ -1040,7 +1067,7 @@ run_remote_ssh_scans() {
     # Remote Security Check
     if [ "$RUN_REMOTE_SECURITY" = true ]; then
         print_step "Checking remote security configuration..."
-        local sec_file="$output_dir/remote-security-$REMOTE_HOST-$timestamp.txt"
+        local sec_file="$output_dir/remote-security-$timestamp.txt"
 
         {
             echo "Remote Security Configuration Check"
@@ -1093,7 +1120,7 @@ run_remote_ssh_scans() {
 
         # Check if Lynis is installed remotely
         if ssh_cmd "command -v lynis" &>/dev/null; then
-            local lynis_file="$output_dir/remote-lynis-$REMOTE_HOST-$timestamp.txt"
+            local lynis_file="$output_dir/remote-lynis-$timestamp.txt"
 
             echo "  Note: Lynis running on remote host (may take a while)..."
             if ssh_cmd "sudo lynis audit system --quick 2>&1" > "$lynis_file" 2>&1; then
@@ -1130,7 +1157,7 @@ run_remote_ssh_scans() {
 run_nmap_scan() {
     local output_dir="$1"
     local timestamp="$2"
-    local nmap_file="$output_dir/nmap-$REMOTE_HOST-$timestamp.txt"
+    local nmap_file="$output_dir/nmap-$timestamp.txt"
 
     print_step "Running Nmap scan against $REMOTE_HOST..."
 
@@ -1910,7 +1937,7 @@ main() {
     local target_name
     if [ "$SCAN_MODE" = "remote" ]; then
         base_dir="$(pwd)"
-        target_name="$REMOTE_HOST"
+        target_name="$PROJECT_NAME"  # Use project name, not IP
     else
         base_dir="$TARGET_DIR"
         target_name=$(basename "$TARGET_DIR")
