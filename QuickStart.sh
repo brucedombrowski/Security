@@ -301,35 +301,33 @@ run_scans() {
     # Malware Scan
     if [ "$RUN_MALWARE" = true ]; then
         if command -v clamscan &>/dev/null; then
+            # Capture exit code before if-test (can't use $? inside else block)
+            local malware_exit=0
             if [ "$MALWARE_FULL_SYSTEM" = true ]; then
                 print_step "Full System Malware Scan (this may take a while)..."
-                if "$SCRIPTS_DIR/check-malware.sh" --full-system; then
+                "$SCRIPTS_DIR/check-malware.sh" --full-system || malware_exit=$?
+                if [ "$malware_exit" -eq 0 ]; then
                     print_success "Full system malware scan passed"
                     ((passed++))
+                elif [ "$malware_exit" -eq 2 ]; then
+                    print_warning "Malware scan skipped (dependency missing)"
+                    ((skipped++))
                 else
-                    local exit_code=$?
-                    if [ "$exit_code" -eq 2 ]; then
-                        print_warning "Malware scan skipped (dependency missing)"
-                        ((skipped++))
-                    else
-                        print_warning "Full system malware scan found potential issues"
-                        ((failed++))
-                    fi
+                    print_warning "Full system malware scan found potential issues"
+                    ((failed++))
                 fi
             else
                 print_step "Malware Scan (this may take a while)..."
-                if "$SCRIPTS_DIR/check-malware.sh" "$TARGET_DIR"; then
+                "$SCRIPTS_DIR/check-malware.sh" "$TARGET_DIR" || malware_exit=$?
+                if [ "$malware_exit" -eq 0 ]; then
                     print_success "Malware scan passed"
                     ((passed++))
+                elif [ "$malware_exit" -eq 2 ]; then
+                    print_warning "Malware scan skipped (dependency missing)"
+                    ((skipped++))
                 else
-                    local exit_code=$?
-                    if [ "$exit_code" -eq 2 ]; then
-                        print_warning "Malware scan skipped (dependency missing)"
-                        ((skipped++))
-                    else
-                        print_warning "Malware scan found potential issues"
-                        ((failed++))
-                    fi
+                    print_warning "Malware scan found potential issues"
+                    ((failed++))
                 fi
             fi
         else
