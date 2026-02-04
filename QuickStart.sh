@@ -1897,7 +1897,15 @@ generate_pdf_attestation() {
         # Use PROJECT_NAME for clean display, no IP addresses in PDF
         export TARGET_DIR="$PROJECT_NAME"
         export SCAN_SCOPE="Remote - credentialed SSH scan"
-        export INVENTORY_CHECKSUM="Remote-scan"
+
+        # Get actual checksum from remote inventory file
+        local remote_inv_file
+        remote_inv_file=$(ls -t "$output_dir"/remote-inventory-*.txt 2>/dev/null | head -1)
+        if [ -n "$remote_inv_file" ] && [ -f "$remote_inv_file" ]; then
+            export INVENTORY_CHECKSUM=$(shasum -a 256 "$remote_inv_file" 2>/dev/null | awk '{print $1}' || echo "N/A")
+        else
+            export INVENTORY_CHECKSUM="N/A"
+        fi
         export PII_RESULT="SKIP"
         export PII_FINDINGS="Not applicable for remote scans"
         export SECRETS_RESULT="SKIP"
