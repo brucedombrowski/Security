@@ -1137,15 +1137,25 @@ run_remote_ssh_scans() {
             local lynis_file="$output_dir/remote-lynis-$timestamp.txt"
 
             echo "  Lynis audit running (this takes a few minutes)..."
-            # Run Lynis and show progress on single updating line
-            ssh_cmd_sudo "sudo lynis audit system --quick" 2>&1 | tee "$lynis_file" | while IFS= read -r line; do
-                # Show section headers on single line with carriage return
-                if [[ "$line" =~ ^\[[\+\*]\] ]]; then
-                    printf "\r  %-60s" "${line:0:60}"
+            # Run Lynis in background, tail output for progress
+            ssh_cmd_sudo "sudo lynis audit system --quick" > "$lynis_file" 2>&1 &
+            local lynis_pid=$!
+
+            # Show progress while Lynis runs
+            sleep 2  # Give it time to start
+            while kill -0 $lynis_pid 2>/dev/null; do
+                if [ -f "$lynis_file" ]; then
+                    local section
+                    section=$(grep -o '\[\+\] [^[]*' "$lynis_file" 2>/dev/null | tail -1)
+                    if [ -n "$section" ]; then
+                        printf "\r  %-60s" "${section:0:60}"
+                    fi
                 fi
+                sleep 1
             done
             printf "\r%-65s\r" ""  # Clear the progress line
-            if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            wait $lynis_pid
+            if [ $? -eq 0 ]; then
                 print_success "Remote Lynis audit saved: $lynis_file"
                 ((passed++))
             else
@@ -1163,13 +1173,23 @@ run_remote_ssh_scans() {
                     # Now run the audit
                     local lynis_file="$output_dir/remote-lynis-$timestamp.txt"
                     echo "  Running Lynis audit..."
-                    ssh_cmd_sudo "sudo lynis audit system --quick" 2>&1 | tee "$lynis_file" | while IFS= read -r line; do
-                        if [[ "$line" =~ ^\[[\+\*]\] ]]; then
-                            printf "\r  %-60s" "${line:0:60}"
+                    ssh_cmd_sudo "sudo lynis audit system --quick" > "$lynis_file" 2>&1 &
+                    local lynis_pid=$!
+
+                    sleep 2
+                    while kill -0 $lynis_pid 2>/dev/null; do
+                        if [ -f "$lynis_file" ]; then
+                            local section
+                            section=$(grep -o '\[\+\] [^[]*' "$lynis_file" 2>/dev/null | tail -1)
+                            if [ -n "$section" ]; then
+                                printf "\r  %-60s" "${section:0:60}"
+                            fi
                         fi
+                        sleep 1
                     done
-                    printf "\r%-65s\r" ""  # Clear progress line
-                    if [ ${PIPESTATUS[0]} -eq 0 ]; then
+                    printf "\r%-65s\r" ""
+                    wait $lynis_pid
+                    if [ $? -eq 0 ]; then
                         print_success "Remote Lynis audit saved: $lynis_file"
                         ((passed++))
                     else
