@@ -447,6 +447,7 @@ RUN_NMAP_VULN=false        # Vulnerability scripts
 RUN_REMOTE_INVENTORY=false # Host inventory via SSH
 RUN_REMOTE_SECURITY=false  # Security check via SSH
 RUN_REMOTE_LYNIS=false     # Lynis audit via SSH
+LYNIS_MODE="quick"         # "quick" or "full"
 RUN_REMOTE_MALWARE=false   # Malware scan via SSH
 
 # Output
@@ -847,11 +848,12 @@ test_ssh_connection() {
 # Scan selection for remote credentialed (SSH) scans
 select_remote_scans_ssh_tui() {
     local selections
-    selections=$(tui_checklist "Remote Scan Selection (SSH)" "Select scans to run on $REMOTE_HOST:" 18 70 6 \
+    selections=$(tui_checklist "Remote Scan Selection (SSH)" "Select scans to run on $REMOTE_HOST:" 18 70 7 \
         "inventory" "Host inventory (system info, packages)" "on" \
         "security" "Security configuration check" "on" \
         "malware" "Malware scan (ClamAV, if installed)" "on" \
-        "lynis" "Lynis security audit (if installed)" "off" \
+        "lynis-quick" "Lynis audit - quick (~2 min)" "off" \
+        "lynis-full" "Lynis audit - full (~10-15 min)" "off" \
         "ports" "Port scan (nmap from local)" "off" \
         "services" "Service version detection (nmap)" "off")
 
@@ -864,7 +866,8 @@ select_remote_scans_ssh_tui() {
     [[ "$selections" =~ inventory ]] && RUN_REMOTE_INVENTORY=true
     [[ "$selections" =~ security ]] && RUN_REMOTE_SECURITY=true
     [[ "$selections" =~ malware ]] && RUN_REMOTE_MALWARE=true
-    [[ "$selections" =~ lynis ]] && RUN_REMOTE_LYNIS=true
+    [[ "$selections" =~ lynis-quick ]] && RUN_REMOTE_LYNIS=true && LYNIS_MODE="quick"
+    [[ "$selections" =~ lynis-full ]] && RUN_REMOTE_LYNIS=true && LYNIS_MODE="full"
     [[ "$selections" =~ ports ]] && RUN_NMAP_PORTS=true
     [[ "$selections" =~ services ]] && RUN_NMAP_SERVICES=true
 }
@@ -880,7 +883,13 @@ select_remote_scans_ssh_cli() {
     echo -n "  Malware scan (ClamAV, if installed)? [Y/n]: "
     read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_REMOTE_MALWARE=true
     echo -n "  Lynis security audit (if installed)? [y/N]: "
-    read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_REMOTE_LYNIS=true
+    read -r ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+        RUN_REMOTE_LYNIS=true
+        echo -n "    Full scan (~10-15 min) or quick (~2 min)? [f/Q]: "
+        read -r mode_ans
+        [[ "$mode_ans" =~ ^[Ff] ]] && LYNIS_MODE="full" || LYNIS_MODE="quick"
+    fi
     echo -n "  Port scan (nmap from local)? [y/N]: "
     read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_PORTS=true
     echo -n "  Service version detection (nmap)? [y/N]: "
@@ -1135,9 +1144,15 @@ run_remote_ssh_scans() {
         # Check if Lynis is installed remotely
         if ssh_cmd "command -v lynis" &>/dev/null; then
             local lynis_file="$output_dir/remote-lynis-$timestamp.txt"
+            local lynis_opts=""
+            [[ "$LYNIS_MODE" == "quick" ]] && lynis_opts="--quick"
 
-            echo "  Lynis audit running (2-5 minutes, no progress available)..."
-            if ssh_cmd_sudo "sudo lynis audit system --quick" > "$lynis_file" 2>&1; then
+            if [[ "$LYNIS_MODE" == "quick" ]]; then
+                echo "  Lynis quick audit running (~2-5 minutes)..."
+            else
+                echo "  Lynis full audit running (~10-15 minutes)..."
+            fi
+            if ssh_cmd_sudo "sudo lynis audit system $lynis_opts" > "$lynis_file" 2>&1; then
                 print_success "Remote Lynis audit saved: $lynis_file"
                 ((passed++))
             else
@@ -1154,8 +1169,15 @@ run_remote_ssh_scans() {
                     print_success "Lynis installed"
                     # Now run the audit
                     local lynis_file="$output_dir/remote-lynis-$timestamp.txt"
-                    echo "  Lynis audit running (2-5 minutes, no progress available)..."
-                    if ssh_cmd_sudo "sudo lynis audit system --quick" > "$lynis_file" 2>&1; then
+                    local lynis_opts=""
+                    [[ "$LYNIS_MODE" == "quick" ]] && lynis_opts="--quick"
+
+                    if [[ "$LYNIS_MODE" == "quick" ]]; then
+                        echo "  Lynis quick audit running (~2-5 minutes)..."
+                    else
+                        echo "  Lynis full audit running (~10-15 minutes)..."
+                    fi
+                    if ssh_cmd_sudo "sudo lynis audit system $lynis_opts" > "$lynis_file" 2>&1; then
                         print_success "Remote Lynis audit saved: $lynis_file"
                         ((passed++))
                     else
