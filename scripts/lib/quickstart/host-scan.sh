@@ -122,8 +122,16 @@ run_host_scans() {
 
     # SSH-based scans (credentialed only)
     local ssh_available=false
-    if [ "$AUTH_MODE" = "credentialed" ] && [ "$TARGET_LOCATION" = "remote" ]; then
-        # Set up SSH connection
+    local ssh_scans_requested=false
+
+    # Check if any SSH-based scans were selected
+    if [ "$RUN_HOST_INVENTORY" = true ] || [ "$RUN_HOST_SECURITY" = true ] || \
+       [ "$RUN_HOST_POWER" = true ] || [ "$RUN_HOST_LYNIS" = true ]; then
+        ssh_scans_requested=true
+    fi
+
+    if [ "$AUTH_MODE" = "credentialed" ] && [ "$TARGET_LOCATION" = "remote" ] && [ "$ssh_scans_requested" = true ]; then
+        # Set up SSH connection (only if SSH-based scans were selected)
         REMOTE_HOST="$TARGET_HOST"
         if test_ssh_connection; then
             ssh_available=true
