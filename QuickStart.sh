@@ -1406,8 +1406,13 @@ run_remote_ssh_scans() {
                 echo "  Installing ClamAV on remote host..."
                 if ssh_cmd_sudo "sudo apt install -y clamav" 2>&1; then
                     print_success "ClamAV installed"
-                    echo "  Updating virus database (this may take a minute)..."
-                    ssh_cmd_sudo "sudo freshclam" 2>&1 || true
+                    # Check if freshclam service is running (it auto-starts on install)
+                    if ssh_cmd "systemctl is-active clamav-freshclam" &>/dev/null; then
+                        echo "  Virus database update service running (clamav-freshclam)"
+                    else
+                        echo "  Updating virus database (this may take a minute)..."
+                        ssh_cmd_sudo "sudo freshclam" 2>&1 || echo "  (freshclam update skipped)"
+                    fi
                     # Now run the scan
                     {
                         echo "Remote Malware Scan (ClamAV)"
