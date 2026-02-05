@@ -20,6 +20,10 @@ fi
 SSH_CONTROL_PATH=""
 SSH_OPTS=""
 
+# Track packages installed during this session (for cleanup offer)
+INSTALLED_LYNIS=false
+INSTALLED_CLAMAV=false
+
 # Start SSH control master for connection multiplexing (single password prompt)
 start_ssh_control_master() {
     # Create control socket path
@@ -598,6 +602,7 @@ run_remote_ssh_scans() {
                 echo "  Installing Lynis on remote host..."
                 if ssh_cmd_sudo "sudo apt install -y lynis" 2>&1; then
                     print_success "Lynis installed"
+                    INSTALLED_LYNIS=true
                     # Now run the audit
                     local lynis_file="$output_dir/remote-lynis-$timestamp.txt"
                     local lynis_opts=""
@@ -686,6 +691,7 @@ run_remote_ssh_scans() {
                 echo "  Installing ClamAV on remote host..."
                 if ssh_cmd_sudo "sudo apt install -y clamav" 2>&1; then
                     print_success "ClamAV installed"
+                    INSTALLED_CLAMAV=true
                     # Check if freshclam service is running (it auto-starts on install)
                     if ssh_cmd "systemctl is-active clamav-freshclam" &>/dev/null; then
                         echo "  Virus database update service running (clamav-freshclam)"
@@ -756,9 +762,53 @@ run_remote_ssh_scans() {
 
     echo ""
 
+    # Offer to remove packages installed during this session
+    offer_remote_cleanup
+
     SCANS_PASSED=$passed
     SCANS_FAILED=$failed
     SCANS_SKIPPED=$skipped
+}
+
+# Offer to remove packages that were installed during this scan session
+offer_remote_cleanup() {
+    local packages_to_remove=()
+
+    [ "$INSTALLED_LYNIS" = true ] && packages_to_remove+=("lynis")
+    [ "$INSTALLED_CLAMAV" = true ] && packages_to_remove+=("clamav")
+
+    if [ ${#packages_to_remove[@]} -eq 0 ]; then
+        return 0
+    fi
+
+    echo ""
+    print_step "Cleanup: The following packages were installed during this scan:"
+    for pkg in "${packages_to_remove[@]}"; do
+        echo "  - $pkg"
+    done
+    echo ""
+    echo -n "Remove these packages from remote host? [y/N]: "
+    read -r cleanup_ans </dev/tty
+
+    if [[ "$cleanup_ans" =~ ^[Yy] ]]; then
+        local pkg_list="${packages_to_remove[*]}"
+        echo "  Removing: $pkg_list"
+        if ssh_cmd_sudo "sudo apt remove -y $pkg_list" 2>&1; then
+            print_success "Packages removed from remote host"
+            # Also clean up any residual config if user wants
+            echo -n "  Also purge configuration files? [y/N]: "
+            read -r purge_ans </dev/tty
+            if [[ "$purge_ans" =~ ^[Yy] ]]; then
+                ssh_cmd_sudo "sudo apt purge -y $pkg_list" 2>&1 || true
+                ssh_cmd_sudo "sudo apt autoremove -y" 2>&1 || true
+                print_success "Configuration files purged"
+            fi
+        else
+            print_warning "Some packages may not have been removed"
+        fi
+    else
+        echo "  Packages left installed on remote host"
+    fi
 }
 
 # Run uncredentialed (Nmap only) scans

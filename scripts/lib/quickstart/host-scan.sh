@@ -32,7 +32,13 @@ RUN_HOST_INVENTORY="${RUN_HOST_INVENTORY:-false}"
 RUN_HOST_SECURITY="${RUN_HOST_SECURITY:-false}"
 RUN_HOST_POWER="${RUN_HOST_POWER:-false}"
 RUN_HOST_LYNIS="${RUN_HOST_LYNIS:-false}"
+RUN_HOST_MALWARE="${RUN_HOST_MALWARE:-false}"
+RUN_HOST_KEV="${RUN_HOST_KEV:-false}"
 LYNIS_MODE="${LYNIS_MODE:-quick}"
+
+# Track installed packages (for cleanup)
+INSTALLED_LYNIS="${INSTALLED_LYNIS:-false}"
+INSTALLED_CLAMAV="${INSTALLED_CLAMAV:-false}"
 
 # ============================================================================
 # Host Scan Selection
@@ -65,6 +71,10 @@ select_host_scans_cli() {
                 esac
             done
         fi
+        echo -n "  Malware scan (ClamAV)? [y/N]: "
+        read -r ans </dev/tty && [[ "$ans" =~ ^[Yy] ]] && RUN_HOST_MALWARE=true
+        echo -n "  KEV check (CISA Known Exploited Vulnerabilities)? [y/N]: "
+        read -r ans </dev/tty && [[ "$ans" =~ ^[Yy] ]] && RUN_HOST_KEV=true
         echo ""
     fi
 
@@ -82,7 +92,7 @@ select_host_scans_cli() {
 
     # Log selections
     log_transcript "HOST SCANS: nmap_ports=$RUN_NMAP_PORTS nmap_svc=$RUN_NMAP_SERVICES nmap_os=$RUN_NMAP_OS nmap_vuln=$RUN_NMAP_VULN"
-    log_transcript "HOST SCANS: inventory=$RUN_HOST_INVENTORY security=$RUN_HOST_SECURITY power=$RUN_HOST_POWER lynis=$RUN_HOST_LYNIS"
+    log_transcript "HOST SCANS: inventory=$RUN_HOST_INVENTORY security=$RUN_HOST_SECURITY power=$RUN_HOST_POWER lynis=$RUN_HOST_LYNIS malware=$RUN_HOST_MALWARE kev=$RUN_HOST_KEV"
 }
 
 select_host_scans() {
@@ -317,17 +327,179 @@ run_ssh_host_scans() {
                 ((_passed++)) || true
             fi
         else
-            {
-                echo "Lynis not installed on remote host"
-                echo ""
-                echo "To install:"
-                echo "  Debian/Ubuntu: sudo apt install lynis"
-                echo "  RHEL/CentOS:   sudo yum install lynis"
-                echo "  Arch:          sudo pacman -S lynis"
-            } > "$lynis_file"
+            # Offer to install Lynis
+            print_warning "Lynis not installed on remote host"
+            echo -n "  Install Lynis now? [y/N]: "
+            read -r install_ans </dev/tty
+            if [[ "$install_ans" =~ ^[Yy] ]]; then
+                echo "  Installing Lynis on remote host..."
+                if ssh_cmd "sudo apt install -y lynis" 2>&1; then
+                    print_success "Lynis installed"
+                    INSTALLED_LYNIS=true
+                    # Run the audit now
+                    local lynis_opts="--quick"
+                    [ "$LYNIS_MODE" = "full" ] && lynis_opts="" || true
+                    {
+                        echo "Remote Lynis Security Audit"
+                        echo "==========================="
+                        echo "Host: $TARGET_HOST"
+                        echo "Mode: $LYNIS_MODE"
+                        echo "Started: $timestamp"
+                        echo ""
+                        ssh_cmd "sudo lynis audit system $lynis_opts --no-colors 2>&1" || true
+                    } > "$lynis_file" 2>&1
+                    print_success "Lynis audit complete"
+                    ((_passed++)) || true
+                else
+                    print_error "Lynis installation failed"
+                    ((_skipped++)) || true
+                fi
+            else
+                {
+                    echo "Lynis not installed on remote host"
+                    echo ""
+                    echo "To install:"
+                    echo "  Debian/Ubuntu: sudo apt install lynis"
+                    echo "  RHEL/CentOS:   sudo yum install lynis"
+                    echo "  Arch:          sudo pacman -S lynis"
+                } > "$lynis_file"
+                print_warning "Lynis not installed (skipped)"
+                ((_skipped++)) || true
+            fi
+        fi
+    fi
 
-            print_warning "Lynis not installed on remote (skipped)"
-            ((_skipped++)) || true
+    # Malware Scan (ClamAV)
+    if [ "$RUN_HOST_MALWARE" = true ]; then
+        print_step "Running remote malware scan..."
+        local malware_file="$output_dir/host-malware-$timestamp.txt"
+
+        if ssh_cmd "command -v clamscan" &>/dev/null; then
+            {
+                echo "Remote Malware Scan (ClamAV)"
+                echo "============================"
+                echo "Host: $TARGET_HOST"
+                echo "Started: $timestamp"
+                echo ""
+                echo "--- ClamAV Version ---"
+                ssh_cmd "clamscan --version" 2>/dev/null || echo "(version unavailable)"
+                echo ""
+                echo "--- Scan Results ---"
+                ssh_cmd "clamscan --recursive --infected \
+                    --exclude-dir='.git' \
+                    --exclude-dir='node_modules' \
+                    --exclude-dir='.cache' \
+                    ~/ 2>&1" 2>/dev/null || echo "(scan completed)"
+            } > "$malware_file" 2>&1
+
+            if grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
+                print_success "No malware detected"
+                ((_passed++)) || true
+            elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
+                print_fail "Malware detected! Check $malware_file"
+                ((_failed++)) || true
+            else
+                print_success "Malware scan completed"
+                ((_passed++)) || true
+            fi
+        else
+            # Offer to install ClamAV
+            print_warning "ClamAV not installed on remote host"
+            echo -n "  Install ClamAV now? [y/N]: "
+            read -r install_ans </dev/tty
+            if [[ "$install_ans" =~ ^[Yy] ]]; then
+                echo "  Installing ClamAV on remote host..."
+                if ssh_cmd "sudo apt install -y clamav" 2>&1; then
+                    print_success "ClamAV installed"
+                    INSTALLED_CLAMAV=true
+                    # Update virus database
+                    echo "  Updating virus database..."
+                    ssh_cmd "sudo freshclam" 2>&1 || echo "  (freshclam update skipped)"
+                    # Run the scan
+                    {
+                        echo "Remote Malware Scan (ClamAV)"
+                        echo "============================"
+                        echo "Host: $TARGET_HOST"
+                        echo "Started: $timestamp"
+                        echo ""
+                        echo "--- ClamAV Version ---"
+                        ssh_cmd "clamscan --version" 2>/dev/null || echo "(version unavailable)"
+                        echo ""
+                        echo "--- Scan Results ---"
+                        ssh_cmd "clamscan --recursive --infected \
+                            --exclude-dir='.git' \
+                            --exclude-dir='node_modules' \
+                            --exclude-dir='.cache' \
+                            ~/ 2>&1" 2>/dev/null || echo "(scan completed)"
+                    } > "$malware_file" 2>&1
+
+                    if grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
+                        print_success "No malware detected"
+                        ((_passed++)) || true
+                    elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
+                        print_fail "Malware detected! Check $malware_file"
+                        ((_failed++)) || true
+                    else
+                        print_success "Malware scan completed"
+                        ((_passed++)) || true
+                    fi
+                else
+                    print_error "ClamAV installation failed"
+                    ((_skipped++)) || true
+                fi
+            else
+                {
+                    echo "ClamAV not installed on remote host"
+                    echo ""
+                    echo "To install:"
+                    echo "  Debian/Ubuntu: sudo apt install clamav"
+                    echo "  RHEL/CentOS:   sudo yum install clamav"
+                    echo "  Arch:          sudo pacman -S clamav"
+                } > "$malware_file"
+                print_warning "ClamAV not installed (skipped)"
+                ((_skipped++)) || true
+            fi
+        fi
+    fi
+
+    # KEV Check (CISA Known Exploited Vulnerabilities)
+    if [ "$RUN_HOST_KEV" = true ]; then
+        print_step "Running KEV check on remote host..."
+        local kev_file="$output_dir/host-kev-$timestamp.txt"
+
+        # Get package list from remote and check against KEV catalog
+        {
+            echo "CISA KEV Check (Known Exploited Vulnerabilities)"
+            echo "================================================"
+            echo "Host: $TARGET_HOST"
+            echo "Checked: $timestamp"
+            echo ""
+
+            # Get installed packages from remote
+            echo "Fetching installed packages from remote host..."
+            local pkg_list
+            pkg_list=$(ssh_cmd "dpkg -l 2>/dev/null || rpm -qa 2>/dev/null || pacman -Q 2>/dev/null" 2>/dev/null)
+
+            if [ -n "$pkg_list" ]; then
+                echo "Running KEV cross-reference..."
+                echo ""
+                # Run local KEV check script with the package list
+                echo "$pkg_list" | "$SCRIPTS_DIR/check-kev.sh" --stdin 2>&1 || true
+            else
+                echo "Could not retrieve package list from remote host"
+            fi
+        } > "$kev_file" 2>&1
+
+        # Check results
+        if grep -q "No known exploited vulnerabilities found" "$kev_file" 2>/dev/null; then
+            print_success "No known exploited vulnerabilities found"
+            ((_passed++)) || true
+        elif grep -q "CRITICAL\|HIGH\|KEV match" "$kev_file" 2>/dev/null; then
+            print_warning "Potential KEV matches found - review $kev_file"
+            ((_failed++)) || true
+        else
+            print_success "KEV check completed"
+            ((_passed++)) || true
         fi
     fi
 }
