@@ -19,30 +19,60 @@ fi
 
 OPENVAS_COMPOSE_FILE="$HOME/greenbone-community-container/docker-compose.yml"
 OPENVAS_AVAILABLE=false
+OPENVAS_MODE=""  # "docker" or "native"
+
+# Native GVM socket path (Kali/Debian)
+OPENVAS_NATIVE_SOCKET="/run/gvmd/gvmd.sock"
+
+# Credentials - override these in config file if needed
+OPENVAS_USERNAME="${OPENVAS_USERNAME:-admin}"
+OPENVAS_PASSWORD="${OPENVAS_PASSWORD:-}"
 
 # Check if OpenVAS/GVM is available
 check_openvas_available() {
-    # Check for Docker-based GVM
-    if [ -f "$OPENVAS_COMPOSE_FILE" ]; then
-        if docker compose -f "$OPENVAS_COMPOSE_FILE" ps 2>/dev/null | grep -q "gvmd.*Up"; then
+    OPENVAS_AVAILABLE=false
+    OPENVAS_MODE=""
+
+    # Check for native GVM (Kali/Debian) - prefer this if available
+    if [ -S "$OPENVAS_NATIVE_SOCKET" ] && command -v gvm-cli &>/dev/null; then
+        # Check if gvmd service is running
+        if systemctl is-active --quiet gvmd 2>/dev/null; then
             OPENVAS_AVAILABLE=true
+            OPENVAS_MODE="native"
             return 0
         fi
     fi
 
-    # Check for native gvm-cli
-    if command -v gvm-cli &>/dev/null; then
-        OPENVAS_AVAILABLE=true
-        return 0
-    fi
-
-    # Check Python framework path
-    if [ -x "/Library/Frameworks/Python.framework/Versions/3.14/bin/gvm-cli" ]; then
-        OPENVAS_AVAILABLE=true
-        return 0
+    # Check for Docker-based GVM
+    if [ -f "$OPENVAS_COMPOSE_FILE" ]; then
+        if docker compose -f "$OPENVAS_COMPOSE_FILE" ps 2>/dev/null | grep -q "gvmd.*Up"; then
+            OPENVAS_AVAILABLE=true
+            OPENVAS_MODE="docker"
+            return 0
+        fi
     fi
 
     return 1
+}
+
+# Run GVM command - automatically uses native or Docker
+gvm_cmd() {
+    local cmd="$1"
+
+    if [ "$OPENVAS_MODE" = "native" ]; then
+        gvm_native_cmd "$cmd"
+    else
+        gvm_cmd "$cmd"
+    fi
+}
+
+# Run GVM command via native installation (Kali/Debian)
+gvm_native_cmd() {
+    local cmd="$1"
+    # Use sg _gvm to run with correct group permissions for socket access
+    sg _gvm -c "gvm-cli --gmp-username '$OPENVAS_USERNAME' --gmp-password '$OPENVAS_PASSWORD' \
+        socket --socketpath '$OPENVAS_NATIVE_SOCKET' \
+        --xml '$cmd'" 2>&1
 }
 
 # Run GVM command via Docker
@@ -51,7 +81,7 @@ gvm_docker_cmd() {
     # Use 'run --rm' instead of 'exec' because gvm-tools is a transient container
     # Filter out docker compose status messages (Container ... Running/Creating/etc)
     docker compose -f "$OPENVAS_COMPOSE_FILE" run --rm -T gvm-tools \
-        gvm-cli --gmp-username admin --gmp-password admin123 \
+        gvm-cli --gmp-username "$OPENVAS_USERNAME" --gmp-password "${OPENVAS_PASSWORD:-admin123}" \
         socket --socketpath /run/gvmd/gvmd.sock \
         --xml "$cmd" 2>&1 | grep -v "Container\|Creating\|Created\|Running\|Healthy\|Waiting"
 }
@@ -65,7 +95,7 @@ extract_id() {
 # Get default port list ID
 get_port_list_id() {
     local response
-    response=$(gvm_docker_cmd "<get_port_lists/>")
+    response=$(gvm_cmd "<get_port_lists/>")
     # Use "All IANA assigned TCP and UDP" for comprehensive scanning
     echo "$response" | sed 's/<port_list/\n<port_list/g' | grep "All IANA assigned TCP and UDP" | grep -o 'id="[^"]*"' | head -1 | sed 's/id="//;s/"//'
 }
@@ -79,7 +109,7 @@ get_or_create_target() {
 
     # Check if target already exists
     local response
-    response=$(gvm_docker_cmd "<get_targets filter=\"name=$target_name\"/>")
+    response=$(gvm_cmd "<get_targets filter=\"name=$target_name\"/>")
     local existing
     existing=$(extract_id "$response")
 
@@ -97,14 +127,14 @@ get_or_create_target() {
     fi
 
     # Create new target with port list
-    response=$(gvm_docker_cmd "<create_target><name>$target_name</name><hosts>$target_ip</hosts><port_list id=\"$port_list_id\"/></create_target>")
+    response=$(gvm_cmd "<create_target><name>$target_name</name><hosts>$target_ip</hosts><port_list id=\"$port_list_id\"/></create_target>")
     extract_id "$response"
 }
 
 # Get the default scanner ID (OpenVAS Default)
 get_scanner_id() {
     local response
-    response=$(gvm_docker_cmd "<get_scanners/>")
+    response=$(gvm_cmd "<get_scanners/>")
     # XML is on one line - extract scanner id that contains "OpenVAS Default"
     # The format is: <scanner id="xxx">...<name>OpenVAS Default</name>...
     echo "$response" | sed 's/<scanner/\n<scanner/g' | grep "OpenVAS Default" | grep -o 'id="[^"]*"' | head -1 | sed 's/id="//;s/"//'
@@ -116,7 +146,7 @@ get_scanner_id() {
 get_config_id() {
     local config_name="${1:-Full and fast}"
     local response
-    response=$(gvm_docker_cmd "<get_configs/>")
+    response=$(gvm_cmd "<get_configs/>")
     # XML is on one line - extract config id that contains the config name
     echo "$response" | sed 's/<config/\n<config/g' | grep "$config_name" | grep -o 'id="[^"]*"' | head -1 | sed 's/id="//;s/"//'
 }
@@ -171,7 +201,7 @@ run_openvas_scan() {
     # Create task
     echo "  Creating scan task..."
     local task_response
-    task_response=$(gvm_docker_cmd "<create_task><name>$task_name</name><config id=\"$config_id\"/><target id=\"$target_id\"/><scanner id=\"$scanner_id\"/></create_task>")
+    task_response=$(gvm_cmd "<create_task><name>$task_name</name><config id=\"$config_id\"/><target id=\"$target_id\"/><scanner id=\"$scanner_id\"/></create_task>")
 
     local task_id
     task_id=$(extract_id "$task_response")
@@ -184,7 +214,7 @@ run_openvas_scan() {
 
     # Start task
     echo "  Starting scan (this may take 5-30 minutes)..."
-    gvm_docker_cmd "<start_task task_id=\"$task_id\"/>" > /dev/null
+    gvm_cmd "<start_task task_id=\"$task_id\"/>" > /dev/null
 
     # Write header to output file
     {
@@ -198,36 +228,54 @@ run_openvas_scan() {
     } > "$output_file"
 
     # Poll for completion
-    local status="Queued"
+    local status=""
     local progress=0
     local last_progress=-1
     local start_time=$(date +%s)
     local timeout=3600  # 60 minute timeout for full scans
 
-    # Wait for scan to complete - check for active statuses
-    while [ "$status" = "Running" ] || [ "$status" = "Requested" ] || [ "$status" = "Queued" ] || [ "$status" = "New" ]; do
-        sleep 15
+    # Give task time to register before first status check
+    echo "  Waiting for scan to initialize..."
+    sleep 10
 
+    # Wait for scan to complete - continue while status is active OR empty (still initializing)
+    # Exit only when we get a terminal status like "Done" or "Stopped"
+    while true; do
         local task_info
-        task_info=$(gvm_docker_cmd "<get_tasks task_id=\"$task_id\"/>")
+        task_info=$(gvm_cmd "<get_tasks task_id=\"$task_id\"/>")
         status=$(echo "$task_info" | grep -o '<status>[^<]*' | head -1 | sed 's/<status>//')
         progress=$(echo "$task_info" | grep -o '<progress>[^<]*' | head -1 | sed 's/<progress>//' | cut -d'.' -f1)
 
-        # Show progress if changed
-        if [ -n "$progress" ] && [ "$progress" != "$last_progress" ]; then
+        # Check for terminal states - exit loop when scan is done
+        case "$status" in
+            Done|Stopped|"Stop Requested"|Interrupted)
+                break
+                ;;
+        esac
+
+        # Show progress based on current state
+        if [ -z "$status" ]; then
+            echo -ne "\r  Initializing scan...                    "
+        elif [ "$status" = "Queued" ] || [ "$status" = "New" ]; then
+            echo -ne "\r  Waiting in queue...                     "
+        elif [ "$status" = "Requested" ]; then
+            echo -ne "\r  Scan starting...                        "
+        elif [ -n "$progress" ] && [ "$progress" != "$last_progress" ]; then
             echo -ne "\r  Progress: ${progress}% (status: $status)   "
             last_progress="$progress"
-        elif [ "$status" = "Queued" ]; then
-            echo -ne "\r  Waiting in queue...   "
+        elif [ "$status" = "Running" ]; then
+            echo -ne "\r  Running... (progress: ${progress:-0}%)   "
         fi
 
         # Check timeout
         local elapsed=$(($(date +%s) - start_time))
         if [ $elapsed -gt $timeout ]; then
             echo ""
-            echo "  Warning: Scan timeout reached (30 min)"
+            echo "  Warning: Scan timeout reached (60 min)"
             break
         fi
+
+        sleep 15
     done
 
     echo ""
@@ -235,14 +283,14 @@ run_openvas_scan() {
 
     # Get report
     local report_id
-    report_id=$(gvm_docker_cmd "<get_tasks task_id=\"$task_id\"/>" | grep -o '<report id="[^"]*"' | head -1 | sed 's/<report id="//;s/"//')
+    report_id=$(gvm_cmd "<get_tasks task_id=\"$task_id\"/>" | grep -o '<report id="[^"]*"' | head -1 | sed 's/<report id="//;s/"//')
 
     if [ -n "$report_id" ]; then
         echo "  Fetching report..."
 
         # Get report in TXT format
         local report
-        report=$(gvm_docker_cmd "<get_reports report_id=\"$report_id\" format_id=\"a994b278-1f62-11e1-96ac-406186ea4fc5\"/>")
+        report=$(gvm_cmd "<get_reports report_id=\"$report_id\" format_id=\"a994b278-1f62-11e1-96ac-406186ea4fc5\"/>")
 
         # Append results to output file
         {
@@ -284,8 +332,13 @@ run_openvas_scan() {
     return 0
 }
 
-# Quick check if OpenVAS containers are running
+# Quick check if OpenVAS is running (native or Docker)
 is_openvas_running() {
+    # Check native first
+    if systemctl is-active --quiet gvmd 2>/dev/null; then
+        return 0
+    fi
+    # Check Docker
     if [ -f "$OPENVAS_COMPOSE_FILE" ]; then
         docker compose -f "$OPENVAS_COMPOSE_FILE" ps 2>/dev/null | grep -q "Up"
         return $?
@@ -293,15 +346,26 @@ is_openvas_running() {
     return 1
 }
 
-# Start OpenVAS containers if not running
+# Start OpenVAS services (native or Docker)
 start_openvas() {
+    # Try native first (Kali/Debian)
+    if command -v gvm-start &>/dev/null; then
+        echo "Starting OpenVAS services (native)..."
+        sudo gvm-start
+        echo "Waiting for services to initialize (10 seconds)..."
+        sleep 10
+        OPENVAS_MODE="native"
+        return 0
+    fi
+    # Fall back to Docker
     if [ -f "$OPENVAS_COMPOSE_FILE" ]; then
-        echo "Starting OpenVAS containers..."
+        echo "Starting OpenVAS containers (Docker)..."
         docker compose -f "$OPENVAS_COMPOSE_FILE" up -d
         echo "Waiting for services to initialize (30 seconds)..."
         sleep 30
-    else
-        echo "OpenVAS not installed. Run setup first."
-        return 1
+        OPENVAS_MODE="docker"
+        return 0
     fi
+    echo "OpenVAS not installed. Install with 'sudo apt install gvm' (Kali/Debian)"
+    return 1
 }

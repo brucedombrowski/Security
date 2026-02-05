@@ -80,28 +80,43 @@ fi
 # Menu Configuration Variables (preserve values from config file)
 # ============================================================================
 
-SCAN_MODE="${SCAN_MODE:-}"              # "local" or "remote"
+# New unified architecture
+SCAN_TYPE="${SCAN_TYPE:-}"              # "host" or "content"
+TARGET_HOST="${TARGET_HOST:-}"          # Target IP/hostname (for host scans)
+TARGET_DIR="${TARGET_DIR:-}"            # Target directory (for content scans)
+TARGET_LOCATION="${TARGET_LOCATION:-}"  # "local" or "remote"
 AUTH_MODE="${AUTH_MODE:-}"              # "credentialed" or "uncredentialed"
 PRIVILEGE_LEVEL="${PRIVILEGE_LEVEL:-}"  # "admin" or "standard"
-SCAN_SCOPE="${SCAN_SCOPE:-}"            # "full" or "directory"
-REMOTE_HOST="${REMOTE_HOST:-}"          # Remote hostname/IP
-REMOTE_USER="${REMOTE_USER:-}"          # Remote username (for credentialed)
 PROJECT_NAME="${PROJECT_NAME:-}"        # User-provided project/target alias
-REMOTE_OS="${REMOTE_OS:-}"              # Detected remote OS
-TARGET_DIR=""                           # Target directory for scans
 
-# Remote scan options (preserve config values, default to false)
+# Legacy variables (for backward compatibility)
+SCAN_MODE="${SCAN_MODE:-}"              # "local" or "remote" (maps to SCAN_TYPE)
+SCAN_SCOPE="${SCAN_SCOPE:-}"            # "full" or "directory"
+REMOTE_HOST="${REMOTE_HOST:-}"          # Alias for TARGET_HOST
+REMOTE_USER="${REMOTE_USER:-}"          # Remote username (for credentialed)
+REMOTE_OS="${REMOTE_OS:-}"              # Detected remote OS
+
+# Host scan options (network-based)
 RUN_NMAP_PORTS="${RUN_NMAP_PORTS:-false}"
 RUN_NMAP_SERVICES="${RUN_NMAP_SERVICES:-false}"
 RUN_NMAP_OS="${RUN_NMAP_OS:-false}"
 RUN_NMAP_VULN="${RUN_NMAP_VULN:-false}"
+RUN_OPENVAS="${RUN_OPENVAS:-false}"
+OPENVAS_SCAN_TYPE="${OPENVAS_SCAN_TYPE:-quick}"
+
+# Host scan options (SSH/credentialed)
+RUN_HOST_INVENTORY="${RUN_HOST_INVENTORY:-false}"
+RUN_HOST_SECURITY="${RUN_HOST_SECURITY:-false}"
+RUN_HOST_LYNIS="${RUN_HOST_LYNIS:-false}"
+LYNIS_MODE="${LYNIS_MODE:-quick}"
+
+# Legacy remote scan options (for backward compatibility)
 RUN_REMOTE_INVENTORY="${RUN_REMOTE_INVENTORY:-false}"
 RUN_REMOTE_SECURITY="${RUN_REMOTE_SECURITY:-false}"
 RUN_REMOTE_LYNIS="${RUN_REMOTE_LYNIS:-false}"
 RUN_REMOTE_MALWARE="${RUN_REMOTE_MALWARE:-false}"
 RUN_REMOTE_OPENVAS="${RUN_REMOTE_OPENVAS:-false}"
-LYNIS_MODE="${LYNIS_MODE:-quick}"
-OPENVAS_SCAN_TYPE="${OPENVAS_SCAN_TYPE:-quick}"
+
 SKIP_SCAN_SELECTION="${SKIP_SCAN_SELECTION:-false}"
 
 # Local scan options
@@ -141,9 +156,22 @@ source "$LIB_DIR/ui.sh"
 source "$LIB_DIR/deps.sh"
 source "$LIB_DIR/session.sh"
 source "$LIB_DIR/menus.sh"
+
+# Load OpenVAS credentials if available
+if [ -f "$SCRIPT_DIR/.openvas-creds" ]; then
+    source "$SCRIPT_DIR/.openvas-creds"
+fi
+
+source "$LIB_DIR/openvas.sh"
+
+# Scan type modules
+source "$LIB_DIR/host-scan.sh"
+source "$LIB_DIR/content-scan.sh"
+
+# Legacy modules (for backward compatibility during transition)
 source "$LIB_DIR/local.sh"
 source "$LIB_DIR/remote.sh"
-source "$LIB_DIR/openvas.sh"
+
 source "$LIB_DIR/attestation.sh"
 
 # ============================================================================
@@ -157,83 +185,68 @@ init_transcript
 # ============================================================================
 
 main() {
-    # Clear screen for fresh start
-    clear
+    # Clear screen for fresh start (use both methods for compatibility)
+    clear 2>/dev/null || printf '\033[2J\033[H'
 
     print_banner
     check_dependencies
 
-    # Menu flow: Environment -> Auth -> Scans -> Config
-    # Skip prompts if set from config file
-    if [ -z "$SCAN_MODE" ]; then
-        select_scan_environment
+    # =========================================================================
+    # New Flow: Scan Type -> Target -> Auth -> Scans -> Run
+    # =========================================================================
+
+    # Step 1: What are you scanning? (Machine or Content)
+    select_scan_type
+
+    # Step 2: Target selection based on scan type
+    if [ "$SCAN_TYPE" = "host" ]; then
+        # Machine/Host scanning
+        select_host_target_cli
     else
-        echo "Scan mode: $SCAN_MODE (from config)"
+        # Content/Repository scanning
+        select_content_target_cli
     fi
 
-    if [ -z "$AUTH_MODE" ]; then
-        select_auth_mode
+    # Step 3: Authentication mode
+    select_auth_mode
+
+    # Step 4: Select specific scans
+    if [ "$SCAN_TYPE" = "host" ]; then
+        select_host_scans
     else
-        echo "Auth mode: $AUTH_MODE (from config)"
+        select_content_scans
     fi
 
-    # For remote scans, get host config BEFORE scan selection
-    # (scan selection displays the host name)
-    if [ "$SCAN_MODE" = "remote" ]; then
-        select_remote_config
-        if [ "$AUTH_MODE" = "uncredentialed" ]; then
-            print_warning "Remote uncredentialed scan: Only network-based checks available"
-            echo ""
-        fi
-    fi
+    # =========================================================================
+    # Initialize Output Directory
+    # =========================================================================
 
-    select_scans
-
-    if [ "$SCAN_MODE" = "local" ]; then
-        # Check if any scan needs a target directory
-        # Lynis always scans whole system, so skip target selection if only Lynis
-        local needs_target=false
-        [ "$RUN_PII" = true ] && needs_target=true
-        [ "$RUN_SECRETS" = true ] && needs_target=true
-        [ "$RUN_MAC" = true ] && needs_target=true
-        [ "$RUN_MALWARE" = true ] && [ "$MALWARE_FULL_SYSTEM" = false ] && needs_target=true
-        [ "$RUN_KEV" = true ] && needs_target=true
-
-        if [ "$needs_target" = true ]; then
-            select_local_config
-        else
-            # Lynis-only scan - no target needed
-            TARGET_DIR="/"
-            echo ""
-            echo -e "${CYAN}Lynis scans the entire system - no target selection needed.${NC}"
-            echo ""
-        fi
-
-        # Set privilege level based on auth mode
-        if [ "$AUTH_MODE" = "credentialed" ]; then
-            PRIVILEGE_LEVEL="admin"
-        else
-            PRIVILEGE_LEVEL="standard"
-        fi
-    fi
-
-    # Initialize unique scan session directory
-    # Output always goes to .scans in current working directory
     local base_dir
     local target_name
     base_dir="$(pwd)"
-    if [ "$SCAN_MODE" = "remote" ]; then
-        target_name="$PROJECT_NAME"  # Use project name, not IP
+
+    if [ "$SCAN_TYPE" = "host" ]; then
+        target_name="$PROJECT_NAME"
     else
         target_name=$(basename "$TARGET_DIR")
-        # Handle root directory specially
-        if [ "$TARGET_DIR" = "/" ]; then
-            target_name="system-root"
-        fi
+        [ "$TARGET_DIR" = "/" ] && target_name="system-root"
     fi
     init_scan_session "$base_dir" "$target_name"
 
-    run_scans
+    # =========================================================================
+    # Run Scans
+    # =========================================================================
+
+    if [ "$SCAN_TYPE" = "host" ]; then
+        run_host_scans
+    else
+        run_content_scans
+    fi
+
+    # =========================================================================
+    # Generate Reports and Summary
+    # =========================================================================
+
     generate_pdf_attestation "$SCAN_OUTPUT_DIR"
     generate_malware_attestation "$SCAN_OUTPUT_DIR"
     generate_vuln_attestation "$SCAN_OUTPUT_DIR"
