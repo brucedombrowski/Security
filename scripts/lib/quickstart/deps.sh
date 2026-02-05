@@ -49,12 +49,25 @@ detect_package_manager() {
 }
 
 # Get install command for a package
+# Handles cross-platform package name differences
 get_install_cmd() {
     local pkg_mgr="$1"
     local package="$2"
+    local brew_cmd="brew install"
+
+    # Handle pdflatex/TeX package name differences
+    if [ "$package" = "basictex" ]; then
+        case "$pkg_mgr" in
+            brew)   package="basictex"; brew_cmd="brew install --cask" ;;
+            apt)    package="texlive-latex-base" ;;
+            dnf)    package="texlive-latex" ;;
+            yum)    package="texlive-latex" ;;
+            pacman) package="texlive-core" ;;
+        esac
+    fi
 
     case "$pkg_mgr" in
-        brew)   echo "brew install $package" ;;
+        brew)   echo "$brew_cmd $package" ;;
         apt)    echo "sudo apt install -y $package" ;;
         dnf)    echo "sudo dnf install -y $package" ;;
         yum)    echo "sudo yum install -y $package" ;;
@@ -82,7 +95,7 @@ offer_install() {
     echo "  Packages: ${packages[*]}"
     echo ""
     echo -n "Install now? [y/N]: "
-    read -r answer
+    read -r answer </dev/tty
 
     if [[ "$answer" =~ ^[Yy] ]]; then
         for pkg in "${packages[@]}"; do
@@ -130,6 +143,12 @@ declare_dependency_categories() {
     DEPS_UI_NAME=("gum")
     DEPS_UI_DESC=("Modern TUI (brew install gum)")
     DEPS_UI_PKG=("gum")
+
+    # PDF generation
+    DEPS_PDF_CMD=("pdflatex")
+    DEPS_PDF_NAME=("pdflatex")
+    DEPS_PDF_DESC=("PDF attestation generation")
+    DEPS_PDF_PKG=("basictex")  # macOS/brew; apt uses texlive-latex-base
 }
 
 # ============================================================================
@@ -146,6 +165,7 @@ check_dependencies() {
     local missing_local=()
     local missing_remote=()
     local missing_ui=()
+    local missing_pdf=()
     local pkg_mgr
     pkg_mgr=$(detect_package_manager)
 
@@ -189,6 +209,15 @@ check_dependencies() {
     fi
     echo ""
 
+    # Check PDF generation dependencies
+    echo -e "${BOLD}[PDF Generation]${NC}"
+    for i in "${!DEPS_PDF_CMD[@]}"; do
+        if ! check_dependency "${DEPS_PDF_CMD[$i]}" "${DEPS_PDF_NAME[$i]}" "${DEPS_PDF_DESC[$i]}"; then
+            missing_pdf+=("${DEPS_PDF_PKG[$i]}")
+        fi
+    done
+    echo ""
+
     if [ "$all_good" = false ]; then
         print_error "Missing required dependencies. Please install them and try again."
         exit 1
@@ -200,27 +229,31 @@ check_dependencies() {
         [ ${#missing_local[@]} -gt 0 ] && total_missing+=("${missing_local[@]}")
         [ ${#missing_remote[@]} -gt 0 ] && total_missing+=("${missing_remote[@]}")
         [ ${#missing_ui[@]} -gt 0 ] && total_missing+=("${missing_ui[@]}")
+        [ ${#missing_pdf[@]} -gt 0 ] && total_missing+=("${missing_pdf[@]}")
 
         if [ ${#total_missing[@]} -gt 0 ]; then
             echo -e "${BOLD}Missing optional dependencies:${NC}"
             [ ${#missing_local[@]} -gt 0 ] && echo "  Local:  ${missing_local[*]}"
             [ ${#missing_remote[@]} -gt 0 ] && echo "  Remote: ${missing_remote[*]}"
             [ ${#missing_ui[@]} -gt 0 ] && echo "  UI:     ${missing_ui[*]}"
+            [ ${#missing_pdf[@]} -gt 0 ] && echo "  PDF:    ${missing_pdf[*]}"
             echo ""
 
             echo "Install options:"
             echo "  1) All missing packages"
             echo "  2) Local scanning only (${missing_local[*]:-none})"
             echo "  3) Remote scanning only (${missing_remote[*]:-none})"
-            echo "  4) None (skip)"
+            echo "  4) PDF generation only (${missing_pdf[*]:-none})"
+            echo "  5) None (skip)"
             echo ""
-            echo -n "Select [1-4]: "
-            read -r install_choice
+            echo -n "Select [1-5]: "
+            read -r install_choice </dev/tty
 
             case "$install_choice" in
                 1) offer_install "$pkg_mgr" "${total_missing[@]}" ;;
                 2) [ ${#missing_local[@]} -gt 0 ] && offer_install "$pkg_mgr" "${missing_local[@]}" ;;
                 3) [ ${#missing_remote[@]} -gt 0 ] && offer_install "$pkg_mgr" "${missing_remote[@]}" ;;
+                4) [ ${#missing_pdf[@]} -gt 0 ] && offer_install "$pkg_mgr" "${missing_pdf[@]}" ;;
                 *) echo "Skipping installation." ;;
             esac
 
