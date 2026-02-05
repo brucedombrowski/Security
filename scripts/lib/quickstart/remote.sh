@@ -551,10 +551,10 @@ run_remote_ssh_scans() {
 
         if [ -s "$inv_file" ]; then
             print_success "Remote inventory saved: $inv_file"
-            ((passed++))
+            ((passed++)) || true
         else
             print_warning "Remote inventory collection had issues"
-            ((failed++))
+            ((failed++)) || true
         fi
     fi
 
@@ -601,10 +601,10 @@ run_remote_ssh_scans() {
 
         if [ -s "$sec_file" ]; then
             print_success "Remote security check saved: $sec_file"
-            ((passed++))
+            ((passed++)) || true
         else
             print_warning "Remote security check had issues"
-            ((failed++))
+            ((failed++)) || true
         fi
     fi
 
@@ -634,13 +634,13 @@ run_remote_ssh_scans() {
                     mv "$lynis_file.raw" "$lynis_file"
                 fi
                 print_success "Remote Lynis audit saved: $lynis_file"
-                ((passed++))
+                ((passed++)) || true
             else
                 if [ -f "$lynis_file.raw" ]; then
                     mv "$lynis_file.raw" "$lynis_file"
                 fi
                 print_warning "Remote Lynis audit had issues (check $lynis_file)"
-                ((failed++))
+                ((failed++)) || true
             fi
         else
             print_warning "Lynis not installed on remote host"
@@ -669,18 +669,18 @@ run_remote_ssh_scans() {
                             mv "$lynis_file.raw" "$lynis_file"
                         fi
                         print_success "Remote Lynis audit saved: $lynis_file"
-                        ((passed++))
+                        ((passed++)) || true
                     else
                         [ -f "$lynis_file.raw" ] && mv "$lynis_file.raw" "$lynis_file"
                         print_warning "Remote Lynis audit had issues"
-                        ((failed++))
+                        ((failed++)) || true
                     fi
                 else
                     print_error "Lynis installation failed"
-                    ((skipped++))
+                    ((skipped++)) || true
                 fi
             else
-                ((skipped++))
+                ((skipped++)) || true
             fi
         fi
     fi
@@ -720,15 +720,15 @@ run_remote_ssh_scans() {
             if grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
                 print_success "No malware detected"
                 REMOTE_MALWARE_RESULT="PASS"
-                ((passed++))
+                ((passed++)) || true
             elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
                 print_fail "Malware detected! Check $malware_file"
                 REMOTE_MALWARE_RESULT="FAIL"
-                ((failed++))
+                ((failed++)) || true
             else
                 print_success "Malware scan completed: $malware_file"
                 REMOTE_MALWARE_RESULT="PASS"
-                ((passed++))
+                ((passed++)) || true
             fi
         else
             print_warning "ClamAV not installed on remote host"
@@ -766,20 +766,20 @@ run_remote_ssh_scans() {
                     if grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
                         print_success "No malware detected"
                         REMOTE_MALWARE_RESULT="PASS"
-                        ((passed++))
+                        ((passed++)) || true
                     elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
                         print_fail "Malware detected! Check $malware_file"
                         REMOTE_MALWARE_RESULT="FAIL"
-                        ((failed++))
+                        ((failed++)) || true
                     else
                         print_success "Malware scan completed: $malware_file"
                         REMOTE_MALWARE_RESULT="PASS"
-                        ((passed++))
+                        ((passed++)) || true
                     fi
                 else
                     print_error "ClamAV installation failed"
                     REMOTE_MALWARE_RESULT="SKIP"
-                    ((skipped++))
+                    ((skipped++)) || true
                 fi
             else
                 {
@@ -791,7 +791,7 @@ run_remote_ssh_scans() {
                     echo "ClamAV not installed - user declined installation."
                 } > "$malware_file" 2>&1
                 REMOTE_MALWARE_RESULT="SKIP"
-                ((skipped++))
+                ((skipped++)) || true
             fi
         fi
     fi
@@ -800,9 +800,9 @@ run_remote_ssh_scans() {
     if [ "$RUN_NMAP_PORTS" = true ] || [ "$RUN_NMAP_SERVICES" = true ]; then
         run_nmap_scan "$output_dir" "$timestamp"
         if [ $? -eq 0 ]; then
-            ((passed++))
+            ((passed++)) || true
         else
-            ((failed++))
+            ((failed++)) || true
         fi
     fi
 
@@ -825,14 +825,14 @@ run_remote_ssh_scans() {
 
             if [ "$openvas_exit" -eq 0 ]; then
                 print_success "OpenVAS scan completed (no high-severity findings)"
-                ((passed++))
+                ((passed++)) || true
             else
                 print_warning "OpenVAS scan found vulnerabilities"
-                ((failed++))
+                ((failed++)) || true
             fi
         else
             print_warning "OpenVAS not available - skipping"
-            ((skipped++))
+            ((skipped++)) || true
         fi
     fi
 
@@ -861,9 +861,9 @@ run_remote_nmap_scans() {
     # Run Nmap if any nmap options selected
     if [ "$RUN_NMAP_PORTS" = true ] || [ "$RUN_NMAP_SERVICES" = true ] || [ "$RUN_NMAP_OS" = true ] || [ "$RUN_NMAP_VULN" = true ]; then
         if run_nmap_scan "$output_dir" "$timestamp"; then
-            ((passed++))
+            ((passed++)) || true
         else
-            ((failed++))
+            ((failed++)) || true
         fi
     fi
 
@@ -886,14 +886,14 @@ run_remote_nmap_scans() {
 
             if [ "$openvas_exit" -eq 0 ]; then
                 print_success "OpenVAS scan completed (no high-severity findings)"
-                ((passed++))
+                ((passed++)) || true
             else
                 print_warning "OpenVAS scan found vulnerabilities"
-                ((failed++))
+                ((failed++)) || true
             fi
         else
             print_warning "OpenVAS not available - skipping"
-            ((skipped++))
+            ((skipped++)) || true
         fi
     fi
 
