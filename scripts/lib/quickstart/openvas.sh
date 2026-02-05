@@ -238,6 +238,22 @@ run_openvas_scan() {
     echo "  Waiting for scan to initialize..."
     sleep 10
 
+    # Disable terminal echo to prevent user input from corrupting progress display
+    # Save current terminal settings and restore on exit
+    local stty_saved=""
+    if [ -t 0 ]; then
+        stty_saved=$(stty -g 2>/dev/null || true)
+        stty -echo 2>/dev/null || true
+    fi
+
+    # Ensure terminal echo is restored on exit (normal or interrupted)
+    restore_terminal() {
+        if [ -n "$stty_saved" ] && [ -t 0 ]; then
+            stty "$stty_saved" 2>/dev/null || stty echo 2>/dev/null || true
+        fi
+    }
+    trap restore_terminal EXIT INT TERM
+
     # Wait for scan to complete - continue while status is active OR empty (still initializing)
     # Exit only when we get a terminal status like "Done" or "Stopped"
     while true; do
@@ -279,6 +295,11 @@ run_openvas_scan() {
     done
 
     echo ""
+
+    # Restore terminal echo before continuing
+    restore_terminal
+    trap - EXIT INT TERM
+
     echo "  Scan completed with status: $status"
 
     # Get report
