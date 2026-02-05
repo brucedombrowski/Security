@@ -227,12 +227,12 @@ select_remote_scans_ssh_cli() {
     echo -e "${BOLD}Select Remote Scans (SSH)${NC}"
     echo ""
     echo "Select scans (y/n for each):"
-    echo -n "  Host inventory (system info, packages)? [Y/n]: "
-    read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_REMOTE_INVENTORY=true
-    echo -n "  Security configuration check? [Y/n]: "
-    read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_REMOTE_SECURITY=true
-    echo -n "  Malware scan (ClamAV, if installed)? [Y/n]: "
-    read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_REMOTE_MALWARE=true
+    echo -n "  Host inventory (system info, packages)? [y/N]: "
+    read -r ans </dev/tty && [[ "$ans" =~ ^[Yy] ]] && RUN_REMOTE_INVENTORY=true
+    echo -n "  Security configuration check? [y/N]: "
+    read -r ans </dev/tty && [[ "$ans" =~ ^[Yy] ]] && RUN_REMOTE_SECURITY=true
+    echo -n "  Malware scan (ClamAV, if installed)? [y/N]: "
+    read -r ans </dev/tty && [[ "$ans" =~ ^[Yy] ]] && RUN_REMOTE_MALWARE=true
     echo -n "  Lynis security audit (if installed)? [y/N]: "
     read -r ans
     if [[ "$ans" =~ ^[Yy] ]]; then
@@ -357,10 +357,10 @@ select_remote_scans_nmap_cli() {
         4)
             echo ""
             echo "Select options (y/n for each):"
-            echo -n "  Port scan (TCP)? [Y/n]: "
-            read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_NMAP_PORTS=true
-            echo -n "  Service version detection? [Y/n]: "
-            read -r ans && [[ ! "$ans" =~ ^[Nn] ]] && RUN_NMAP_SERVICES=true
+            echo -n "  Port scan (TCP)? [y/N]: "
+            read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_PORTS=true
+            echo -n "  Service version detection? [y/N]: "
+            read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_SERVICES=true
             echo -n "  OS fingerprinting (requires sudo)? [y/N]: "
             read -r ans && [[ "$ans" =~ ^[Yy] ]] && RUN_NMAP_OS=true
             echo -n "  Vulnerability scripts? [y/N]: "
