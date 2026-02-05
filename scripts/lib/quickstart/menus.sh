@@ -171,7 +171,7 @@ select_host_auth_cli() {
             echo "  2) Uncredentialed - Network-only scan (no login required)"
             echo "                      (port scan, service detection, OpenVAS)"
             echo ""
-            echo -e "  ${GRAY}Tip: Windows targets often don't have SSH - use option 2 for OpenVAS${NC}"
+            echo -e "  ${GRAY}Tip: Windows targets often don't have SSH - use option 2 for network scan${NC}"
         fi
         echo ""
         echo -n "Select [1-2]: "
@@ -192,7 +192,7 @@ select_host_auth_cli() {
     if [ "$AUTH_MODE" = "credentialed" ] && [ "$TARGET_LOCATION" = "remote" ]; then
         echo ""
         echo -e "  ${CYAN}Note: SSH-based scans require SSH access to the target.${NC}"
-        echo -e "  ${CYAN}For Windows targets without SSH, select 'Uncredentialed' for OpenVAS.${NC}"
+        echo -e "  ${CYAN}For Windows targets without SSH, select 'Uncredentialed' for network-only scans.${NC}"
         echo -e "  ${CYAN}See: docs/WINDOWS-TARGET-SETUP.md${NC}"
         echo ""
         if [ -z "$REMOTE_USER" ]; then
