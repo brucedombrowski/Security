@@ -186,25 +186,25 @@ run_ssh_host_scans() {
                 echo "Collected: $timestamp"
                 echo ""
                 echo "--- System Information ---"
-                ssh_cmd "hostnamectl 2>/dev/null || hostname"
+                ssh_cmd "hostnamectl 2>/dev/null || hostname" || true
                 echo ""
                 echo "--- OS Release ---"
-                ssh_cmd "cat /etc/os-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null"
+                ssh_cmd "cat /etc/os-release 2>/dev/null || cat /etc/redhat-release 2>/dev/null || echo 'Unknown'" || true
                 echo ""
                 echo "--- CPU ---"
-                ssh_cmd "lscpu 2>/dev/null | head -20"
+                ssh_cmd "lscpu 2>/dev/null | head -20 || echo 'Unknown'" || true
                 echo ""
                 echo "--- Memory ---"
-                ssh_cmd "free -h 2>/dev/null"
+                ssh_cmd "free -h 2>/dev/null || echo 'Unknown'" || true
                 echo ""
                 echo "--- Disk ---"
-                ssh_cmd "df -h 2>/dev/null"
+                ssh_cmd "df -h 2>/dev/null || echo 'Unknown'" || true
                 echo ""
                 echo "--- Network Interfaces ---"
-                ssh_cmd "ip addr 2>/dev/null || ifconfig"
+                ssh_cmd "ip addr 2>/dev/null || ifconfig || echo 'Unknown'" || true
                 echo ""
                 echo "--- Installed Packages (sample) ---"
-                ssh_cmd "dpkg -l 2>/dev/null | head -50 || rpm -qa 2>/dev/null | head -50 || echo 'Package manager not found'"
+                ssh_cmd "dpkg -l 2>/dev/null | head -50 || rpm -qa 2>/dev/null | head -50 || echo 'Package manager not found'" || true
             } > "$inv_file" 2>&1
 
             print_success "Host inventory saved"
@@ -227,20 +227,20 @@ run_ssh_host_scans() {
             echo "Checked: $timestamp"
             echo ""
             echo "--- Listening Services ---"
-            ssh_cmd "ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null"
+            ssh_cmd "ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || echo 'Cannot list ports'" || true
             echo ""
             echo "--- Firewall Status ---"
-            ssh_cmd "sudo iptables -L -n 2>/dev/null || echo 'iptables not accessible'"
-            ssh_cmd "sudo ufw status 2>/dev/null || echo 'ufw not installed'"
+            ssh_cmd "sudo iptables -L -n 2>/dev/null || echo 'iptables not accessible'" || true
+            ssh_cmd "sudo ufw status 2>/dev/null || echo 'ufw not installed'" || true
             echo ""
             echo "--- SSH Configuration ---"
-            ssh_cmd "grep -E '^(PermitRootLogin|PasswordAuthentication|PubkeyAuthentication)' /etc/ssh/sshd_config 2>/dev/null"
+            ssh_cmd "grep -E '^(PermitRootLogin|PasswordAuthentication|PubkeyAuthentication)' /etc/ssh/sshd_config 2>/dev/null || echo 'Cannot read sshd_config'" || true
             echo ""
             echo "--- Users with Login Shell ---"
-            ssh_cmd "grep -v '/nologin\|/false' /etc/passwd | cut -d: -f1,7"
+            ssh_cmd "grep -v '/nologin\|/false' /etc/passwd 2>/dev/null | cut -d: -f1,7 || echo 'Cannot read passwd'" || true
             echo ""
             echo "--- Sudo Users ---"
-            ssh_cmd "getent group sudo wheel 2>/dev/null || echo 'No sudo/wheel group found'"
+            ssh_cmd "getent group sudo wheel 2>/dev/null || echo 'No sudo/wheel group found'" || true
         } > "$sec_file" 2>&1
 
         print_success "Security check saved"
@@ -267,22 +267,22 @@ run_ssh_host_scans() {
 
             if [ "$remote_os" = "Linux" ]; then
                 echo "--- systemd Sleep Targets ---"
-                ssh_cmd "systemctl is-enabled sleep.target suspend.target hibernate.target 2>/dev/null || echo 'systemctl not available'"
+                ssh_cmd "systemctl is-enabled sleep.target suspend.target hibernate.target 2>/dev/null || echo 'systemctl not available'" || true
                 echo ""
                 echo "--- logind.conf Settings ---"
-                ssh_cmd "grep -v '^#' /etc/systemd/logind.conf 2>/dev/null | grep -v '^$' || echo 'No custom settings'"
+                ssh_cmd "grep -v '^#' /etc/systemd/logind.conf 2>/dev/null | grep -v '^$' || echo 'No custom settings'" || true
                 echo ""
                 echo "--- Active Power Profile ---"
-                ssh_cmd "cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo 'N/A'"
+                ssh_cmd "cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo 'N/A'" || true
                 echo ""
                 echo "--- Screen Lock (GNOME) ---"
-                ssh_cmd "gsettings get org.gnome.desktop.session idle-delay 2>/dev/null || echo 'GNOME not available'"
+                ssh_cmd "gsettings get org.gnome.desktop.session idle-delay 2>/dev/null || echo 'GNOME not available'" || true
             elif [ "$remote_os" = "Darwin" ]; then
                 echo "--- pmset Settings ---"
-                ssh_cmd "pmset -g"
+                ssh_cmd "pmset -g || echo 'pmset not available'" || true
                 echo ""
                 echo "--- Screen Saver ---"
-                ssh_cmd "defaults -currentHost read com.apple.screensaver idleTime 2>/dev/null || echo 'Not set'"
+                ssh_cmd "defaults -currentHost read com.apple.screensaver idleTime 2>/dev/null || echo 'Not set'" || true
             else
                 echo "Unsupported OS for power settings check"
             fi
@@ -314,7 +314,7 @@ run_ssh_host_scans() {
                 echo "Mode: $LYNIS_MODE"
                 echo "Started: $timestamp"
                 echo ""
-                ssh_cmd "sudo lynis audit system $lynis_opts --no-colors 2>&1"
+                ssh_cmd "sudo lynis audit system $lynis_opts --no-colors 2>&1" || true
             } > "$lynis_file" 2>&1
 
             # Check for warnings/suggestions
