@@ -177,6 +177,16 @@ main() {
         echo "Auth mode: $AUTH_MODE (from config)"
     fi
 
+    # For remote scans, get host config BEFORE scan selection
+    # (scan selection displays the host name)
+    if [ "$SCAN_MODE" = "remote" ]; then
+        select_remote_config
+        if [ "$AUTH_MODE" = "uncredentialed" ]; then
+            print_warning "Remote uncredentialed scan: Only network-based checks available"
+            echo ""
+        fi
+    fi
+
     select_scans
 
     if [ "$SCAN_MODE" = "local" ]; then
@@ -204,12 +214,6 @@ main() {
             PRIVILEGE_LEVEL="admin"
         else
             PRIVILEGE_LEVEL="standard"
-        fi
-    else
-        select_remote_config
-        if [ "$AUTH_MODE" = "uncredentialed" ]; then
-            print_warning "Remote uncredentialed scan: Only network-based checks available"
-            echo ""
         fi
     fi
 
