@@ -135,11 +135,11 @@ run_host_scans() {
             echo "  Continuing with network-based scans (nmap, OpenVAS)..."
             echo ""
 
-            # Mark SSH scans as skipped
-            [ "$RUN_HOST_INVENTORY" = true ] && ((skipped++))
-            [ "$RUN_HOST_SECURITY" = true ] && ((skipped++))
-            [ "$RUN_HOST_POWER" = true ] && ((skipped++))
-            [ "$RUN_HOST_LYNIS" = true ] && ((skipped++))
+            # Mark SSH scans as skipped (use || true to prevent set -e exit on zero)
+            [ "$RUN_HOST_INVENTORY" = true ] && ((skipped++)) || true
+            [ "$RUN_HOST_SECURITY" = true ] && ((skipped++)) || true
+            [ "$RUN_HOST_POWER" = true ] && ((skipped++)) || true
+            [ "$RUN_HOST_LYNIS" = true ] && ((skipped++)) || true
         fi
     fi
 
