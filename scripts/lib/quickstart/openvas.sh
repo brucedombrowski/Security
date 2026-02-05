@@ -198,14 +198,15 @@ run_openvas_scan() {
     } > "$output_file"
 
     # Poll for completion
-    local status="Running"
+    local status="Queued"
     local progress=0
     local last_progress=-1
     local start_time=$(date +%s)
-    local timeout=1800  # 30 minute timeout
+    local timeout=3600  # 60 minute timeout for full scans
 
-    while [ "$status" = "Running" ] || [ "$status" = "Requested" ]; do
-        sleep 10
+    # Wait for scan to complete - check for active statuses
+    while [ "$status" = "Running" ] || [ "$status" = "Requested" ] || [ "$status" = "Queued" ] || [ "$status" = "New" ]; do
+        sleep 15
 
         local task_info
         task_info=$(gvm_docker_cmd "<get_tasks task_id=\"$task_id\"/>")
@@ -213,9 +214,11 @@ run_openvas_scan() {
         progress=$(echo "$task_info" | grep -o '<progress>[^<]*' | head -1 | sed 's/<progress>//' | cut -d'.' -f1)
 
         # Show progress if changed
-        if [ "$progress" != "$last_progress" ] && [ -n "$progress" ]; then
-            echo -ne "\r  Progress: ${progress}%   "
+        if [ -n "$progress" ] && [ "$progress" != "$last_progress" ]; then
+            echo -ne "\r  Progress: ${progress}% (status: $status)   "
             last_progress="$progress"
+        elif [ "$status" = "Queued" ]; then
+            echo -ne "\r  Waiting in queue...   "
         fi
 
         # Check timeout
