@@ -145,7 +145,7 @@ select_content_target_cli() {
     # Set project name from directory if not set
     if [ -z "$PROJECT_NAME" ]; then
         PROJECT_NAME=$(basename "$TARGET_DIR")
-        [ "$TARGET_DIR" = "/" ] && PROJECT_NAME="system-root"
+        [ "$TARGET_DIR" = "/" ] && PROJECT_NAME="system-root" || true
     fi
 
     TARGET_LOCATION="local"

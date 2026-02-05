@@ -305,7 +305,7 @@ run_ssh_host_scans() {
 
         if ssh_cmd "command -v lynis" &>/dev/null; then
             local lynis_opts="--quick"
-            [ "$LYNIS_MODE" = "full" ] && lynis_opts=""
+            [ "$LYNIS_MODE" = "full" ] && lynis_opts="" || true
 
             {
                 echo "Remote Lynis Security Audit"
@@ -356,9 +356,9 @@ run_network_host_scans() {
         local nmap_file="$output_dir/nmap-ports-$timestamp.txt"
 
         local nmap_args="-Pn"
-        [ "$RUN_NMAP_SERVICES" = true ] && nmap_args="$nmap_args -sV"
-        [ "$RUN_NMAP_OS" = true ] && nmap_args="$nmap_args -O"
-        [ "$RUN_NMAP_VULN" = true ] && nmap_args="$nmap_args --script vuln"
+        [ "$RUN_NMAP_SERVICES" = true ] && nmap_args="$nmap_args -sV" || true
+        [ "$RUN_NMAP_OS" = true ] && nmap_args="$nmap_args -O" || true
+        [ "$RUN_NMAP_VULN" = true ] && nmap_args="$nmap_args --script vuln" || true
 
         {
             echo "Nmap Scan Results"
