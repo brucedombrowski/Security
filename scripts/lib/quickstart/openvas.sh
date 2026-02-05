@@ -168,6 +168,48 @@ run_openvas_scan() {
     echo "  Type: $scan_type"
     echo ""
 
+    # Verify target is reachable before starting long scan
+    echo "  Verifying target reachability..."
+    local reachable=false
+    local open_ports=""
+
+    if command -v nmap &>/dev/null; then
+        # Quick port check (common Windows/Linux ports)
+        open_ports=$(nmap -Pn -p 22,135,139,443,445,3389 --open -T4 "$target_ip" 2>/dev/null | grep "open" | head -5)
+        if [ -n "$open_ports" ]; then
+            reachable=true
+            echo "  Target responding on:"
+            echo "$open_ports" | sed 's/^/    /'
+        fi
+    else
+        # Fallback: simple ping check
+        if ping -c 1 -W 3 "$target_ip" &>/dev/null; then
+            reachable=true
+            echo "  Target responds to ping"
+        fi
+    fi
+
+    if [ "$reachable" = false ]; then
+        echo ""
+        echo -e "  \033[1;33m[WARN]\033[0m Cannot verify target reachability"
+        echo "  No response on common ports (22, 135, 139, 443, 445, 3389)"
+        echo ""
+        echo "  Common causes:"
+        echo "    - Windows Firewall blocking connections"
+        echo "    - Target is offline or wrong IP"
+        echo "    - Network/routing issue"
+        echo ""
+        echo -n "  Continue with scan anyway? [y/N]: "
+        read -r confirm </dev/tty
+        if [[ ! "$confirm" =~ ^[Yy] ]]; then
+            echo "  Scan cancelled."
+            return 1
+        fi
+        echo ""
+    fi
+
+    echo ""
+
     # Get IDs
     echo "  Configuring scan..."
     local scanner_id
