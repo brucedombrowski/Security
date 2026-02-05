@@ -1289,11 +1289,9 @@ run_remote_ssh_scans() {
             else
                 echo "  Lynis full audit running (~10-15 minutes)..."
             fi
-            echo "  (You may be prompted for sudo password)"
 
-            # Run with TTY for sudo prompt, capture output
-            # Use col -b to strip escape codes if available
-            if ssh_cmd_sudo "sudo lynis audit system $lynis_opts 2>&1" > "$lynis_file.raw" 2>&1; then
+            # Run with TTY for sudo prompt, use tee to show AND save output
+            if ssh_cmd_sudo "sudo lynis audit system $lynis_opts" 2>&1 | tee "$lynis_file.raw"; then
                 # Strip terminal escape codes
                 if command -v col &>/dev/null; then
                     col -b < "$lynis_file.raw" > "$lynis_file"
@@ -1328,8 +1326,8 @@ run_remote_ssh_scans() {
                     else
                         echo "  Lynis full audit running (~10-15 minutes)..."
                     fi
-                    # Run with TTY for sudo, capture output
-                    if ssh_cmd_sudo "sudo lynis audit system $lynis_opts 2>&1" > "$lynis_file.raw" 2>&1; then
+                    # Run with TTY for sudo, use tee to show AND save output
+                    if ssh_cmd_sudo "sudo lynis audit system $lynis_opts" 2>&1 | tee "$lynis_file.raw"; then
                         if command -v col &>/dev/null; then
                             col -b < "$lynis_file.raw" > "$lynis_file"
                             rm -f "$lynis_file.raw"
