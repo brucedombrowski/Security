@@ -582,9 +582,20 @@ run_network_host_scans() {
         local nmap_file="$output_dir/nmap-ports-$timestamp.txt"
 
         local nmap_args="-Pn"
+        local needs_sudo=false
         [ "$RUN_NMAP_SERVICES" = true ] && nmap_args="$nmap_args -sV" || true
-        [ "$RUN_NMAP_OS" = true ] && nmap_args="$nmap_args -O" || true
+        if [ "$RUN_NMAP_OS" = true ]; then
+            nmap_args="$nmap_args -O"
+            needs_sudo=true
+        fi
         [ "$RUN_NMAP_VULN" = true ] && nmap_args="$nmap_args --script vuln" || true
+
+        # OS fingerprinting requires root - use sudo if needed
+        local nmap_cmd="nmap"
+        if [ "$needs_sudo" = true ]; then
+            echo "  (OS fingerprinting requires elevated privileges)"
+            nmap_cmd="sudo nmap"
+        fi
 
         {
             echo "Nmap Scan Results"
@@ -593,12 +604,16 @@ run_network_host_scans() {
             echo "Options: $nmap_args"
             echo "Started: $timestamp"
             echo ""
-            nmap $nmap_args "$TARGET_HOST" 2>&1
+            $nmap_cmd $nmap_args "$TARGET_HOST" 2>&1 || echo "Nmap scan completed with warnings"
         } > "$nmap_file"
 
         # Check for open ports
         local open_ports=$(grep -c "open" "$nmap_file" 2>/dev/null || echo "0")
-        print_success "Nmap found $open_ports open ports"
+        if [ "$open_ports" -gt 0 ]; then
+            print_success "Nmap found $open_ports open port(s)"
+        else
+            print_warning "Nmap found no open ports (host may be filtered)"
+        fi
         ((_HOST_PASSED++)) || true
     fi
 }
