@@ -45,7 +45,7 @@ nmap --version
 Connect the Ubuntu target to the internet (WiFi or Ethernet), open a terminal, and run **one command**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/brucedombrowski/security-toolkit/main/scripts/setup-target.sh | sudo bash
+wget -qO- https://raw.githubusercontent.com/brucedombrowski/security-toolkit/main/scripts/setup-target.sh | sudo bash
 ```
 
 This downloads the latest release, installs to `/opt/security-toolkit`, and runs all 8 preparation phases automatically: SSH setup, scan dependencies, open ports, planted findings, EICAR malware samples, outdated software, KEV-trigger packages, and verification manifest.

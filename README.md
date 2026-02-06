@@ -28,7 +28,7 @@ cd security-toolkit
 One command to configure an Ubuntu machine as a scan target with planted findings:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/brucedombrowski/security-toolkit/main/scripts/setup-target.sh | sudo bash
+wget -qO- https://raw.githubusercontent.com/brucedombrowski/security-toolkit/main/scripts/setup-target.sh | sudo bash
 ```
 
 See [docs/DEMO-CHEAT-SHEET.md](docs/DEMO-CHEAT-SHEET.md) for the full demo walkthrough.

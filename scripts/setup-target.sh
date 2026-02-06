@@ -3,7 +3,7 @@
 # One-Command Target Setup Bootstrap
 #
 # Purpose: Download latest toolkit release and configure Ubuntu target for demo
-# Usage:   curl -fsSL https://raw.githubusercontent.com/brucedombrowski/security-toolkit/main/scripts/setup-target.sh | sudo bash
+# Usage:   wget -qO- https://raw.githubusercontent.com/brucedombrowski/security-toolkit/main/scripts/setup-target.sh | sudo bash
 #
 # What this does:
 #   1. Downloads the latest release tarball from GitHub
@@ -126,7 +126,7 @@ main() {
 
     # Check root
     if [ "$(id -u)" -ne 0 ]; then
-        log_err "Must run as root. Use: curl ... | sudo bash"
+        log_err "Must run as root. Use: wget -qO- <url> | sudo bash"
         exit 1
     fi
 
@@ -149,10 +149,12 @@ main() {
     # Clone latest release
     log "Downloading latest toolkit release..."
 
-    # Get latest release tag
-    local tag
-    if command -v curl &>/dev/null; then
-        tag=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | grep '"tag_name"' | head -1 | cut -d'"' -f4)
+    # Get latest release tag (wget is available on stock Ubuntu, curl may not be)
+    local tag=""
+    if command -v wget &>/dev/null; then
+        tag=$(wget -qO- "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | grep '"tag_name"' | head -1 | cut -d'"' -f4) || true
+    elif command -v curl &>/dev/null; then
+        tag=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | grep '"tag_name"' | head -1 | cut -d'"' -f4) || true
     fi
 
     # Fallback to main if no release found
