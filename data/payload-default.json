@@ -70,5 +70,25 @@
   "apache": {
     "enabled": true,
     "start": true
+  },
+  "vpn": {
+    "enabled": false,
+    "mode": "tailscale",
+    "tailscale": {
+      "auth_key_env": "TS_AUTHKEY",
+      "auth_key": "",
+      "hostname": "demo-target",
+      "advertise_exit_node": false,
+      "accept_dns": false
+    },
+    "wireguard": {
+      "interface": "wg0",
+      "listen_port": 51820,
+      "tunnel_ip": "10.200.200.2/24",
+      "peer_tunnel_ip": "10.200.200.1/24",
+      "peer_endpoint": "",
+      "peer_public_key": "",
+      "persistent_keepalive": 25
+    }
   }
 }

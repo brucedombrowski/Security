@@ -193,7 +193,7 @@ main() {
     chmod +x "$prep_script"
 
     # Run the preparation script
-    log "Running target preparation (8 phases)..."
+    log "Running target preparation (9 phases)..."
     echo "" >> "$BOOTSTRAP_LOG"
     echo "# === $(basename "$prep_script") output ===" >> "$BOOTSTRAP_LOG"
 
@@ -213,12 +213,26 @@ main() {
          hostname -I 2>/dev/null | awk '{print $1}' || \
          echo "unknown")
 
+    # Check for VPN tunnel IP from prepare-payload.sh
+    local vpn_ip=""
+    if [ -f /tmp/demo-vpn-tunnel-ip ]; then
+        vpn_ip=$(cat /tmp/demo-vpn-tunnel-ip 2>/dev/null)
+    fi
+
     # Display IP in giant banner
     echo ""
     echo -e "${BOLD}══════════════════════════════════════════════════${NC}"
-    echo -e "${BOLD}  SCAN THIS TARGET FROM KALI:${NC}"
-    display_large_ip "$ip"
-    echo -e "  ${BOLD}SSH:${NC}  ssh $(whoami)@${ip}"
+    if [ -n "$vpn_ip" ]; then
+        echo -e "${BOLD}  SCAN THIS TARGET VIA VPN TUNNEL:${NC}"
+        display_large_ip "$vpn_ip"
+        echo -e "  ${BOLD}SSH:${NC}  ssh payload@${vpn_ip}"
+        echo ""
+        echo -e "  ${BOLD}LAN IP (secondary):${NC}  $ip"
+    else
+        echo -e "${BOLD}  SCAN THIS TARGET FROM KALI:${NC}"
+        display_large_ip "$ip"
+        echo -e "  ${BOLD}SSH:${NC}  ssh $(whoami)@${ip}"
+    fi
     echo ""
     echo -e "  ${BOLD}Logs:${NC}"
     echo -e "    Bootstrap: $BOOTSTRAP_LOG"
@@ -230,6 +244,9 @@ main() {
     echo "" >> "$BOOTSTRAP_LOG"
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] [DONE] Bootstrap complete" >> "$BOOTSTRAP_LOG"
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] [DONE] Target IP: $ip" >> "$BOOTSTRAP_LOG"
+    if [ -n "$vpn_ip" ]; then
+        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] [DONE] VPN Tunnel IP: $vpn_ip" >> "$BOOTSTRAP_LOG"
+    fi
 }
 
 main "$@"

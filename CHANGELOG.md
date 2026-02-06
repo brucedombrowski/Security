@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-02-06
+
+### Added
+
+- **WireGuard VPN for Remote Scanning** (`scripts/vpn-connect.sh`)
+  - Tailscale mode (recommended): automatic NAT traversal, one-command install, free tier
+  - Raw WireGuard mode: for lab/VPS setups where at least one side has a reachable IP
+  - New `vpn` section in `data/payload-default.json` (disabled by default — no change for existing users)
+  - Target side (`prepare-payload.sh`): auto-installs Tailscale or WireGuard, generates keys, displays tunnel IP on TARGET READY screen
+  - Scanner side (`scripts/vpn-connect.sh`): interactive helper for Tailscale check/start and WireGuard key exchange
+  - Bootstrap (`setup-target.sh`): shows VPN tunnel IP in large ASCII banner when VPN is active
+  - Auth key via `TS_AUTHKEY` env var (never written to disk); supports ephemeral single-use keys
+  - VPN cleanup integrated into `--cleanup` mode (tears down Tailscale and WireGuard interfaces)
+  - Phase numbering updated: VPN is Phase 2, subsequent phases renumbered 3-9
+  - Updated `docs/DEMO-CHEAT-SHEET.md` with VPN topology, setup instructions, and troubleshooting
+
 ## [Unreleased]
 
 ### Security
@@ -1408,7 +1424,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FIPS 199 (Standards for Security Categorization)
 - FIPS 200 (Minimum Security Requirements)
 
-[Unreleased]: https://github.com/brucedombrowski/security-toolkit/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/brucedombrowski/security-toolkit/compare/v2.7.0...HEAD
+[2.7.0]: https://github.com/brucedombrowski/security-toolkit/releases/tag/v2.7.0
 [2.4.0]: https://github.com/brucedombrowski/security-toolkit/releases/tag/v2.4.0
 [2.3.0]: https://github.com/brucedombrowski/security-toolkit/releases/tag/v2.3.0
 [2.2.1]: https://github.com/brucedombrowski/security-toolkit/releases/tag/v2.2.1

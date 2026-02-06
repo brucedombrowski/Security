@@ -4,6 +4,8 @@ Quick reference for demonstrating the Security Verification Toolkit scanning a l
 
 ## Topology
 
+### Same Network (LAN)
+
 ```
 ┌──────────────────────┐         SSH          ┌──────────────────────┐
 │    Kali (Scanner)     │ ──────────────────►  │   Ubuntu (Target)    │
@@ -11,6 +13,18 @@ Quick reference for demonstrating the Security Verification Toolkit scanning a l
 │  ~/Security/          │                      │  Live boot           │
 │  QuickStart.sh        │                      │  Internet access     │
 │  .scans/ (output)     │                      │  Fresh install       │
+└──────────────────────┘                       └──────────────────────┘
+```
+
+### Different Networks (VPN)
+
+```
+┌──────────────────────┐    Tailscale or      ┌──────────────────────┐
+│    Kali (Scanner)     │    WireGuard VPN     │   Ubuntu (Target)    │
+│                       │ ◄═══════════════════►│                      │
+│  ~/Security/          │    NAT traversal     │  Live boot           │
+│  vpn-connect.sh       │    (encrypted)       │  Internet access     │
+│  .scans/ (output)     │                      │  Auto VPN setup      │
 └──────────────────────┘                       └──────────────────────┘
 ```
 
@@ -23,7 +37,8 @@ Quick reference for demonstrating the Security Verification Toolkit scanning a l
 | Kali | `pdflatex` installed (for attestation PDF) |
 | Ubuntu | SSH server running (setup script handles this) |
 | Ubuntu | `payload` user with sudo access (setup script creates this) |
-| Network | Kali can reach Ubuntu over SSH (port 22) |
+| Network | Kali can reach Ubuntu over SSH (port 22) — LAN or VPN |
+| VPN (optional) | Tailscale account with auth key, or a reachable IP for WireGuard |
 
 ## Pre-Demo Checklist
 
@@ -70,6 +85,77 @@ See [DEMO-PLANTED-FINDINGS.md](DEMO-PLANTED-FINDINGS.md) for details on what get
 All commands are logged to:
 - `/tmp/demo-target-bootstrap.log` — bootstrap/download log
 - `/tmp/demo-payload-setup.log` — phase-by-phase setup log
+
+## VPN Setup (When Scanner and Target Are on Different Networks)
+
+Use VPN when the scanner (Kali) and target (Ubuntu) are behind different NATs / on different networks.
+
+### Option A: Tailscale (Recommended for NAT)
+
+Tailscale handles NAT traversal automatically. Free tier supports up to 100 devices.
+
+**One-time setup (instructor):**
+1. Create a Tailscale account at https://login.tailscale.com
+2. Generate an ephemeral, single-use auth key at **Settings > Keys > Generate auth key**
+   - Check: **Ephemeral** (auto-expires)
+   - Check: **Single use** (can't be reused)
+
+**On Kali (scanner):**
+```bash
+# Install Tailscale (if not already installed)
+curl -fsSL https://tailscale.com/install.sh | sh
+
+# Connect to Tailnet
+sudo tailscale up
+
+# Or use the helper script
+./scripts/vpn-connect.sh tailscale
+```
+
+**On Ubuntu (target) — one-liner with auth key:**
+```bash
+TS_AUTHKEY=tskey-auth-XXXX wget -qO- https://raw.githubusercontent.com/<repo>/main/scripts/setup-target.sh | sudo bash
+```
+
+The target setup script installs Tailscale, connects with the auth key, and displays the Tailscale IP on the TARGET READY screen.
+
+**Enable VPN in config** (if using a custom JSON config):
+```json
+{
+  "vpn": {
+    "enabled": true,
+    "mode": "tailscale"
+  }
+}
+```
+
+### Option B: Raw WireGuard (When One Side Has a Reachable IP)
+
+Use when at least one side has a public IP or port-forwarded port (lab, VPS).
+
+**On Ubuntu (target):**
+
+Set `vpn.enabled: true` and `vpn.mode: "wireguard"` in the payload config, with `peer_endpoint` pointing to the scanner's reachable IP. Run the one-liner. The TARGET READY screen shows the target's public key.
+
+**On Kali (scanner):**
+```bash
+./scripts/vpn-connect.sh wireguard
+```
+
+The script prompts for the target's public key and endpoint, generates a local keypair, creates the tunnel, and displays the scanner's public key.
+
+**Key exchange (2-step):**
+1. Target generates keys, displays public key + endpoint on TARGET READY screen
+2. Scanner operator runs `vpn-connect.sh wireguard`, enters target info, gets own public key
+3. Target operator adds scanner's public key: `sudo wg set wg0 peer <key> allowed-ips 10.200.200.1/32`
+4. Tunnel is up — verify with `ping 10.200.200.2`
+
+### Auth Key Security
+
+- The `auth_key` field in the default JSON is always empty — never commit real keys
+- Use the `TS_AUTHKEY` environment variable (never written to disk)
+- Use **ephemeral + single-use** auth keys (auto-expire, can't be reused)
+- Live boot destroys everything on reboot
 
 ## Demo Flow (On Kali)
 
@@ -174,6 +260,9 @@ Remove packages installed during scan (ClamAV, Lynis)? [y/N] → y
 | ClamAV database missing | `sudo freshclam` on target (requires internet) |
 | pdflatex not found | `sudo apt install texlive-latex-base` on Kali |
 | Script hangs on input | Ensure `/dev/tty` fixes are applied (#134) |
+| Tailscale auth key rejected | Generate a new key — single-use keys expire after one use |
+| WireGuard tunnel no traffic | Ensure peer public keys are exchanged on both sides |
+| Can't reach target over VPN | Verify both sides show tunnel IP: `tailscale ip` or `wg show` |
 
 ## Cleanup After Demo
 

@@ -37,6 +37,12 @@ CONFIG_FILE=""
 DEMO_PORTS=()
 DEMO_HTTP_PORT=""
 
+# VPN state
+VPN_TUNNEL_IP=""
+VPN_PUBLIC_KEY=""
+VPN_MODE=""
+VPN_STATE_FILE="/tmp/demo-vpn-tunnel-ip"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -200,6 +206,18 @@ cleanup() {
     crontab -r 2>/dev/null || true
     log_success "Removed demo crontab"
 
+    # Tear down VPN interfaces
+    if command -v tailscale &>/dev/null; then
+        tailscale down 2>/dev/null || true
+        tailscale logout 2>/dev/null || true
+        log_success "Tailscale disconnected"
+    fi
+    for wg_iface in $(ip link show type wireguard 2>/dev/null | grep -oP '^\d+: \K[^:]+' || true); do
+        wg-quick down "$wg_iface" 2>/dev/null || true
+        log_success "WireGuard interface $wg_iface removed"
+    done
+    rm -f "$VPN_STATE_FILE" 2>/dev/null || true
+
     # Restore SSH config
     rm -f /etc/ssh/sshd_config.d/demo-target.conf 2>/dev/null || true
     if [ -f /etc/ssh/sshd_config.demo-backup ]; then
@@ -303,7 +321,190 @@ SSHCONF
 }
 
 # ============================================================================
-# Phase 2: Scan Dependencies (ClamAV, tools)
+# Phase 2: VPN Tunnel (optional)
+# ============================================================================
+
+setup_vpn_tailscale() {
+    log_step "Setting up Tailscale VPN..."
+
+    # Install Tailscale
+    if ! command -v tailscale &>/dev/null; then
+        log_step "Installing Tailscale..."
+        if wget -qO- https://tailscale.com/install.sh 2>/dev/null | sh >> "$LOG_FILE" 2>&1; then
+            log_success "Tailscale installed"
+        elif wget --no-check-certificate -qO- https://tailscale.com/install.sh 2>/dev/null | sh >> "$LOG_FILE" 2>&1; then
+            log_success "Tailscale installed (--no-check-certificate fallback)"
+        else
+            log_error "Failed to install Tailscale"
+            return 1
+        fi
+    else
+        log_success "Tailscale already installed"
+    fi
+
+    # Get auth key: env var takes priority over config field
+    local auth_key_env
+    auth_key_env=$(cfg ".vpn.tailscale.auth_key_env")
+    local auth_key=""
+
+    if [ -n "$auth_key_env" ] && [ -n "${!auth_key_env:-}" ]; then
+        auth_key="${!auth_key_env}"
+        log_success "Auth key found in \$$auth_key_env"
+    else
+        auth_key=$(cfg ".vpn.tailscale.auth_key")
+    fi
+
+    if [ -z "$auth_key" ]; then
+        log_error "No Tailscale auth key provided"
+        log_error "Set TS_AUTHKEY env var or vpn.tailscale.auth_key in config"
+        return 1
+    fi
+
+    # Build tailscale up args
+    local ts_hostname
+    ts_hostname=$(cfg ".vpn.tailscale.hostname")
+    local ts_args="--authkey=$auth_key"
+    [ -n "$ts_hostname" ] && ts_args="$ts_args --hostname=$ts_hostname"
+    cfg_bool ".vpn.tailscale.advertise_exit_node" && ts_args="$ts_args --advertise-exit-node"
+    cfg_bool ".vpn.tailscale.accept_dns" || ts_args="$ts_args --accept-dns=false"
+
+    log_step "Connecting to Tailnet..."
+    if tailscale up $ts_args >> "$LOG_FILE" 2>&1; then
+        log_success "Tailscale connected"
+    else
+        log_error "tailscale up failed — check auth key"
+        return 1
+    fi
+
+    # Wait for IP assignment (up to 30s)
+    local ts_ip="" wait_count=0
+    while [ -z "$ts_ip" ] && [ "$wait_count" -lt 30 ]; do
+        ts_ip=$(tailscale ip -4 2>/dev/null || true)
+        if [ -z "$ts_ip" ]; then
+            sleep 1
+            wait_count=$((wait_count + 1))
+        fi
+    done
+
+    if [ -z "$ts_ip" ]; then
+        log_error "Tailscale IP not assigned after 30s"
+        return 1
+    fi
+
+    VPN_TUNNEL_IP="$ts_ip"
+    VPN_MODE="tailscale"
+    log_success "Tailscale IP: $ts_ip (hostname: ${ts_hostname:-$(hostname)})"
+}
+
+setup_vpn_wireguard() {
+    log_step "Setting up WireGuard VPN..."
+
+    # Install wireguard-tools
+    if ! command -v wg &>/dev/null; then
+        log_step "Installing wireguard-tools..."
+        apt-get update -qq
+        if apt-get install -y -qq wireguard-tools 2>/dev/null; then
+            log_success "wireguard-tools installed"
+        else
+            log_error "Failed to install wireguard-tools"
+            return 1
+        fi
+    else
+        log_success "wireguard-tools already installed"
+    fi
+
+    # Read config values
+    local wg_iface wg_port tunnel_ip peer_tunnel_ip peer_endpoint peer_pubkey keepalive
+    wg_iface=$(cfg ".vpn.wireguard.interface")
+    wg_iface="${wg_iface:-wg0}"
+    wg_port=$(cfg_num ".vpn.wireguard.listen_port" 51820)
+    tunnel_ip=$(cfg ".vpn.wireguard.tunnel_ip")
+    tunnel_ip="${tunnel_ip:-10.200.200.2/24}"
+    peer_tunnel_ip=$(cfg ".vpn.wireguard.peer_tunnel_ip")
+    peer_tunnel_ip="${peer_tunnel_ip:-10.200.200.1/24}"
+    peer_endpoint=$(cfg ".vpn.wireguard.peer_endpoint")
+    peer_pubkey=$(cfg ".vpn.wireguard.peer_public_key")
+    keepalive=$(cfg_num ".vpn.wireguard.persistent_keepalive" 25)
+
+    # Generate fresh keys each run
+    local privkey pubkey
+    privkey=$(wg genkey)
+    pubkey=$(echo "$privkey" | wg pubkey)
+    log_success "Generated WireGuard keypair"
+
+    # Write config
+    mkdir -p /etc/wireguard
+    local conf_file="/etc/wireguard/${wg_iface}.conf"
+    {
+        echo "[Interface]"
+        echo "PrivateKey = $privkey"
+        echo "Address = $tunnel_ip"
+        echo "ListenPort = $wg_port"
+        echo ""
+        echo "[Peer]"
+        [ -n "$peer_pubkey" ] && echo "PublicKey = $peer_pubkey"
+        [ -n "$peer_endpoint" ] && echo "Endpoint = $peer_endpoint"
+        # Extract just the IP from peer_tunnel_ip (strip CIDR)
+        local peer_ip_only="${peer_tunnel_ip%%/*}"
+        echo "AllowedIPs = ${peer_ip_only}/32"
+        echo "PersistentKeepalive = $keepalive"
+    } > "$conf_file"
+    chmod 600 "$conf_file"
+    log_success "WireGuard config written: $conf_file"
+
+    # Open firewall port if ufw is active
+    if command -v ufw &>/dev/null && ufw status 2>/dev/null | grep -q "active"; then
+        ufw allow "${wg_port}/udp" >> "$LOG_FILE" 2>&1 || true
+        log_success "Firewall: allowed ${wg_port}/udp"
+    fi
+
+    # Bring up interface
+    if wg-quick up "$wg_iface" >> "$LOG_FILE" 2>&1; then
+        log_success "WireGuard interface $wg_iface is up"
+    else
+        log_error "wg-quick up $wg_iface failed"
+        return 1
+    fi
+
+    # Extract tunnel IP without CIDR for display
+    VPN_TUNNEL_IP="${tunnel_ip%%/*}"
+    VPN_PUBLIC_KEY="$pubkey"
+    VPN_MODE="wireguard"
+    log_success "WireGuard tunnel IP: $VPN_TUNNEL_IP (pubkey: $pubkey)"
+}
+
+setup_vpn() {
+    if ! cfg_bool ".vpn.enabled"; then
+        log_warn "VPN: skipped (disabled in config)"
+        return
+    fi
+
+    local mode
+    mode=$(cfg ".vpn.mode")
+    mode="${mode:-tailscale}"
+
+    case "$mode" in
+        tailscale)
+            setup_vpn_tailscale
+            ;;
+        wireguard)
+            setup_vpn_wireguard
+            ;;
+        *)
+            log_error "Unknown VPN mode: $mode (expected: tailscale or wireguard)"
+            return 1
+            ;;
+    esac
+
+    # Write state file for setup-target.sh
+    if [ -n "$VPN_TUNNEL_IP" ]; then
+        echo "$VPN_TUNNEL_IP" > "$VPN_STATE_FILE"
+        log_success "VPN tunnel IP written to $VPN_STATE_FILE"
+    fi
+}
+
+# ============================================================================
+# Phase 3: Scan Dependencies (ClamAV, tools)  [was Phase 2]
 # ============================================================================
 
 install_scan_deps() {
@@ -371,7 +572,12 @@ install_scan_deps() {
                 if tar xzf /tmp/lynis.tar.gz -C /opt/ 2>>"$LOG_FILE"; then
                     mv /opt/lynis-master /opt/lynis 2>/dev/null || true
                     chmod +x /opt/lynis/lynis
-                    ln -sf /opt/lynis/lynis /usr/local/bin/lynis
+                    # Lynis must run from its own directory; create a wrapper
+                    cat > /usr/local/bin/lynis <<'WRAPPER'
+#!/bin/bash
+cd /opt/lynis && ./lynis "$@"
+WRAPPER
+                    chmod +x /usr/local/bin/lynis
                     rm -f /tmp/lynis.tar.gz
                     log_success "Lynis installed (/opt/lynis from GitHub tarball)"
                 else
@@ -403,7 +609,7 @@ install_scan_deps() {
 }
 
 # ============================================================================
-# Phase 3: Open Ports
+# Phase 4: Open Ports  [was Phase 3]
 # ============================================================================
 
 open_demo_ports() {
@@ -486,7 +692,7 @@ open_demo_ports() {
 }
 
 # ============================================================================
-# Phase 4: Plant Findings
+# Phase 5: Plant Findings  [was Phase 4]
 # ============================================================================
 
 plant_pii() {
@@ -645,7 +851,7 @@ plant_findings() {
 }
 
 # ============================================================================
-# Phase 5: Malware Samples
+# Phase 6: Malware Samples  [was Phase 5]
 # ============================================================================
 
 plant_malware_samples() {
@@ -733,7 +939,7 @@ plant_malware_samples() {
 }
 
 # ============================================================================
-# Phase 6: Outdated Software (browsers + tools from config)
+# Phase 7: Outdated Software (browsers + tools from config)  [was Phase 6]
 # ============================================================================
 
 install_outdated_software() {
@@ -760,7 +966,7 @@ install_outdated_software() {
 }
 
 # ============================================================================
-# Phase 7: KEV Triggers
+# Phase 8: KEV Triggers  [was Phase 7]
 # ============================================================================
 
 plant_kev_triggers() {
@@ -828,7 +1034,7 @@ plant_kev_triggers() {
 }
 
 # ============================================================================
-# Phase 8: Verification Manifest
+# Phase 9: Verification Manifest  [was Phase 8]
 # ============================================================================
 
 generate_manifest() {
@@ -1083,37 +1289,42 @@ main() {
     setup_ssh
     echo ""
 
-    echo -e "${BOLD}Phase 2: Scan Dependencies${NC}"
+    echo -e "${BOLD}Phase 2: VPN Tunnel${NC}"
+    echo "-------------------"
+    setup_vpn
+    echo ""
+
+    echo -e "${BOLD}Phase 3: Scan Dependencies${NC}"
     echo "-------------------------"
     install_scan_deps
     echo ""
 
-    echo -e "${BOLD}Phase 3: Attack Surface (ports from config)${NC}"
+    echo -e "${BOLD}Phase 4: Attack Surface (ports from config)${NC}"
     echo "--------------------------------------------"
     open_demo_ports
     echo ""
 
-    echo -e "${BOLD}Phase 4: Planted Findings (from config)${NC}"
+    echo -e "${BOLD}Phase 5: Planted Findings (from config)${NC}"
     echo "---------------------------------------"
     plant_findings
     echo ""
 
-    echo -e "${BOLD}Phase 5: Malware Samples${NC}"
+    echo -e "${BOLD}Phase 6: Malware Samples${NC}"
     echo "------------------------"
     plant_malware_samples
     echo ""
 
-    echo -e "${BOLD}Phase 6: Outdated Software${NC}"
+    echo -e "${BOLD}Phase 7: Outdated Software${NC}"
     echo "--------------------------"
     install_outdated_software
     echo ""
 
-    echo -e "${BOLD}Phase 7: KEV Triggers${NC}"
+    echo -e "${BOLD}Phase 8: KEV Triggers${NC}"
     echo "---------------------"
     plant_kev_triggers
     echo ""
 
-    echo -e "${BOLD}Phase 8: Verification Manifest${NC}"
+    echo -e "${BOLD}Phase 9: Verification Manifest${NC}"
     echo "------------------------------"
     generate_manifest
     echo ""
@@ -1155,6 +1366,26 @@ main() {
             u=$((u + 1))
         done
     fi
+    if [ -n "$VPN_MODE" ]; then
+        echo ""
+        echo -e "  ${BOLD}VPN Tunnel:${NC}"
+        echo -e "    ${GREEN}→${NC} Mode:       ${BOLD}${VPN_MODE}${NC}"
+        echo -e "    ${GREEN}→${NC} Tunnel IP:  ${BOLD}${VPN_TUNNEL_IP}${NC}"
+        if [ "$VPN_MODE" = "tailscale" ]; then
+            local ts_host
+            ts_host=$(cfg ".vpn.tailscale.hostname")
+            echo -e "    ${GREEN}→${NC} Hostname:   ${BOLD}${ts_host:-$(hostname)}${NC}"
+            echo -e "    ${YELLOW}→${NC} Scanner:    Run ${BOLD}tailscale up${NC} on scanner (same Tailnet)"
+        elif [ "$VPN_MODE" = "wireguard" ]; then
+            local wg_port_display wg_iface_display
+            wg_port_display=$(cfg_num ".vpn.wireguard.listen_port" 51820)
+            wg_iface_display=$(cfg ".vpn.wireguard.interface")
+            echo -e "    ${GREEN}→${NC} Public Key: ${BOLD}${VPN_PUBLIC_KEY}${NC}"
+            echo -e "    ${GREEN}→${NC} Listen:     ${BOLD}${wg_port_display}/udp${NC}"
+            echo -e "    ${GREEN}→${NC} Interface:  ${BOLD}${wg_iface_display:-wg0}${NC}"
+            echo -e "    ${YELLOW}→${NC} Scanner:    Run ${BOLD}./scripts/vpn-connect.sh wireguard${NC}"
+        fi
+    fi
     if cfg_bool ".apache.enabled" && command -v apache2 &>/dev/null; then
         echo -e "  ${BOLD}Apache:${NC}           Port 80 (KEV trigger)"
     fi
@@ -1188,9 +1419,15 @@ main() {
     echo -e "    cat $LOG_FILE"
     echo ""
     echo -e "  ${BOLD}From Kali scanner:${NC}"
-    echo -e "    ./scripts/run-all-scans.sh $DEMO_DIR"
-    echo -e "    ${BOLD}OR${NC}"
-    echo -e "    ./QuickStart.sh → Remote → $ip"
+    if [ -n "$VPN_TUNNEL_IP" ]; then
+        echo -e "    ./QuickStart.sh → Remote → ${BOLD}${VPN_TUNNEL_IP}${NC} (via $VPN_MODE)"
+        echo -e "    ${BOLD}OR${NC}"
+        echo -e "    ./QuickStart.sh → Remote → $ip (LAN)"
+    else
+        echo -e "    ./scripts/run-all-scans.sh $DEMO_DIR"
+        echo -e "    ${BOLD}OR${NC}"
+        echo -e "    ./QuickStart.sh → Remote → $ip"
+    fi
     echo ""
     echo -e "  ${BOLD}Cleanup:${NC}"
     echo -e "    sudo $0 --cleanup"
