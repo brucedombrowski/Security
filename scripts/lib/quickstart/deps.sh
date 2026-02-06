@@ -183,6 +183,23 @@ check_dependencies() {
             missing_local+=("${DEPS_LOCAL_PKG[$i]}")
         fi
     done
+
+    # Check ClamAV database if ClamAV is installed
+    if command -v clamscan &>/dev/null; then
+        if ! clamscan --version 2>&1 | grep -qi "bytecode\|signatures"; then
+            # Double-check by looking for database files
+            local db_found=false
+            for db_path in /var/lib/clamav /opt/homebrew/var/lib/clamav /usr/local/var/lib/clamav; do
+                if [ -f "$db_path/main.cvd" ] || [ -f "$db_path/main.cld" ]; then
+                    db_found=true
+                    break
+                fi
+            done
+            if [ "$db_found" = false ]; then
+                print_warning "ClamAV database missing - run 'sudo freshclam' to download"
+            fi
+        fi
+    fi
     echo ""
 
     # Check remote scanning dependencies
