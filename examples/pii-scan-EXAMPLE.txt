@@ -6,20 +6,20 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    91189868c4e34aac...                                       #
+#  Source SHA256:    e5f2707c376e632a...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    d42c54e5d15a5782...                                       #
-#  Redacted:         2026-02-05T21:52:02Z                                       #
+#  Redacted:         2026-02-06T05:26:28Z                                       #
 #                                                                              #
 ################################################################################
 
 # Host Inventory Reference: [CHECKSUM_REDACTED]
-# Scan Timestamp: 2026-02-05T[REDACTED]Z
+# Scan Timestamp: 2026-02-06T[REDACTED]Z
 
 PII Verification Scan
 =====================
-Timestamp: 2026-02-05T[REDACTED]Z
-Toolkit: Security Verification Toolkit v2.4.0 (95c61da)
+Timestamp: 2026-02-06T[REDACTED]Z
+Toolkit: Security Verification Toolkit v2.5.0 (bb8edcb)
 Target: /Users/[REDACTED]
 Repository: Security
 
@@ -51,7 +51,9 @@ Checking: International Phone Numbers
 Checking: Social Security Numbers
 /Users/[REDACTED]  Test 10: Detect valid SSN format (123-45-6789)... [0;32mPASS[0m
 /Users/[REDACTED]  Test 11: Detect SSN in text (SSN: 123-45-6789)... [0;32mPASS[0m
-  Result: REVIEW - 2 new match(es) found
+/Users/[REDACTED] 'admin@[REDACTED]', '$2b$12$EXAMPLEHASHnotreal', '078-05-1120'),
+/Users/[REDACTED] 'user@[REDACTED]', '$2b$12$ANOTHEREXAMPLEhash', '219-09-9999');
+  Result: REVIEW - 4 new match(es) found
 Checking: Credit Card Numbers (Luhn validated)
   /Users/[REDACTED] 4111-1111-1111-1111 (Luhn valid)
   /Users/[REDACTED] 5500 0000 0000 0004 (Luhn valid)
@@ -63,7 +65,7 @@ Checking: Credit Card Numbers (Luhn validated)
   /Users/[REDACTED] 5500000000000004 (Luhn valid)
   /Users/[REDACTED] 0000000000000000 (Luhn valid)
   /Users/[REDACTED] 0000000000000000 (Luhn valid)
-  Result: REVIEW - 38 valid card(s) found (6 filtered by Luhn)
+  Result: REVIEW - 38 valid card(s) found (7 filtered by Luhn)
 
 =====================
 Allowlist: /Users/[REDACTED] (74 entries)

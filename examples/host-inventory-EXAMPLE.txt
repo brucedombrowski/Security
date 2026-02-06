@@ -6,10 +6,10 @@
 #  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
 #  has been replaced with [REDACTED] placeholders.                             #
 #                                                                              #
-#  Source SHA256:    e140429671ccc920...                                       #
+#  Source SHA256:    f3f355da6c1ab96a...                                       #
 #  Redaction Script: scripts/redact-examples.sh                                #
 #  Script SHA256:    d42c54e5d15a5782...                                       #
-#  Redacted:         2026-02-05T21:52:02Z                                       #
+#  Redacted:         2026-02-06T05:26:28Z                                       #
 #                                                                              #
 ################################################################################
 
@@ -27,7 +27,7 @@ Host System Inventory
 =====================
 Generated: [REDACTED]
 Hostname: [REDACTED]
-Toolkit: Security Verification Toolkit v2.4.0 (95c61da)
+Toolkit: Security Verification Toolkit v2.5.0 (bb8edcb)
 Source: https://[REDACTED]/brucedombrowski/Security
 
 HANDLING NOTICE:
@@ -88,23 +88,29 @@ Security Tools:
 ---------------
   ClamAV: [REDACTED]
   OpenSSL: [REDACTED]
+installed
   SSH: [REDACTED]
   GPG: [REDACTED]
   Git: [REDACTED]
+installed
 
 Programming Languages:
 ----------------------
   Python: [REDACTED]
   Node.js: [REDACTED]
+installed
   Java: [REDACTED]
   .NET: [REDACTED]
+installed
   Ruby: [REDACTED]
+installed
   Go: [REDACTED]
   Rust: [REDACTED]
   Perl: [REDACTED]
   PHP: [REDACTED]
   Bash: [REDACTED]
   Zsh: [REDACTED]
+installed
   Lua: [REDACTED]
   R: [REDACTED]
   Swift: [REDACTED]
@@ -203,6 +209,7 @@ Containers and Virtualization:
   Minikube: [REDACTED]
   Helm: [REDACTED]
   Vagrant: [REDACTED]
+installed
   VirtualBox: [REDACTED]
   VMware Fusion: [REDACTED]
   Parallels Desktop: [REDACTED]
@@ -220,6 +227,7 @@ Database Servers:
   PostgreSQL: [REDACTED]
   MySQL: [REDACTED]
   SQLite: [REDACTED]
+installed
   MongoDB: [REDACTED]
   Redis: [REDACTED]
 
