@@ -20,10 +20,21 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     exit 1
 fi
 
+# Apply version output filter safely (no eval)
+# Supports: "cat", "head -1", "head -n 1"
+# Unknown filters fall back to "head -1"
+_apply_version_filter() {
+    case "$1" in
+        cat)                    cat ;;
+        "head -1"|"head -n 1") head -1 ;;
+        *)                     head -1 ;;
+    esac
+}
+
 # Detect CLI tool version
 # Usage: detect_tool "name" "command" ["version_args"] ["version_filter"]
 # Example: detect_tool "Python" "python3" "--version"
-# Example: detect_tool "Perl" "perl" "--version" "grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1"
+# Example: detect_tool "Perl" "perl" "--version" "head -1"
 detect_tool() {
     local name="$1"
     local cmd="$2"
@@ -32,7 +43,7 @@ detect_tool() {
 
     if command -v "$cmd" >/dev/null 2>&1; then
         local version
-        version=$("$cmd" $args 2>/dev/null | eval "$filter" 2>/dev/null || echo "installed")
+        version=$("$cmd" $args 2>/dev/null | _apply_version_filter "$filter" 2>/dev/null || echo "installed")
         output "  $name: $version"
     else
         output "  $name: not installed"
