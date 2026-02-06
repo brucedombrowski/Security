@@ -1,5 +1,17 @@
 # Bash `set -e` and Arithmetic Pitfalls
 
+## Executive Summary
+
+**Risk: Silent scan failure creating false assurance of security.**
+
+Bash's `set -e` (exit on error) interacts with arithmetic operations in a way that silently kills scripts when counter variables are zero. The expression `((count++))` returns exit code 1 when `count=0`, causing `set -e` to terminate the script with no error message. Security scans appear to complete cleanly with zero findings when they actually crashed mid-run.
+
+**Impact:** Incomplete scans that look like clean scans. This is a **false assurance vulnerability** — stakeholders believe a system passed verification when it was never fully scanned. In federal compliance contexts (NIST 800-53, 800-171), this undermines the integrity of security attestations.
+
+**Fix:** Replace all `((count++))` with `count=$((count + 1))`. Variable assignment always returns exit code 0, eliminating the interaction. See [Safe Patterns](#safe-patterns) below.
+
+---
+
 ## Overview
 
 Every script in this toolkit uses `set -e` (exit on error). This document explains a recurring class of bugs caused by the interaction between `set -e` and Bash arithmetic operations, and how to avoid them.
