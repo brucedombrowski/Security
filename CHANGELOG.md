@@ -62,9 +62,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Fix interactive read hangs when stdin is piped** (#134)
+  - Add `</dev/tty` to interactive prompts in `run-all-scans.sh`, `check-malware.sh`, `pre-scan-cleanup.sh`, `purge-git-history.sh`, `secure-delete.sh`, `upgrade.sh`
+  - Add `TESTING` env var bypass for test harness compatibility
+
+- **Fix grep -c fallback returning empty string** (#144)
+  - Replace `|| true` with `|| echo "0"` in `check-malware.sh` and `check-host-security.sh`
+  - Prevents integer comparison failure under `set -e`
+
 - **Interactive Prompt Safety**
   - Add `</dev/tty` to all interactive prompts in local.sh and remote.sh
   - Fix Lynis/ClamAV install prompts on remote hosts
+
+### Added
+
+- **Demo target preparation script** (`scripts/prepare-demo-target.sh`)
+  - 8-phase automated setup for Ubuntu live boot scan targets
+  - Randomized findings: PII records, EICAR malware samples (3-7 per run), MAC addresses, open ports
+  - KEV-trigger packages: Apache2, log4j, imagemagick, polkit
+  - Verification manifest for comparing against scan results
+  - Session logging with timestamps for full auditability
+  - Cleanup mode and live-boot-safe design (reboot to reset)
+
+- **Demo documentation**
+  - `docs/DEMO-CHEAT-SHEET.md` - Step-by-step Kali → Ubuntu demo guide
+  - `docs/DEMO-PLANTED-FINDINGS.md` - Auditor-facing planted data disclosure
 
 ## [2.4.0] - 2026-02-05
 
