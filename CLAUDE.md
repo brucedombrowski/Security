@@ -246,7 +246,7 @@ Security/
 │   ├── check-mac-addresses.sh   # MAC address scan
 │   ├── check-host-security.sh   # Host OS security
 │   ├── check-kev.sh             # CISA KEV cross-reference
-│   ├── scan-vulnerabilities.sh  # Nmap/OpenVAS/Lynis
+│   ├── scan-vulnerabilities.sh  # Nmap/Lynis
 │   ├── harden-system.sh         # System hardening
 │   ├── secure-delete.sh         # NIST SP 800-88 deletion
 │   ├── purge-git-history.sh     # Remove sensitive files from git
@@ -489,7 +489,6 @@ source "$SCRIPT_DIR/lib/scanners/<scanner>.sh"
 # Add command-line option in argument parsing
 -t|--<scanner>-only)
     RUN_NMAP=false
-    RUN_OPENVAS=false
     RUN_LYNIS=false
     RUN_<SCANNER>=true
     shift
