@@ -1,0 +1,37 @@
+################################################################################
+#                                                                              #
+#                         REDACTED EXAMPLE FILE                                #
+#                                                                              #
+#  This file has been automatically redacted for public distribution.          #
+#  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
+#  has been replaced with [REDACTED] placeholders.                             #
+#                                                                              #
+#  Source SHA256:    9684c2b24b1622f0...                                       #
+#  Redaction Script: scripts/redact-examples.sh                                #
+#  Script SHA256:    d42c54e5d15a5782...                                       #
+#  Redacted:         2026-02-06T12:14:16Z                                       #
+#                                                                              #
+################################################################################
+
+# Host Inventory Reference: [CHECKSUM_REDACTED]
+# Scan Timestamp: 2026-02-06T[REDACTED]Z
+
+IEEE 802.3 MAC Address Verification Scan
+=========================================
+Timestamp: 2026-02-06T[REDACTED]Z
+Toolkit: Security Verification Toolkit v2.5.0 (bb8edcb)
+Target: /Users/[REDACTED]
+Repository: Security
+
+Note: Test fixture directories (tests/, test/, fixtures/) are excluded
+
+Checking: Colon-Separated (XX:XX:XX:XX:XX:XX)
+  Result: PASS (0 matches)
+Checking: Dash-Separated (XX-XX-XX-XX-XX-XX)
+  Result: PASS (0 matches)
+Checking: Cisco Format (XXXX.XXXX.XXXX)
+  Result: PASS (0 matches)
+
+=========================================
+OVERALL RESULT: PASS
+No MAC addresses detected in production code.
