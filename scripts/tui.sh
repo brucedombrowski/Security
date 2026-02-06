@@ -174,7 +174,7 @@ show_bash_menu() {
         echo "  ${BOLD}q)${RESET} Quit"
         echo ""
         printf "${BOLD}Select option: ${RESET}"
-        read -r selection
+        read -r selection </dev/tty
 
         case "$selection" in
             1) run_all_scans ;;
@@ -243,7 +243,7 @@ run_all_scans() {
 
     echo ""
     printf "Press Enter to continue..."
-    read -r
+    read -r </dev/tty
 }
 
 # Select and run individual scans
@@ -285,7 +285,7 @@ select_individual_scans() {
         echo "  ${BOLD}b)${RESET} Back to main menu"
         echo ""
         printf "${BOLD}Toggle scan (1-${SCAN_COUNT}) or action: ${RESET}"
-        read -r choice
+        read -r choice </dev/tty
 
         case "$choice" in
             [1-8])
@@ -364,7 +364,7 @@ run_selected_scans() {
     echo "Results: ${GREEN}$passed passed${RESET}, ${RED}$failed failed${RESET}"
     echo ""
     printf "Press Enter to continue..."
-    read -r
+    read -r </dev/tty
 }
 
 # View scan results
@@ -381,7 +381,7 @@ view_scan_results() {
         echo "Run scans first to generate results."
         echo ""
         printf "Press Enter to continue..."
-        read -r
+        read -r </dev/tty
         return
     fi
 
@@ -405,7 +405,7 @@ view_scan_results() {
         echo "  ${DIM}No result files found${RESET}"
         echo ""
         printf "Press Enter to continue..."
-        read -r
+        read -r </dev/tty
         return
     fi
 
@@ -413,7 +413,7 @@ view_scan_results() {
     echo "  ${BOLD}b)${RESET} Back to main menu"
     echo ""
     printf "${BOLD}Select file to view (1-${file_count}): ${RESET}"
-    read -r choice
+    read -r choice </dev/tty
 
     case "$choice" in
         b|B) return ;;
@@ -454,7 +454,7 @@ generate_verification_report() {
     if [ ! -f "$SCRIPT_DIR/generate-verification-report.sh" ]; then
         echo "${YELLOW}Verification report generator not found.${RESET}"
         printf "Press Enter to continue..."
-        read -r
+        read -r </dev/tty
         return
     fi
 
@@ -465,7 +465,7 @@ generate_verification_report() {
     echo "  - NIST control mapping"
     echo ""
     printf "Generate report? (y/n): "
-    read -r confirm
+    read -r confirm </dev/tty
 
     if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
         echo ""
@@ -481,7 +481,7 @@ generate_verification_report() {
 
     echo ""
     printf "Press Enter to continue..."
-    read -r
+    read -r </dev/tty
 }
 
 # Change target directory
@@ -493,7 +493,7 @@ change_target_directory() {
     echo "Current target: ${TARGET_DIR}"
     echo ""
     printf "Enter new target directory (or 'b' to go back): "
-    read -r new_dir
+    read -r new_dir </dev/tty
 
     if [ "$new_dir" = "b" ] || [ "$new_dir" = "B" ]; then
         return
@@ -549,7 +549,7 @@ show_about() {
     echo "  docs/LIBRARY-API.md    Library API reference"
     echo ""
     printf "Press Enter to continue..."
-    read -r
+    read -r </dev/tty
 }
 
 # Dialog-based menu (if available)
