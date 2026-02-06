@@ -542,11 +542,16 @@ run_network_host_scans() {
         fi
         [ "$RUN_NMAP_VULN" = true ] && nmap_args="$nmap_args --script vuln" || true
 
-        # OS fingerprinting requires root - use sudo if needed
+        # OS fingerprinting requires root - only use if already root
         local nmap_cmd="nmap"
         if [ "$needs_sudo" = true ]; then
-            echo "  (OS fingerprinting requires elevated privileges)"
-            nmap_cmd="sudo nmap"
+            if [ "$(id -u)" -eq 0 ]; then
+                nmap_cmd="nmap"
+            else
+                echo "  (Skipping OS fingerprinting — requires root. Run with sudo for -O)"
+                nmap_args=$(echo "$nmap_args" | sed 's/-O//')
+                needs_sudo=false
+            fi
         fi
 
         {
