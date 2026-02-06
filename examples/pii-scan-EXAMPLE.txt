@@ -1,0 +1,79 @@
+################################################################################
+#                                                                              #
+#                         REDACTED EXAMPLE FILE                                #
+#                                                                              #
+#  This file has been automatically redacted for public distribution.          #
+#  Sensitive data (IP addresses, MAC addresses, hostnames, versions, etc.)     #
+#  has been replaced with [REDACTED] placeholders.                             #
+#                                                                              #
+#  Source SHA256:    29b40bed2ed5512c...                                       #
+#  Redaction Script: scripts/redact-examples.sh                                #
+#  Script SHA256:    d42c54e5d15a5782...                                       #
+#  Redacted:         2026-02-06T13:48:18Z                                       #
+#                                                                              #
+################################################################################
+
+# Host Inventory Reference: [CHECKSUM_REDACTED]
+# Scan Timestamp: 2026-02-06T[REDACTED]Z
+
+PII Verification Scan
+=====================
+Timestamp: 2026-02-06T[REDACTED]Z
+Toolkit: Security Verification Toolkit v2.7.2 (df1709b)
+Target: /home/[REDACTED]
+Repository: security-toolkit
+
+Checking: IPv4 Addresses
+/home/[REDACTED]
+/home/[REDACTED]
+/home/[REDACTED]    read -rp "  Target endpoint (ip:port, e.g. [REDACTED]:51820): " target_endpoint </dev/tty
+/home/[REDACTED]    local scanner_ip="10.200.200.1/24"
+/home/[REDACTED]    local target_tunnel_ip="10.200.200.2"
+/home/[REDACTED]            ipv4=$(ifconfig "$iface" 2>/dev/null | grep "inet " | grep -v "127.0.0.1" | awk '{print $2}' | head -1)
+/home/[REDACTED]  $script_name [REDACTED]/24            # Scan network range
+/home/[REDACTED]  $script_name -n [REDACTED]               # Nmap only on specific host
+/home/[REDACTED]  $script_name -q [REDACTED]            # Quick scan of specific host
+/home/[REDACTED]    if [ "$TARGET_HOST" = "localhost" ] || [ "$TARGET_HOST" = "127.0.0.1" ]; then
+  Result: REVIEW - 30 new match(es) found
+  ... and 20 more
+  (15 previously allowlisted)
+Checking: US Phone Numbers (dashed)
+/home/[REDACTED]  Test 7: Detect 555-123-4567... [0;32mPASS[0m
+  Result: REVIEW - 1 new match(es) found
+Checking: US Phone Numbers (dotted)
+/home/[REDACTED]  Test 8: Detect 555.123.4567... [0;32mPASS[0m
+  Result: REVIEW - 1 new match(es) found
+Checking: US Phone Numbers (parenthetical)
+/home/[REDACTED]  Test 6: Detect (555) 123-4567... [0;32mPASS[0m
+  Result: REVIEW - 1 new match(es) found
+Checking: International Phone Numbers
+  Result: PASS (0 matches)
+Checking: Social Security Numbers
+/home/[REDACTED] 'admin@[REDACTED]', '$2b$12$EXAMPLEHASHnotreal', '078-05-1120'),
+/home/[REDACTED] 'user@[REDACTED]', '$2b$12$ANOTHEREXAMPLEhash', '219-09-9999');
+/home/[REDACTED] 'admin@[REDACTED]', '$2b$12$EXAMPLEHASHnotreal', '078-05-1120'),
+/home/[REDACTED] 'user@[REDACTED]', '$2b$12$ANOTHEREXAMPLEhash', '219-09-9999');
+/home/[REDACTED]  Test 10: Detect valid SSN format (123-45-6789)... [0;32mPASS[0m
+/home/[REDACTED]  Test 11: Detect SSN in text (SSN: 123-45-6789)... [0;32mPASS[0m
+  Result: REVIEW - 6 new match(es) found
+Checking: Credit Card Numbers (Luhn validated)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  /home/[REDACTED] 0000000000000000 (Luhn valid)
+  Result: REVIEW - 38 valid card(s) found (7 filtered by Luhn)
+
+=====================
+Allowlist: /home/[REDACTED] (74 entries)
+
+OVERALL RESULT: REVIEW REQUIRED
+Potential PII patterns detected. Manual review required.
+
+Run with -i flag for interactive review:
+  /home/[REDACTED] -i /home/[REDACTED]
