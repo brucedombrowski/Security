@@ -701,15 +701,15 @@ run_remote_ssh_scans() {
                 echo ""
 
                 echo "--- Scan Results ---"
-                echo "Scanning home directory with common exclusions..."
+                echo "Scanning full filesystem (excluding virtual filesystems)..."
                 echo ""
-                # Scan home directory, show only infected files, limit output
                 ssh_cmd "clamscan --recursive --infected \
-                    --exclude-dir='.git' \
-                    --exclude-dir='node_modules' \
-                    --exclude-dir='.cache' \
-                    --exclude-dir='.local/share/Trash' \
-                    ~/ 2>&1" 2>/dev/null || echo "(scan completed with warnings)"
+                    --exclude-dir='^/proc' \
+                    --exclude-dir='^/sys' \
+                    --exclude-dir='^/dev' \
+                    --exclude-dir='^/run' \
+                    --exclude-dir='^/snap' \
+                    / 2>&1" 2>/dev/null || echo "(scan completed with warnings)"
 
             } > "$malware_file" 2>&1
 
@@ -764,10 +764,12 @@ run_remote_ssh_scans() {
                         echo ""
                         echo "--- Scan Results ---"
                         ssh_cmd "clamscan --recursive --infected \
-                            --exclude-dir='.git' \
-                            --exclude-dir='node_modules' \
-                            --exclude-dir='.cache' \
-                            ~/ 2>&1" 2>/dev/null || echo "(scan completed)"
+                            --exclude-dir='^/proc' \
+                            --exclude-dir='^/sys' \
+                            --exclude-dir='^/dev' \
+                            --exclude-dir='^/run' \
+                            --exclude-dir='^/snap' \
+                            / 2>&1" 2>/dev/null || echo "(scan completed)"
                     } > "$malware_file" 2>&1
 
                     # Check for errors first (no database, etc.)

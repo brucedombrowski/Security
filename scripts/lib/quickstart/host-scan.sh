@@ -359,7 +359,7 @@ run_ssh_host_scans() {
                 echo "Mode: $LYNIS_MODE"
                 echo "Started: $timestamp"
                 echo ""
-                ssh_cmd "sudo lynis audit system $lynis_opts --no-colors 2>&1" || true
+                ssh_cmd_sudo "sudo lynis audit system $lynis_opts --no-colors 2>&1" || true
             } > "$lynis_file" 2>&1
 
             # Check for warnings/suggestions
@@ -433,10 +433,12 @@ run_ssh_host_scans() {
                 echo ""
                 echo "--- Scan Results ---"
                 ssh_cmd "clamscan --recursive --infected \
-                    --exclude-dir='.git' \
-                    --exclude-dir='node_modules' \
-                    --exclude-dir='.cache' \
-                    ~/ 2>&1" 2>/dev/null || echo "(scan completed)"
+                    --exclude-dir='^/proc' \
+                    --exclude-dir='^/sys' \
+                    --exclude-dir='^/dev' \
+                    --exclude-dir='^/run' \
+                    --exclude-dir='^/snap' \
+                    / 2>&1" 2>/dev/null || echo "(scan completed)"
             } > "$malware_file" 2>&1
 
             # Check for errors first (no database, etc.)
@@ -445,7 +447,9 @@ run_ssh_host_scans() {
                 echo "  Run 'sudo freshclam' on remote host to download definitions"
                 ((_HOST_SKIPPED++)) || true
             elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
-                print_fail "Malware detected! Check $malware_file"
+                local infected_count
+                infected_count=$(grep -c "FOUND" "$malware_file" 2>/dev/null) || infected_count=0
+                print_fail "Malware detected ($infected_count infected)! Check $malware_file"
                 ((_HOST_FAILED++)) || true
             elif grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
                 print_success "No malware detected"
@@ -480,10 +484,12 @@ run_ssh_host_scans() {
                         echo ""
                         echo "--- Scan Results ---"
                         ssh_cmd "clamscan --recursive --infected \
-                            --exclude-dir='.git' \
-                            --exclude-dir='node_modules' \
-                            --exclude-dir='.cache' \
-                            ~/ 2>&1" 2>/dev/null || echo "(scan completed)"
+                            --exclude-dir='^/proc' \
+                            --exclude-dir='^/sys' \
+                            --exclude-dir='^/dev' \
+                            --exclude-dir='^/run' \
+                            --exclude-dir='^/snap' \
+                            / 2>&1" 2>/dev/null || echo "(scan completed)"
                     } > "$malware_file" 2>&1
 
                     # Check for errors first (no database, etc.)
@@ -492,7 +498,9 @@ run_ssh_host_scans() {
                         echo "  Run 'sudo freshclam' on remote host to download definitions"
                         ((_HOST_SKIPPED++)) || true
                     elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
-                        print_fail "Malware detected! Check $malware_file"
+                        local infected_count
+                        infected_count=$(grep -c "FOUND" "$malware_file" 2>/dev/null) || infected_count=0
+                        print_fail "Malware detected ($infected_count infected)! Check $malware_file"
                         ((_HOST_FAILED++)) || true
                     elif grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
                         print_success "No malware detected"
