@@ -111,9 +111,11 @@ select_host_scans() {
 run_host_scans() {
     local output_dir="$SCAN_OUTPUT_DIR"
     local timestamp=$(date -u '+%Y-%m-%dT%H%M%SZ')
-    local passed=0
-    local failed=0
-    local skipped=0
+
+    # Use global counters (Bash 3.2 compatible - avoids namerefs)
+    _HOST_PASSED=0
+    _HOST_FAILED=0
+    _HOST_SKIPPED=0
 
     echo ""
     echo -e "${BOLD}Running Host Scans on $TARGET_HOST${NC}"
@@ -135,29 +137,29 @@ run_host_scans() {
         REMOTE_HOST="$TARGET_HOST"
         if test_ssh_connection; then
             ssh_available=true
-            run_ssh_host_scans "$output_dir" "$timestamp" passed failed skipped
+            run_ssh_host_scans "$output_dir" "$timestamp"
         else
             # SSH failed - warn but continue with network scans
             print_warning "SSH connection failed - skipping SSH-based scans"
             echo "  (Windows hosts often don't have SSH enabled)"
-            echo "  Continuing with network-based scans (nmap, OpenVAS)..."
+            echo "  Continuing with network-based scans (nmap)..."
             echo ""
 
-            # Mark SSH scans as skipped (use || true to prevent set -e exit on zero)
-            [ "$RUN_HOST_INVENTORY" = true ] && ((skipped++)) || true
-            [ "$RUN_HOST_SECURITY" = true ] && ((skipped++)) || true
-            [ "$RUN_HOST_POWER" = true ] && ((skipped++)) || true
-            [ "$RUN_HOST_LYNIS" = true ] && ((skipped++)) || true
+            # Mark SSH scans as skipped
+            [ "$RUN_HOST_INVENTORY" = true ] && ((_HOST_SKIPPED++)) || true
+            [ "$RUN_HOST_SECURITY" = true ] && ((_HOST_SKIPPED++)) || true
+            [ "$RUN_HOST_POWER" = true ] && ((_HOST_SKIPPED++)) || true
+            [ "$RUN_HOST_LYNIS" = true ] && ((_HOST_SKIPPED++)) || true
         fi
     fi
 
     # Network-based scans (always run - don't require SSH)
-    run_network_host_scans "$output_dir" "$timestamp" passed failed skipped
+    run_network_host_scans "$output_dir" "$timestamp"
 
     # Update global counters
-    SCANS_PASSED=$((SCANS_PASSED + passed))
-    SCANS_FAILED=$((SCANS_FAILED + failed))
-    SCANS_SKIPPED=$((SCANS_SKIPPED + skipped))
+    SCANS_PASSED=$((SCANS_PASSED + _HOST_PASSED))
+    SCANS_FAILED=$((SCANS_FAILED + _HOST_FAILED))
+    SCANS_SKIPPED=$((SCANS_SKIPPED + _HOST_SKIPPED))
 
     # Cleanup SSH if it was established
     if [ "$ssh_available" = true ]; then
@@ -166,12 +168,10 @@ run_host_scans() {
 }
 
 # SSH-based host scans
+# Updates global counters: _HOST_PASSED, _HOST_FAILED, _HOST_SKIPPED
 run_ssh_host_scans() {
     local output_dir="$1"
     local timestamp="$2"
-    local -n _passed=$3
-    local -n _failed=$4
-    local -n _skipped=$5
 
     # Host Inventory
     if [ "$RUN_HOST_INVENTORY" = true ]; then
@@ -208,10 +208,10 @@ run_ssh_host_scans() {
             } > "$inv_file" 2>&1
 
             print_success "Host inventory saved"
-            ((_passed++)) || true
+            ((_HOST_PASSED++)) || true
         else
             print_warning "Could not collect inventory"
-            ((_skipped++)) || true
+            ((_HOST_SKIPPED++)) || true
         fi
     fi
 
@@ -256,7 +256,7 @@ run_ssh_host_scans() {
         } > "$sec_file" 2>&1
 
         print_success "Security check saved"
-        ((_passed++)) || true
+        ((_HOST_PASSED++)) || true
     fi
 
     # Power Settings Check
@@ -334,10 +334,10 @@ run_ssh_host_scans() {
         # Check for sleep-related issues
         if grep -qE "(sleep|suspend|hibernate).*(enabled|active)" "$power_file" 2>/dev/null; then
             print_warning "Power settings may cause downtime - review $power_file"
-            ((_failed++)) || true
+            ((_HOST_FAILED++)) || true
         else
             print_success "Power settings check saved"
-            ((_passed++)) || true
+            ((_HOST_PASSED++)) || true
         fi
     fi
 
@@ -364,10 +364,10 @@ run_ssh_host_scans() {
             local warnings=$(grep -c "Warning:" "$lynis_file" 2>/dev/null || echo "0")
             if [ "$warnings" -gt 0 ]; then
                 print_warning "Lynis found $warnings warnings"
-                ((_failed++)) || true
+                ((_HOST_FAILED++)) || true
             else
                 print_success "Lynis audit complete"
-                ((_passed++)) || true
+                ((_HOST_PASSED++)) || true
             fi
         else
             # Offer to install Lynis
@@ -393,10 +393,10 @@ run_ssh_host_scans() {
                         ssh_cmd_sudo "sudo lynis audit system $lynis_opts --no-colors 2>&1" || true
                     } > "$lynis_file" 2>&1
                     print_success "Lynis audit complete"
-                    ((_passed++)) || true
+                    ((_HOST_PASSED++)) || true
                 else
                     print_error "Lynis installation failed (check sudo access and network)"
-                    ((_skipped++)) || true
+                    ((_HOST_SKIPPED++)) || true
                 fi
             else
                 {
@@ -408,7 +408,7 @@ run_ssh_host_scans() {
                     echo "  Arch:          sudo pacman -S lynis"
                 } > "$lynis_file"
                 print_warning "Lynis not installed (skipped)"
-                ((_skipped++)) || true
+                ((_HOST_SKIPPED++)) || true
             fi
         fi
     fi
@@ -440,16 +440,16 @@ run_ssh_host_scans() {
             if grep -q "No supported database files found\|cli_loaddbdir" "$malware_file" 2>/dev/null; then
                 print_warning "ClamAV has no virus database - scan invalid"
                 echo "  Run 'sudo freshclam' on remote host to download definitions"
-                ((_skipped++)) || true
+                ((_HOST_SKIPPED++)) || true
             elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
                 print_fail "Malware detected! Check $malware_file"
-                ((_failed++)) || true
+                ((_HOST_FAILED++)) || true
             elif grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
                 print_success "No malware detected"
-                ((_passed++)) || true
+                ((_HOST_PASSED++)) || true
             else
                 print_success "Malware scan completed"
-                ((_passed++)) || true
+                ((_HOST_PASSED++)) || true
             fi
         else
             # Offer to install ClamAV
@@ -487,20 +487,20 @@ run_ssh_host_scans() {
                     if grep -q "No supported database files found\|cli_loaddbdir" "$malware_file" 2>/dev/null; then
                         print_warning "ClamAV has no virus database - scan invalid"
                         echo "  Run 'sudo freshclam' on remote host to download definitions"
-                        ((_skipped++)) || true
+                        ((_HOST_SKIPPED++)) || true
                     elif grep -q "FOUND" "$malware_file" 2>/dev/null; then
                         print_fail "Malware detected! Check $malware_file"
-                        ((_failed++)) || true
+                        ((_HOST_FAILED++)) || true
                     elif grep -q "Infected files: 0" "$malware_file" 2>/dev/null; then
                         print_success "No malware detected"
-                        ((_passed++)) || true
+                        ((_HOST_PASSED++)) || true
                     else
                         print_success "Malware scan completed"
-                        ((_passed++)) || true
+                        ((_HOST_PASSED++)) || true
                     fi
                 else
                     print_error "ClamAV installation failed"
-                    ((_skipped++)) || true
+                    ((_HOST_SKIPPED++)) || true
                 fi
             else
                 {
@@ -512,7 +512,7 @@ run_ssh_host_scans() {
                     echo "  Arch:          sudo pacman -S clamav"
                 } > "$malware_file"
                 print_warning "ClamAV not installed (skipped)"
-                ((_skipped++)) || true
+                ((_HOST_SKIPPED++)) || true
             fi
         fi
     fi
@@ -556,27 +556,25 @@ run_ssh_host_scans() {
         # Check results
         if grep -q "No known exploited vulnerabilities\|No KEV matches" "$kev_file" 2>/dev/null; then
             print_success "No known exploited vulnerabilities found"
-            ((_passed++)) || true
+            ((_HOST_PASSED++)) || true
         elif grep -q "KEV cross-reference requires" "$kev_file" 2>/dev/null; then
             print_warning "KEV check skipped (requires vulnerability scan)"
-            ((_skipped++)) || true
+            ((_HOST_SKIPPED++)) || true
         elif grep -q "CVE-" "$kev_file" 2>/dev/null; then
             print_warning "Potential KEV matches found - review $kev_file"
-            ((_failed++)) || true
+            ((_HOST_FAILED++)) || true
         else
             print_success "KEV check completed"
-            ((_passed++)) || true
+            ((_HOST_PASSED++)) || true
         fi
     fi
 }
 
 # Network-based host scans
+# Updates global counters: _HOST_PASSED, _HOST_FAILED, _HOST_SKIPPED
 run_network_host_scans() {
     local output_dir="$1"
     local timestamp="$2"
-    local -n _passed=$3
-    local -n _failed=$4
-    local -n _skipped=$5
 
     # Nmap Port Scan
     if [ "$RUN_NMAP_PORTS" = true ]; then
@@ -601,6 +599,6 @@ run_network_host_scans() {
         # Check for open ports
         local open_ports=$(grep -c "open" "$nmap_file" 2>/dev/null || echo "0")
         print_success "Nmap found $open_ports open ports"
-        ((_passed++)) || true
+        ((_HOST_PASSED++)) || true
     fi
 }
