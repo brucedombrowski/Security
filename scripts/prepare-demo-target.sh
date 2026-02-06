@@ -178,41 +178,51 @@ install_scan_deps() {
 
     apt-get update -qq
 
-    # ClamAV
+    # ClamAV (needed on target for local malware scan)
     if ! command -v clamscan &>/dev/null; then
-        apt-get install -y -qq clamav clamav-daemon
-        log_success "ClamAV installed"
+        if apt-get install -y -qq clamav clamav-daemon 2>/dev/null; then
+            log_success "ClamAV installed"
+        else
+            log_warn "ClamAV not available in repos (scanner will install on Kali side)"
+        fi
     else
         log_success "ClamAV already installed"
     fi
 
-    # Update virus definitions
-    log_step "Updating ClamAV virus definitions (this may take a minute)..."
-    systemctl stop clamav-freshclam 2>/dev/null || true
-    freshclam --quiet 2>/dev/null || log_warn "freshclam update had warnings (may still work)"
-    systemctl start clamav-freshclam 2>/dev/null || true
-    log_success "Virus definitions updated"
+    # Update virus definitions (only if ClamAV installed)
+    if command -v freshclam &>/dev/null; then
+        log_step "Updating ClamAV virus definitions (this may take a minute)..."
+        systemctl stop clamav-freshclam 2>/dev/null || true
+        freshclam --quiet 2>/dev/null || log_warn "freshclam update had warnings (may still work)"
+        systemctl start clamav-freshclam 2>/dev/null || true
+        log_success "Virus definitions updated"
+    fi
 
-    # Lynis
+    # Lynis (not in default Ubuntu repos on live boot — try, but don't fail)
     if ! command -v lynis &>/dev/null; then
-        apt-get install -y -qq lynis
-        log_success "Lynis installed"
+        if apt-get install -y -qq lynis 2>/dev/null; then
+            log_success "Lynis installed"
+        else
+            log_warn "Lynis not available in repos (Kali scanner has it)"
+        fi
     else
         log_success "Lynis already installed"
     fi
 
-    # nmap (useful for local scan too)
+    # nmap
     if ! command -v nmap &>/dev/null; then
-        apt-get install -y -qq nmap
-        log_success "Nmap installed"
+        if apt-get install -y -qq nmap 2>/dev/null; then
+            log_success "Nmap installed"
+        else
+            log_warn "Nmap not available (scanning runs from Kali)"
+        fi
     else
         log_success "Nmap already installed"
     fi
 
     # zip (for EICAR archive testing)
     if ! command -v zip &>/dev/null; then
-        apt-get install -y -qq zip
-        log_success "zip installed"
+        apt-get install -y -qq zip 2>/dev/null || log_warn "zip not available"
     fi
 }
 
