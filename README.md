@@ -2,6 +2,8 @@
 
 IT security analysis and compliance documentation tools for software projects.
 
+> **[DFARS Capability Overview (1-page PDF)](templates/dfars_toolkit_overview.pdf)** — Script summary mapped to NIST 800-171 control families with links to example output.
+
 ## Quick Start
 
 ### Option 1: Homebrew (macOS/Linux)
@@ -60,6 +62,17 @@ This toolkit provides automated security verification scripts aligned with feder
 | FIPS 200 | Minimum Security Requirements |
 | NIST SP 800-53 Rev 5 | Security and Privacy Controls |
 | NIST SP 800-171 | Protecting CUI in Nonfederal Systems |
+
+### Regulatory Context
+
+[DFARS 252.204-7012](https://www.acquisition.gov/dfars/252.204-7012-safeguarding-covered-defense-information-and-cyber-incident-reporting.) requires DoD contractors to implement [NIST SP 800-171](https://csrc.nist.gov/publications/detail/sp/800-171/rev-2/final) to protect Covered Defense Information (CDI). This toolkit provides automated verification of those controls and produces checksummed, traceable evidence for assessment packages.
+
+| DFARS Clause | Title | Relevance |
+|---|---|---|
+| [252.204-7012](https://www.acquisition.gov/dfars/252.204-7012-safeguarding-covered-defense-information-and-cyber-incident-reporting.) | Safeguarding Covered Defense Information | Requires NIST 800-171; this toolkit verifies compliance |
+| [252.204-7019](https://www.acquisition.gov/dfars/252.204-7019-notice-nist-sp-800-171-dod-assessment-requirements.) | NIST SP 800-171 DoD Assessment Requirements (Notice) | Requires self-assessment score in SPRS; scan attestations support this |
+| [252.204-7020](https://www.acquisition.gov/dfars/252.204-7020-nist-sp-800-171-dod-assessment-requirements.) | NIST SP 800-171 DoD Assessment Requirements | Allows DoD to verify implementation; scan evidence with file:line references supports assessor review |
+| [252.204-7021](https://www.acquisition.gov/dfars/252.204-7021-cybersecurity-maturity-model-certification-requirements.) | CMMC Requirements | Requires CMMC certification (built on 800-171); toolkit provides continuous verification between assessments |
 
 ## Scripts
 

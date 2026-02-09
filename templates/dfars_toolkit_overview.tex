@@ -1,0 +1,192 @@
+\documentclass[9pt,letterpaper]{article}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage[margin=0.5in, top=0.65in, bottom=0.55in]{geometry}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multicol}
+
+% ============================================================================
+% COLORS
+% ============================================================================
+\definecolor{navyblue}{RGB}{0,51,102}
+\definecolor{lightgray}{RGB}{245,245,245}
+\definecolor{accentgreen}{RGB}{40,167,69}
+\definecolor{linkblue}{RGB}{0,102,204}
+
+% ============================================================================
+% DOCUMENT VARIABLES — UPDATE THESE
+% ============================================================================
+\newcommand{\DocumentDate}{February 2026}
+\newcommand{\ToolkitVersion}{2.7.1}
+\newcommand{\GHBase}{https://github.com/brucedombrowski/security-toolkit/blob/main}
+
+% ============================================================================
+% CONFIGURATION
+% ============================================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navyblue,
+    urlcolor=linkblue,
+    pdfborder={0 0 0},
+    pdftitle={Security Verification Toolkit — DFARS Capability Overview},
+    pdfauthor={Security Verification Toolkit}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+
+\setlist[itemize]{leftmargin=0.2in, itemsep=0pt, topsep=1pt, parsep=0pt}
+
+% ============================================================================
+% HEADER AND FOOTER
+% ============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize\textcolor{navyblue}{\textbf{SECURITY VERIFICATION TOOLKIT v\ToolkitVersion}}}
+\fancyhead[R]{\footnotesize\textcolor{gray}{DFARS Capability Overview | \DocumentDate}}
+\fancyfoot[C]{\footnotesize\textcolor{gray}{Page \thepage\ of \pageref{LastPage}}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ============================================================================
+% CUSTOM COMMANDS
+% ============================================================================
+\newcommand{\sectionheader}[1]{%
+    \vspace{4pt}%
+    {\normalsize\textcolor{navyblue}{\textbf{#1}}}%
+    \vspace{1pt}%
+    \hrule height 0.4pt%
+    \vspace{3pt}%
+}
+
+% Hyperlinked script name
+\newcommand{\scr}[1]{\href{\GHBase/scripts/#1}{\texttt{#1}}}
+
+% ============================================================================
+% BEGIN DOCUMENT
+% ============================================================================
+\begin{document}
+
+% ---- TITLE ----
+\begin{center}
+    {\Large\textcolor{navyblue}{\textbf{Security Verification Toolkit}}}\\[3pt]
+    {\normalsize DFARS 252.204-7012 Capability Overview}\\[2pt]
+    {\footnotesize Version \ToolkitVersion\ | \DocumentDate\ | Pure Bash --- No Build System Required}
+\end{center}
+
+\vspace{2pt}
+
+% ---- PURPOSE ----
+\sectionheader{Purpose}
+
+Automated security scanning toolkit that verifies software projects against
+\textbf{NIST SP 800-171} (Protecting CUI), \textbf{NIST SP 800-53}, and
+\textbf{FIPS 199/200}. Produces checksummed, traceable evidence with
+file:line references for audit and assessment packages.
+
+% ---- SCRIPT CAPABILITIES BY 800-171 FAMILY ----
+\sectionheader{Capabilities Mapped to NIST 800-171 Control Families}
+
+\renewcommand{\arraystretch}{1.05}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l l X l@{}}
+\toprule
+\textbf{800-171 Family} & \textbf{Script} & \textbf{What It Does} & \textbf{800-53} \\
+\midrule
+\multicolumn{4}{@{}l}{\textcolor{navyblue}{\textbf{3.4 --- Configuration Management}}} \\
+& \scr{collect-host-inventory.sh} & Collects OS, hardware, network, and software inventory (CUI-protected) & CM-8 \\
+& \scr{check-host-security.sh} & Verifies OS config: encryption, firewall, SIP, auto-updates & CM-6 \\
+& \scr{check-power-settings.sh} & Validates screen lock, sleep, and idle timeout settings & CM-6 \\
+& \scr{harden-system.sh} & Applies CIS-aligned hardening to improve Lynis audit score & CM-6 \\
+\midrule
+\multicolumn{4}{@{}l}{\textcolor{navyblue}{\textbf{3.11 --- Risk Assessment}}} \\
+& \scr{scan-vulnerabilities.sh} & Nmap network scan + Lynis system audit with consolidated report & RA-5 \\
+& \scr{check-nvd-cves.sh} & Cross-references installed packages against NVD for known CVEs & RA-5 \\
+& \scr{check-kev.sh} & Flags vulnerabilities in CISA Known Exploited Vulnerabilities catalog & RA-5 \\
+& \scr{check-containers.sh} & Scans Docker/Podman containers for CVEs against NVD and KEV & RA-5 \\
+\midrule
+\multicolumn{4}{@{}l}{\textcolor{navyblue}{\textbf{3.13 --- System \& Communications Protection}}} \\
+& \scr{check-mac-addresses.sh} & Detects MAC addresses in source code (CUI network identifiers) & SC-8 \\
+\midrule
+\multicolumn{4}{@{}l}{\textcolor{navyblue}{\textbf{3.14 --- System \& Information Integrity}}} \\
+& \scr{check-pii.sh} & Scans for SSNs, credit cards, phone numbers, IPs, emails & SI-12 \\
+& \scr{check-secrets.sh} & Detects API keys, passwords, tokens, private keys (35+ patterns) & SA-11 \\
+& \scr{check-malware.sh} & ClamAV malware scan with file hash generation & SI-3 \\
+\midrule
+\multicolumn{4}{@{}l}{\textcolor{navyblue}{\textbf{3.8 --- Media Protection}}} \\
+& \scr{secure-delete.sh} & NIST SP 800-88 ``Clear'' method secure file deletion & MP-6 \\
+& \scr{purge-git-history.sh} & Removes sensitive files from entire git history (dry-run default) & MP-6 \\
+\bottomrule
+\end{tabularx}
+
+\normalsize
+\vspace{2pt}
+
+% ---- ORCHESTRATION & EVIDENCE ----
+\sectionheader{Orchestration \& Evidence Generation}
+
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\textbf{Script} & \textbf{What It Does} \\
+\midrule
+\scr{run-all-scans.sh} & Master orchestrator --- runs all scans with one command; supports \texttt{-n} non-interactive mode for CI/CD \\
+\scr{tui.sh} & Interactive menu interface for selecting and running individual scans \\
+\scr{generate-scan-attestation.sh} & Produces PDF attestation with checksums, toolkit version, and commit hash \\
+\scr{generate-compliance.sh} & Generates compliance statement PDF from scan results \\
+\scr{create-airgap-bundle.sh} & Packages ClamAV + virus definitions for disconnected / air-gapped networks \\
+\bottomrule
+\end{tabularx}
+
+\normalsize
+\vspace{2pt}
+
+% ---- KEY FACTS ----
+\sectionheader{Key Facts}
+
+\begin{multicols}{2}
+\begin{itemize}
+    \item \textbf{No data exfiltration} --- all processing is local
+    \item \textbf{Air-gap ready} --- bundled threat intel, offline ClamAV
+    \item \textbf{Cross-platform} --- macOS, Linux, Windows (PowerShell)
+    \item \textbf{CI/CD integration} --- GitHub Actions workflow included
+    \item \textbf{Audit trail} --- JSON Lines logging, SHA-256 checksums
+    \item \textbf{MIT License} --- no procurement or licensing overhead
+\end{itemize}
+\end{multicols}
+
+\vspace{-2pt}
+
+% ---- BREADCRUMB TRAIL ----
+\sectionheader{Example Output (Redacted)}
+
+\footnotesize
+Click any link below to view redacted sample output on GitHub:
+
+\begin{multicols}{2}
+\begin{itemize}
+    \item \href{\GHBase/examples/pii-scan-EXAMPLE.txt}{PII Scan Output}
+    \item \href{\GHBase/examples/secrets-scan-EXAMPLE.txt}{Secrets Scan Output}
+    \item \href{\GHBase/examples/malware-scan-EXAMPLE.txt}{Malware Scan Output}
+    \item \href{\GHBase/examples/mac-address-scan-EXAMPLE.txt}{MAC Address Scan Output}
+    \item \href{\GHBase/examples/host-security-scan-EXAMPLE.txt}{Host Security Scan Output}
+    \item \href{\GHBase/examples/host-inventory-EXAMPLE.txt}{Host Inventory Output}
+    \item \href{\GHBase/examples/nvd-cve-scan-EXAMPLE.txt}{NVD CVE Scan Output}
+    \item \href{\GHBase/examples/security-scan-report-EXAMPLE.txt}{Vulnerability Scan Report}
+    \item \href{\GHBase/examples/scan-attestation-EXAMPLE.pdf}{Scan Attestation PDF}
+    \item \href{\GHBase/examples/checksums-EXAMPLE.md}{Checksum Manifest}
+\end{itemize}
+\end{multicols}
+
+\normalsize
+
+\end{document}
