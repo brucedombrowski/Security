@@ -4,6 +4,15 @@ IT security analysis and compliance documentation tools for software projects.
 
 > **[DFARS Capability Overview (1-page PDF)](templates/dfars_toolkit_overview.pdf)** — Script summary mapped to NIST 800-171 control families with links to example output.
 
+### Related Repositories
+
+| Repo | Purpose |
+|------|---------|
+| [systems-engineering](https://github.com/brucedombrowski/systems-engineering) | *How* — Process framework, phases, standards, traceability |
+| [ai-agents](https://github.com/brucedombrowski/ai-agents) | *Who* — Agent role templates for compliance projects |
+| [Scrum](https://github.com/brucedombrowski/Scrum) | *When* — Sprint cadence and project management |
+| [WhitePaper](https://github.com/brucedombrowski/WhitePaper) | *Why* — Academic paper on AI-assisted government compliance |
+
 ## Quick Start
 
 ### Option 1: Homebrew (macOS/Linux)
