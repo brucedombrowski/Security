@@ -2,7 +2,7 @@
 
 IT security analysis and compliance documentation tools for software projects.
 
-> **[DFARS Capability Overview (1-page PDF)](templates/dfars_toolkit_overview.pdf)** — Script summary mapped to NIST 800-171 control families with links to example output.
+> **[DFARS Capability Overview](templates/dfars_toolkit_overview.html)** — Script summary mapped to NIST 800-171 control families with links to example output.
 
 ### Related Repositories
 
