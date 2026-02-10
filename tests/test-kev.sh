@@ -32,18 +32,18 @@ NC='\033[0m'
 # Test Utilities
 #------------------------------------------------------------------------------
 
-pass() {
+test_pass() {
     TESTS_PASSED=$((TESTS_PASSED + 1))
     echo -e "${GREEN}PASS${NC}: $1"
 }
 
-fail() {
+test_fail() {
     TESTS_FAILED=$((TESTS_FAILED + 1))
     echo -e "${RED}FAIL${NC}: $1"
     [ -n "${2:-}" ] && echo "       $2"
 }
 
-run_test() {
+test_start() {
     TESTS_RUN=$((TESTS_RUN + 1))
 }
 
@@ -52,29 +52,29 @@ run_test() {
 #------------------------------------------------------------------------------
 
 test_script_exists() {
-    run_test
+    test_start
     if [ -f "$KEV_SCRIPT" ]; then
-        pass "check-kev.sh exists"
+        test_pass "check-kev.sh exists"
     else
-        fail "check-kev.sh exists" "File not found: $KEV_SCRIPT"
+        test_fail "check-kev.sh exists" "File not found: $KEV_SCRIPT"
     fi
 }
 
 test_script_executable() {
-    run_test
+    test_start
     if [ -x "$KEV_SCRIPT" ]; then
-        pass "check-kev.sh is executable"
+        test_pass "check-kev.sh is executable"
     else
-        fail "check-kev.sh is executable" "File is not executable"
+        test_fail "check-kev.sh is executable" "File is not executable"
     fi
 }
 
 test_script_has_shebang() {
-    run_test
+    test_start
     if head -1 "$KEV_SCRIPT" | grep -q '^#!/bin/bash'; then
-        pass "check-kev.sh has proper shebang"
+        test_pass "check-kev.sh has proper shebang"
     else
-        fail "check-kev.sh has proper shebang"
+        test_fail "check-kev.sh has proper shebang"
     fi
 }
 
@@ -83,29 +83,29 @@ test_script_has_shebang() {
 #------------------------------------------------------------------------------
 
 test_script_has_usage() {
-    run_test
+    test_start
     if grep -q 'usage()' "$KEV_SCRIPT"; then
-        pass "Script has usage function"
+        test_pass "Script has usage function"
     else
-        fail "Script has usage function"
+        test_fail "Script has usage function"
     fi
 }
 
 test_script_has_nist_reference() {
-    run_test
+    test_start
     if grep -q 'NIST.*RA-5' "$KEV_SCRIPT"; then
-        pass "Script references NIST RA-5 control"
+        test_pass "Script references NIST RA-5 control"
     else
-        fail "Script references NIST RA-5 control"
+        test_fail "Script references NIST RA-5 control"
     fi
 }
 
 test_script_has_bod_reference() {
-    run_test
+    test_start
     if grep -q 'BOD 22-01' "$KEV_SCRIPT"; then
-        pass "Script references BOD 22-01"
+        test_pass "Script references BOD 22-01"
     else
-        fail "Script references BOD 22-01"
+        test_fail "Script references BOD 22-01"
     fi
 }
 
@@ -114,29 +114,29 @@ test_script_has_bod_reference() {
 #------------------------------------------------------------------------------
 
 test_exit_code_0_documented() {
-    run_test
+    test_start
     if grep -q 'exit 0' "$KEV_SCRIPT" && grep -q 'No KEV matches' "$KEV_SCRIPT"; then
-        pass "Exit code 0 = No KEV matches documented"
+        test_pass "Exit code 0 = No KEV matches documented"
     else
-        fail "Exit code 0 = No KEV matches documented"
+        test_fail "Exit code 0 = No KEV matches documented"
     fi
 }
 
 test_exit_code_1_documented() {
-    run_test
+    test_start
     if grep -q 'exit 1' "$KEV_SCRIPT" && grep -q 'KEV matches found' "$KEV_SCRIPT"; then
-        pass "Exit code 1 = KEV matches found documented"
+        test_pass "Exit code 1 = KEV matches found documented"
     else
-        fail "Exit code 1 = KEV matches found documented"
+        test_fail "Exit code 1 = KEV matches found documented"
     fi
 }
 
 test_exit_code_2_documented() {
-    run_test
+    test_start
     if grep -q 'exit 2' "$KEV_SCRIPT" && grep -q 'Error' "$KEV_SCRIPT"; then
-        pass "Exit code 2 = Error documented"
+        test_pass "Exit code 2 = Error documented"
     else
-        fail "Exit code 2 = Error documented"
+        test_fail "Exit code 2 = Error documented"
     fi
 }
 
@@ -145,17 +145,17 @@ test_exit_code_2_documented() {
 #------------------------------------------------------------------------------
 
 test_cve_pattern_regex() {
-    run_test
+    test_start
     # Script should use proper CVE regex
     if grep -q "CVE-\[0-9\]" "$KEV_SCRIPT"; then
-        pass "Script has CVE regex pattern"
+        test_pass "Script has CVE regex pattern"
     else
-        fail "Script has CVE regex pattern"
+        test_fail "Script has CVE regex pattern"
     fi
 }
 
 test_extract_cve_from_text() {
-    run_test
+    test_start
     # Create test file with CVEs
     cat > "$TEST_DIR/test-scan.txt" << 'EOF'
 Vulnerability scan results:
@@ -172,14 +172,14 @@ EOF
     count=$(echo "$cves" | wc -l | tr -d ' ')
 
     if [ "$count" -eq 3 ]; then
-        pass "CVE extraction finds correct count (3)"
+        test_pass "CVE extraction finds correct count (3)"
     else
-        fail "CVE extraction finds correct count" "Expected 3, got $count"
+        test_fail "CVE extraction finds correct count" "Expected 3, got $count"
     fi
 }
 
 test_extract_cve_uniqueness() {
-    run_test
+    test_start
     # Create test file with duplicate CVEs
     cat > "$TEST_DIR/test-dup.txt" << 'EOF'
 CVE-2021-44228 found in file1
@@ -194,14 +194,14 @@ EOF
     count=$(echo "$cves" | wc -l | tr -d ' ')
 
     if [ "$count" -eq 2 ]; then
-        pass "CVE extraction deduplicates correctly (2 unique)"
+        test_pass "CVE extraction deduplicates correctly (2 unique)"
     else
-        fail "CVE extraction deduplicates correctly" "Expected 2, got $count"
+        test_fail "CVE extraction deduplicates correctly" "Expected 2, got $count"
     fi
 }
 
 test_extract_cve_formats() {
-    run_test
+    test_start
     # Test various valid CVE formats
     cat > "$TEST_DIR/test-formats.txt" << 'EOF'
 CVE-2021-1234 - 4 digit ID
@@ -216,14 +216,14 @@ EOF
     if echo "$cves" | grep -q 'CVE-2021-1234' && \
        echo "$cves" | grep -q 'CVE-2021-12345' && \
        echo "$cves" | grep -q 'CVE-2021-123456'; then
-        pass "CVE extraction handles 4-6 digit IDs"
+        test_pass "CVE extraction handles 4-6 digit IDs"
     else
-        fail "CVE extraction handles 4-6 digit IDs" "Got: $cves"
+        test_fail "CVE extraction handles 4-6 digit IDs" "Got: $cves"
     fi
 }
 
 test_extract_no_cves() {
-    run_test
+    test_start
     # Create test file with no CVEs
     cat > "$TEST_DIR/test-none.txt" << 'EOF'
 This file contains no vulnerabilities.
@@ -235,9 +235,9 @@ EOF
     cves=$(grep -oE 'CVE-[0-9]{4}-[0-9]{4,}' "$TEST_DIR/test-none.txt" 2>/dev/null || true)
 
     if [ -z "$cves" ]; then
-        pass "CVE extraction handles files with no CVEs"
+        test_pass "CVE extraction handles files with no CVEs"
     else
-        fail "CVE extraction handles files with no CVEs" "Got: $cves"
+        test_fail "CVE extraction handles files with no CVEs" "Got: $cves"
     fi
 }
 
@@ -246,77 +246,77 @@ EOF
 #------------------------------------------------------------------------------
 
 test_cache_dir_defined() {
-    run_test
+    test_start
     if grep -q 'KEV_CACHE_DIR=' "$KEV_SCRIPT"; then
-        pass "KEV cache directory is defined"
+        test_pass "KEV cache directory is defined"
     else
-        fail "KEV cache directory is defined"
+        test_fail "KEV cache directory is defined"
     fi
 }
 
 test_bundled_file_defined() {
-    run_test
+    test_start
     if grep -q 'KEV_BUNDLED_FILE=' "$KEV_SCRIPT"; then
-        pass "KEV bundled file path is defined (offline support)"
+        test_pass "KEV bundled file path is defined (offline support)"
     else
-        fail "KEV bundled file path is defined"
+        test_fail "KEV bundled file path is defined"
     fi
 }
 
 test_bundled_file_exists() {
-    run_test
+    test_start
     local bundled_file="$SECURITY_REPO_DIR/data/kev-catalog.json"
     if [ -f "$bundled_file" ]; then
-        pass "Bundled KEV catalog exists in data/"
+        test_pass "Bundled KEV catalog exists in data/"
     else
-        fail "Bundled KEV catalog exists" "File not found: $bundled_file"
+        test_fail "Bundled KEV catalog exists" "File not found: $bundled_file"
     fi
 }
 
 test_bundled_file_has_hash() {
-    run_test
+    test_start
     local hash_file="$SECURITY_REPO_DIR/data/kev-catalog.json.sha256"
     if [ -f "$hash_file" ]; then
-        pass "Bundled KEV catalog has SHA256 hash"
+        test_pass "Bundled KEV catalog has SHA256 hash"
     else
-        fail "Bundled KEV catalog has SHA256 hash"
+        test_fail "Bundled KEV catalog has SHA256 hash"
     fi
 }
 
 test_bundled_file_valid_json() {
-    run_test
+    test_start
     local bundled_file="$SECURITY_REPO_DIR/data/kev-catalog.json"
     if [ -f "$bundled_file" ] && jq empty "$bundled_file" 2>/dev/null; then
-        pass "Bundled KEV catalog is valid JSON"
+        test_pass "Bundled KEV catalog is valid JSON"
     else
-        fail "Bundled KEV catalog is valid JSON"
+        test_fail "Bundled KEV catalog is valid JSON"
     fi
 }
 
 test_offline_fallback_code_exists() {
-    run_test
+    test_start
     if grep -q 'KEV_BUNDLED_FILE' "$KEV_SCRIPT" && grep -q 'offline mode' "$KEV_SCRIPT"; then
-        pass "Script has offline fallback to bundled file"
+        test_pass "Script has offline fallback to bundled file"
     else
-        fail "Script has offline fallback to bundled file"
+        test_fail "Script has offline fallback to bundled file"
     fi
 }
 
 test_cache_file_defined() {
-    run_test
+    test_start
     if grep -q 'KEV_CACHE_FILE=' "$KEV_SCRIPT"; then
-        pass "KEV cache file is defined"
+        test_pass "KEV cache file is defined"
     else
-        fail "KEV cache file is defined"
+        test_fail "KEV cache file is defined"
     fi
 }
 
 test_cache_max_age_defined() {
-    run_test
+    test_start
     if grep -q 'KEV_CACHE_MAX_AGE=86400' "$KEV_SCRIPT"; then
-        pass "KEV cache max age is 24 hours (86400 seconds)"
+        test_pass "KEV cache max age is 24 hours (86400 seconds)"
     else
-        fail "KEV cache max age is 24 hours"
+        test_fail "KEV cache max age is 24 hours"
     fi
 }
 
@@ -325,20 +325,20 @@ test_cache_max_age_defined() {
 #------------------------------------------------------------------------------
 
 test_kev_url_is_cisa() {
-    run_test
+    test_start
     if grep -q 'cisa.gov.*known_exploited_vulnerabilities.json' "$KEV_SCRIPT"; then
-        pass "Script uses official CISA KEV catalog URL"
+        test_pass "Script uses official CISA KEV catalog URL"
     else
-        fail "Script uses official CISA KEV catalog URL"
+        test_fail "Script uses official CISA KEV catalog URL"
     fi
 }
 
 test_kev_url_is_https() {
-    run_test
+    test_start
     if grep -q 'https://www.cisa.gov' "$KEV_SCRIPT"; then
-        pass "KEV URL uses HTTPS"
+        test_pass "KEV URL uses HTTPS"
     else
-        fail "KEV URL uses HTTPS"
+        test_fail "KEV URL uses HTTPS"
     fi
 }
 
@@ -347,29 +347,29 @@ test_kev_url_is_https() {
 #------------------------------------------------------------------------------
 
 test_checks_for_curl() {
-    run_test
+    test_start
     if grep -q 'command -v curl' "$KEV_SCRIPT"; then
-        pass "Script checks for curl dependency"
+        test_pass "Script checks for curl dependency"
     else
-        fail "Script checks for curl dependency"
+        test_fail "Script checks for curl dependency"
     fi
 }
 
 test_checks_for_jq() {
-    run_test
+    test_start
     if grep -q 'command -v jq' "$KEV_SCRIPT"; then
-        pass "Script checks for jq dependency"
+        test_pass "Script checks for jq dependency"
     else
-        fail "Script checks for jq dependency"
+        test_fail "Script checks for jq dependency"
     fi
 }
 
 test_provides_install_instructions() {
-    run_test
+    test_start
     if grep -q 'brew install' "$KEV_SCRIPT" && grep -q 'apt install' "$KEV_SCRIPT"; then
-        pass "Script provides installation instructions for macOS and Linux"
+        test_pass "Script provides installation instructions for macOS and Linux"
     else
-        fail "Script provides installation instructions"
+        test_fail "Script provides installation instructions"
     fi
 }
 
@@ -378,29 +378,29 @@ test_provides_install_instructions() {
 #------------------------------------------------------------------------------
 
 test_generates_sha256_hash() {
-    run_test
+    test_start
     if grep -q 'sha.*256' "$KEV_SCRIPT"; then
-        pass "Script generates SHA256 hash for integrity"
+        test_pass "Script generates SHA256 hash for integrity"
     else
-        fail "Script generates SHA256 hash"
+        test_fail "Script generates SHA256 hash"
     fi
 }
 
 test_supports_macos_shasum() {
-    run_test
+    test_start
     if grep -q 'shasum -a 256' "$KEV_SCRIPT"; then
-        pass "Script supports macOS shasum command"
+        test_pass "Script supports macOS shasum command"
     else
-        fail "Script supports macOS shasum command"
+        test_fail "Script supports macOS shasum command"
     fi
 }
 
 test_supports_linux_sha256sum() {
-    run_test
+    test_start
     if grep -q 'sha256sum' "$KEV_SCRIPT"; then
-        pass "Script supports Linux sha256sum command"
+        test_pass "Script supports Linux sha256sum command"
     else
-        fail "Script supports Linux sha256sum command"
+        test_fail "Script supports Linux sha256sum command"
     fi
 }
 
@@ -409,74 +409,74 @@ test_supports_linux_sha256sum() {
 #------------------------------------------------------------------------------
 
 test_parses_kev_version() {
-    run_test
+    test_start
     if grep -q '.catalogVersion' "$KEV_SCRIPT"; then
-        pass "Script parses KEV catalog version"
+        test_pass "Script parses KEV catalog version"
     else
-        fail "Script parses KEV catalog version"
+        test_fail "Script parses KEV catalog version"
     fi
 }
 
 test_parses_kev_count() {
-    run_test
+    test_start
     if grep -q '.count' "$KEV_SCRIPT"; then
-        pass "Script parses KEV entry count"
+        test_pass "Script parses KEV entry count"
     else
-        fail "Script parses KEV entry count"
+        test_fail "Script parses KEV entry count"
     fi
 }
 
 test_parses_vulnerabilities() {
-    run_test
+    test_start
     if grep -q '.vulnerabilities\[\]' "$KEV_SCRIPT"; then
-        pass "Script iterates through vulnerabilities array"
+        test_pass "Script iterates through vulnerabilities array"
     else
-        fail "Script iterates through vulnerabilities array"
+        test_fail "Script iterates through vulnerabilities array"
     fi
 }
 
 test_parses_cve_id() {
-    run_test
+    test_start
     if grep -q '.cveID' "$KEV_SCRIPT"; then
-        pass "Script parses cveID field"
+        test_pass "Script parses cveID field"
     else
-        fail "Script parses cveID field"
+        test_fail "Script parses cveID field"
     fi
 }
 
 test_parses_vendor() {
-    run_test
+    test_start
     if grep -q '.vendorProject' "$KEV_SCRIPT"; then
-        pass "Script parses vendorProject field"
+        test_pass "Script parses vendorProject field"
     else
-        fail "Script parses vendorProject field"
+        test_fail "Script parses vendorProject field"
     fi
 }
 
 test_parses_product() {
-    run_test
+    test_start
     if grep -q '.product' "$KEV_SCRIPT"; then
-        pass "Script parses product field"
+        test_pass "Script parses product field"
     else
-        fail "Script parses product field"
+        test_fail "Script parses product field"
     fi
 }
 
 test_parses_due_date() {
-    run_test
+    test_start
     if grep -q '.dueDate' "$KEV_SCRIPT"; then
-        pass "Script parses dueDate field"
+        test_pass "Script parses dueDate field"
     else
-        fail "Script parses dueDate field"
+        test_fail "Script parses dueDate field"
     fi
 }
 
 test_parses_ransomware_use() {
-    run_test
+    test_start
     if grep -q '.knownRansomwareCampaignUse' "$KEV_SCRIPT"; then
-        pass "Script parses knownRansomwareCampaignUse field"
+        test_pass "Script parses knownRansomwareCampaignUse field"
     else
-        fail "Script parses knownRansomwareCampaignUse field"
+        test_fail "Script parses knownRansomwareCampaignUse field"
     fi
 }
 
@@ -485,20 +485,20 @@ test_parses_ransomware_use() {
 #------------------------------------------------------------------------------
 
 test_calculates_past_due() {
-    run_test
+    test_start
     if grep -q 'DUE_DATE.*TODAY' "$KEV_SCRIPT" || grep -q 'PAST_DUE' "$KEV_SCRIPT"; then
-        pass "Script calculates past due status"
+        test_pass "Script calculates past due status"
     else
-        fail "Script calculates past due status"
+        test_fail "Script calculates past due status"
     fi
 }
 
 test_counts_past_due() {
-    run_test
+    test_start
     if grep -q 'PAST_DUE=' "$KEV_SCRIPT"; then
-        pass "Script counts past due entries"
+        test_pass "Script counts past due entries"
     else
-        fail "Script counts past due entries"
+        test_fail "Script counts past due entries"
     fi
 }
 
@@ -507,20 +507,20 @@ test_counts_past_due() {
 #------------------------------------------------------------------------------
 
 test_tracks_ransomware_association() {
-    run_test
+    test_start
     if grep -q 'RANSOMWARE=' "$KEV_SCRIPT"; then
-        pass "Script tracks ransomware-associated CVEs"
+        test_pass "Script tracks ransomware-associated CVEs"
     else
-        fail "Script tracks ransomware-associated CVEs"
+        test_fail "Script tracks ransomware-associated CVEs"
     fi
 }
 
 test_warns_about_ransomware() {
-    run_test
+    test_start
     if grep -q 'RANSOMWARE CAMPAIGN' "$KEV_SCRIPT"; then
-        pass "Script warns about ransomware campaign use"
+        test_pass "Script warns about ransomware campaign use"
     else
-        fail "Script warns about ransomware campaign use"
+        test_fail "Script warns about ransomware campaign use"
     fi
 }
 
@@ -529,29 +529,29 @@ test_warns_about_ransomware() {
 #------------------------------------------------------------------------------
 
 test_has_help_option() {
-    run_test
+    test_start
     if grep -q '\-h|\-\-help' "$KEV_SCRIPT"; then
-        pass "Script has --help option"
+        test_pass "Script has --help option"
     else
-        fail "Script has --help option"
+        test_fail "Script has --help option"
     fi
 }
 
 test_has_force_option() {
-    run_test
+    test_start
     if grep -q '\-f|\-\-force' "$KEV_SCRIPT"; then
-        pass "Script has --force refresh option"
+        test_pass "Script has --force refresh option"
     else
-        fail "Script has --force refresh option"
+        test_fail "Script has --force refresh option"
     fi
 }
 
 test_has_quiet_option() {
-    run_test
+    test_start
     if grep -q '\-q|\-\-quiet' "$KEV_SCRIPT"; then
-        pass "Script has --quiet option"
+        test_pass "Script has --quiet option"
     else
-        fail "Script has --quiet option"
+        test_fail "Script has --quiet option"
     fi
 }
 
@@ -560,38 +560,38 @@ test_has_quiet_option() {
 #------------------------------------------------------------------------------
 
 test_outputs_summary() {
-    run_test
+    test_start
     if grep -q 'SUMMARY' "$KEV_SCRIPT"; then
-        pass "Script outputs summary section"
+        test_pass "Script outputs summary section"
     else
-        fail "Script outputs summary section"
+        test_fail "Script outputs summary section"
     fi
 }
 
 test_outputs_kev_match_count() {
-    run_test
+    test_start
     if grep -q 'KEV matches:' "$KEV_SCRIPT"; then
-        pass "Script outputs KEV match count"
+        test_pass "Script outputs KEV match count"
     else
-        fail "Script outputs KEV match count"
+        test_fail "Script outputs KEV match count"
     fi
 }
 
 test_outputs_nvd_reference() {
-    run_test
+    test_start
     if grep -q 'nvd.nist.gov/vuln/detail' "$KEV_SCRIPT"; then
-        pass "Script outputs NVD reference URLs"
+        test_pass "Script outputs NVD reference URLs"
     else
-        fail "Script outputs NVD reference URLs"
+        test_fail "Script outputs NVD reference URLs"
     fi
 }
 
 test_outputs_cisa_reference() {
-    run_test
+    test_start
     if grep -q 'cisa.gov/binding-operational-directive' "$KEV_SCRIPT"; then
-        pass "Script outputs CISA BOD reference"
+        test_pass "Script outputs CISA BOD reference"
     else
-        fail "Script outputs CISA BOD reference"
+        test_fail "Script outputs CISA BOD reference"
     fi
 }
 
@@ -600,20 +600,20 @@ test_outputs_cisa_reference() {
 #------------------------------------------------------------------------------
 
 test_has_connect_timeout() {
-    run_test
+    test_start
     if grep -q '\-\-connect-timeout' "$KEV_SCRIPT"; then
-        pass "Script has curl connect timeout"
+        test_pass "Script has curl connect timeout"
     else
-        fail "Script has curl connect timeout"
+        test_fail "Script has curl connect timeout"
     fi
 }
 
 test_has_max_time() {
-    run_test
+    test_start
     if grep -q '\-\-max-time' "$KEV_SCRIPT"; then
-        pass "Script has curl max-time setting"
+        test_pass "Script has curl max-time setting"
     else
-        fail "Script has curl max-time setting"
+        test_fail "Script has curl max-time setting"
     fi
 }
 
@@ -622,38 +622,38 @@ test_has_max_time() {
 #------------------------------------------------------------------------------
 
 test_uses_set_e() {
-    run_test
+    test_start
     if grep -q 'set -e' "$KEV_SCRIPT" || grep -q 'set -eu' "$KEV_SCRIPT"; then
-        pass "Script uses set -e for error handling"
+        test_pass "Script uses set -e for error handling"
     else
-        fail "Script uses set -e"
+        test_fail "Script uses set -e"
     fi
 }
 
 test_validates_json() {
-    run_test
+    test_start
     if grep -q 'jq empty' "$KEV_SCRIPT"; then
-        pass "Script validates downloaded JSON"
+        test_pass "Script validates downloaded JSON"
     else
-        fail "Script validates downloaded JSON"
+        test_fail "Script validates downloaded JSON"
     fi
 }
 
 test_handles_download_failure() {
-    run_test
+    test_start
     if grep -q 'Failed to download' "$KEV_SCRIPT"; then
-        pass "Script handles download failures"
+        test_pass "Script handles download failures"
     else
-        fail "Script handles download failures"
+        test_fail "Script handles download failures"
     fi
 }
 
 test_handles_missing_scan_file() {
-    run_test
+    test_start
     if grep -q 'Scan file not found' "$KEV_SCRIPT"; then
-        pass "Script handles missing scan file"
+        test_pass "Script handles missing scan file"
     else
-        fail "Script handles missing scan file"
+        test_fail "Script handles missing scan file"
     fi
 }
 
@@ -662,20 +662,20 @@ test_handles_missing_scan_file() {
 #------------------------------------------------------------------------------
 
 test_detects_darwin_for_stat() {
-    run_test
+    test_start
     if grep -q 'uname.*Darwin' "$KEV_SCRIPT" && grep -q 'stat -f' "$KEV_SCRIPT"; then
-        pass "Script uses macOS-compatible stat command"
+        test_pass "Script uses macOS-compatible stat command"
     else
-        fail "Script uses macOS-compatible stat command"
+        test_fail "Script uses macOS-compatible stat command"
     fi
 }
 
 test_detects_linux_for_stat() {
-    run_test
+    test_start
     if grep -q 'stat -c' "$KEV_SCRIPT"; then
-        pass "Script uses Linux-compatible stat command"
+        test_pass "Script uses Linux-compatible stat command"
     else
-        fail "Script uses Linux-compatible stat command"
+        test_fail "Script uses Linux-compatible stat command"
     fi
 }
 
@@ -684,20 +684,20 @@ test_detects_linux_for_stat() {
 #------------------------------------------------------------------------------
 
 test_finds_vulnerability_scans() {
-    run_test
+    test_start
     if grep -q 'vulnerability-scan-\*.txt' "$KEV_SCRIPT"; then
-        pass "Script searches for vulnerability scan files"
+        test_pass "Script searches for vulnerability scan files"
     else
-        fail "Script searches for vulnerability scan files"
+        test_fail "Script searches for vulnerability scan files"
     fi
 }
 
 test_accepts_scan_file_argument() {
-    run_test
+    test_start
     if grep -q 'SCAN_FILE=' "$KEV_SCRIPT"; then
-        pass "Script accepts scan file as argument"
+        test_pass "Script accepts scan file as argument"
     else
-        fail "Script accepts scan file as argument"
+        test_fail "Script accepts scan file as argument"
     fi
 }
 
@@ -706,11 +706,11 @@ test_accepts_scan_file_argument() {
 #------------------------------------------------------------------------------
 
 test_generates_timestamp() {
-    run_test
+    test_start
     if grep -q 'TIMESTAMP=' "$KEV_SCRIPT" && grep -q 'date.*%Y' "$KEV_SCRIPT"; then
-        pass "Script generates ISO 8601 timestamp"
+        test_pass "Script generates ISO 8601 timestamp"
     else
-        fail "Script generates ISO 8601 timestamp"
+        test_fail "Script generates ISO 8601 timestamp"
     fi
 }
 
@@ -719,56 +719,56 @@ test_generates_timestamp() {
 #------------------------------------------------------------------------------
 
 test_has_check_dependencies_function() {
-    run_test
+    test_start
     if grep -q 'check_dependencies()' "$KEV_SCRIPT"; then
-        pass "Script has check_dependencies function"
+        test_pass "Script has check_dependencies function"
     else
-        fail "Script has check_dependencies function"
+        test_fail "Script has check_dependencies function"
     fi
 }
 
 test_has_update_kev_cache_function() {
-    run_test
+    test_start
     if grep -q 'update_kev_cache()' "$KEV_SCRIPT"; then
-        pass "Script has update_kev_cache function"
+        test_pass "Script has update_kev_cache function"
     else
-        fail "Script has update_kev_cache function"
+        test_fail "Script has update_kev_cache function"
     fi
 }
 
 test_has_get_kev_hash_function() {
-    run_test
+    test_start
     if grep -q 'get_kev_hash()' "$KEV_SCRIPT"; then
-        pass "Script has get_kev_hash function"
+        test_pass "Script has get_kev_hash function"
     else
-        fail "Script has get_kev_hash function"
+        test_fail "Script has get_kev_hash function"
     fi
 }
 
 test_has_find_scan_file_function() {
-    run_test
+    test_start
     if grep -q 'find_scan_file()' "$KEV_SCRIPT"; then
-        pass "Script has find_scan_file function"
+        test_pass "Script has find_scan_file function"
     else
-        fail "Script has find_scan_file function"
+        test_fail "Script has find_scan_file function"
     fi
 }
 
 test_has_extract_cves_function() {
-    run_test
+    test_start
     if grep -q 'extract_cves()' "$KEV_SCRIPT"; then
-        pass "Script has extract_cves function"
+        test_pass "Script has extract_cves function"
     else
-        fail "Script has extract_cves function"
+        test_fail "Script has extract_cves function"
     fi
 }
 
 test_has_check_cve_in_kev_function() {
-    run_test
+    test_start
     if grep -q 'check_cve_in_kev()' "$KEV_SCRIPT"; then
-        pass "Script has check_cve_in_kev function"
+        test_pass "Script has check_cve_in_kev function"
     else
-        fail "Script has check_cve_in_kev function"
+        test_fail "Script has check_cve_in_kev function"
     fi
 }
 
@@ -777,7 +777,7 @@ test_has_check_cve_in_kev_function() {
 #------------------------------------------------------------------------------
 
 test_parse_mock_kev_entry() {
-    run_test
+    test_start
     # Create a mock KEV catalog
     cat > "$TEST_DIR/mock-kev.json" << 'EOF'
 {
@@ -822,12 +822,12 @@ EOF
             fail "Parse KEV catalog version" "Got: $version"
         fi
     else
-        pass "Can parse KEV catalog version from JSON (jq not installed - skipped)"
+        test_pass "Can parse KEV catalog version from JSON (jq not installed - skipped)"
     fi
 }
 
 test_parse_mock_kev_count() {
-    run_test
+    test_start
     if command -v jq &>/dev/null && [ -f "$TEST_DIR/mock-kev.json" ]; then
         local count
         count=$(jq -r '.count' "$TEST_DIR/mock-kev.json")
@@ -837,12 +837,12 @@ test_parse_mock_kev_count() {
             fail "Parse KEV vulnerability count" "Got: $count"
         fi
     else
-        pass "Can parse KEV vulnerability count (jq not installed - skipped)"
+        test_pass "Can parse KEV vulnerability count (jq not installed - skipped)"
     fi
 }
 
 test_parse_mock_kev_cve_lookup() {
-    run_test
+    test_start
     if command -v jq &>/dev/null && [ -f "$TEST_DIR/mock-kev.json" ]; then
         local entry
         entry=$(jq -r '.vulnerabilities[] | select(.cveID == "CVE-2021-44228")' "$TEST_DIR/mock-kev.json")
@@ -852,12 +852,12 @@ test_parse_mock_kev_cve_lookup() {
             fail "Look up CVE in KEV catalog"
         fi
     else
-        pass "Can look up CVE in KEV catalog (jq not installed - skipped)"
+        test_pass "Can look up CVE in KEV catalog (jq not installed - skipped)"
     fi
 }
 
 test_parse_mock_kev_ransomware() {
-    run_test
+    test_start
     if command -v jq &>/dev/null && [ -f "$TEST_DIR/mock-kev.json" ]; then
         local ransomware
         ransomware=$(jq -r '.vulnerabilities[] | select(.cveID == "CVE-2021-44228") | .knownRansomwareCampaignUse' "$TEST_DIR/mock-kev.json")
@@ -867,7 +867,7 @@ test_parse_mock_kev_ransomware() {
             fail "Parse ransomware campaign association" "Got: $ransomware"
         fi
     else
-        pass "Can parse ransomware campaign association (jq not installed - skipped)"
+        test_pass "Can parse ransomware campaign association (jq not installed - skipped)"
     fi
 }
 
@@ -876,21 +876,21 @@ test_parse_mock_kev_ransomware() {
 #------------------------------------------------------------------------------
 
 test_help_shows_usage() {
-    run_test
+    test_start
     # Check if --help runs without error (may exit 0)
     if "$KEV_SCRIPT" --help 2>&1 | grep -q 'Usage:'; then
-        pass "--help shows usage information"
+        test_pass "--help shows usage information"
     else
-        fail "--help shows usage information"
+        test_fail "--help shows usage information"
     fi
 }
 
 test_help_shows_options() {
-    run_test
+    test_start
     if "$KEV_SCRIPT" --help 2>&1 | grep -q '\-\-force'; then
-        pass "--help shows --force option"
+        test_pass "--help shows --force option"
     else
-        fail "--help shows --force option"
+        test_fail "--help shows --force option"
     fi
 }
 

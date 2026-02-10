@@ -1,47 +1,35 @@
-# Security scan results (never commit detailed findings)
-.scans/
-*-Scan-Results.md
+# =============================================================================
+# .gitignore — Security Verification Toolkit
+# Base template: https://github.com/brucedombrowski/systems-engineering
+# =============================================================================
 
-# Controlled Unclassified Information (CUI) outputs
-CUI*.*
-*CUI*
-*-CUI-*
+# --- OS Files ---
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Personally Identifiable Information (PII) outputs
-PII*.*
-*PII*
-*-PII-*
+# --- Editor / IDE Files ---
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
 
-# Host inventory (contains sensitive system information)
-host-inventory*.txt
-*-inventory-*.txt
-
-# Allowlists (project-specific reviewed exceptions - should not be shared)
-.allowlists/
-
-# Security assessments & remediation plans (internal use only)
-.assessments/
-
-# Verification package outputs (generated PDFs - attach to releases)
-.verification/
-
-# Vulnerability scan outputs (SENSITIVE - network topology, CVEs)
-nmap-*.txt
-nmap-*.xml
-lynis-*.txt
-lynis-*.dat
-openvas-*.xml
-vulnerability-scan-*.txt
-
-# Secrets and credentials (CRITICAL - never commit)
-*.pem
+# --- Secrets & Credentials (CRITICAL — never commit) ---
+.env
+.env.*
 *.key
+*.pem
 *.p12
 *.pfx
 *.crt
 *.cer
-.env
-.env.*
 *.secrets
 secrets.*
 credentials.*
@@ -49,7 +37,7 @@ credentials.*
 api_key*
 apikey*
 
-# SSH keys
+# --- SSH Keys ---
 id_rsa*
 id_ed25519*
 id_ecdsa*
@@ -58,51 +46,86 @@ id_dsa*
 known_hosts
 authorized_keys
 
-# GPG keys
+# --- GPG Keys ---
 *.gpg
 *.asc
 secring.*
 pubring.*
 
-# AWS credentials
+# --- AWS Credentials ---
 .aws/
 aws_access_key*
 aws_secret*
 
-# Database dumps (may contain sensitive data)
+# --- Controlled Unclassified Information (CUI) ---
+CUI*.*
+*CUI*
+*-CUI-*
+
+# --- Personally Identifiable Information (PII) ---
+PII*.*
+*PII*
+*-PII-*
+
+# --- Security Scan Results ---
+.scans/
+*-Scan-Results.md
+.allowlists/
+.assessments/
+.verification/
+
+# --- Vulnerability Scan Outputs (SENSITIVE) ---
+nmap-*.txt
+nmap-*.xml
+lynis-*.txt
+lynis-*.dat
+openvas-*.xml
+vulnerability-scan-*.txt
+host-inventory*.txt
+*-inventory-*.txt
+
+# --- Log Files ---
+*.log
+logs/
+
+# --- Database Dumps ---
 *.sql
 *.dump
 *.bak
 
-# Log files (may contain sensitive data)
-*.log
-logs/
+# --- Temporary Files ---
+*.tmp
+*.temp
+~$*
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Editor files
-*.swp
-*.swo
-*~
-.vscode/
-.idea/
-
-# Claude Code configuration (user-specific)
+# --- Claude Code ---
 .claude/
 
-# Threat intelligence cache (KEV catalog, IOCs)
+# --- Cache ---
 .cache/
+
+# =============================================================================
+# Project-Specific
+# =============================================================================
+
+# Threat intelligence cache (KEV catalog, IOCs)
+# Note: .cache/ covered above
 
 # Demo/test environment outputs
 demo/**/scan-results/
 demo/**/.scans/
 demo/**/.vagrant/
-demo/**/**.log
+demo/**/*.log
 
 # Scanner config (contains target IPs and meeting URLs)
 demo_scanner.conf
 
 # Homebrew tap (separate repo)
 homebrew-tap/
+
+# LaTeX build artifacts
+*.aux
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
