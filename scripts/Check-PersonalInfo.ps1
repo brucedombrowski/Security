@@ -242,7 +242,7 @@ function Add-ToAllowlist {
         ) | Out-File -FilePath $AllowlistFile -Encoding UTF8
     }
 
-    $hash = Get-ContentHash $Content
+    $hash = Get-ContentHash "${FilePath}:${LineNumber}:${Content}"
     $truncated = if ($Content.Length -gt 60) { $Content.Substring(0, 60) + '...' } else { $Content }
     $entry = "$hash # $Reason # ${FilePath}:${LineNumber}: $truncated"
 

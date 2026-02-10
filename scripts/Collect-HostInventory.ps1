@@ -1201,22 +1201,25 @@ Write-Output-Line "/////////////////////////////////////////////////////////////
 if ($OutputFile) {
     $writeSuccess = $false
 
-    # First, try to write the file
+    # Write file with restrictive permissions from creation (no race window)
     try {
-        $script:OutputBuffer | Out-File -FilePath $OutputFile -Encoding UTF8 -Force
-        $writeSuccess = $true
-        Write-Host ""
-        Write-Host "SUCCESS: Inventory saved to:" -ForegroundColor Green
-        Write-Host "  $OutputFile" -ForegroundColor White
-    } catch {
-        Write-Host ""
-        Write-Host "ERROR: Failed to write output file" -ForegroundColor Red
-        Write-Host "  Path: $OutputFile" -ForegroundColor Yellow
-        Write-Host "  Error: $_" -ForegroundColor Yellow
-    }
+        $content = ($script:OutputBuffer | Out-String)
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($content)
 
-    # Try to set restrictive permissions (non-critical, may fail without elevation)
-    if ($writeSuccess) {
+        # Create file with exclusive access — no other process can read during write
+        $fs = [System.IO.FileStream]::new(
+            $OutputFile,
+            [System.IO.FileMode]::Create,
+            [System.IO.FileAccess]::Write,
+            [System.IO.FileShare]::None
+        )
+        try {
+            $fs.Write($bytes, 0, $bytes.Length)
+        } finally {
+            $fs.Close()
+        }
+
+        # Set restrictive ACL immediately after close
         try {
             $acl = Get-Acl $OutputFile -ErrorAction Stop
             $acl.SetAccessRuleProtection($true, $false)
@@ -1224,10 +1227,22 @@ if ($OutputFile) {
             $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($currentUser, "FullControl", "Allow")
             $acl.SetAccessRule($accessRule)
             Set-Acl -Path $OutputFile -AclObject $acl -ErrorAction Stop
+            Write-Host ""
+            Write-Host "SUCCESS: Inventory saved to:" -ForegroundColor Green
+            Write-Host "  $OutputFile" -ForegroundColor White
             Write-Host "  Permissions: Restricted to current user only" -ForegroundColor Green
         } catch {
+            Write-Host ""
+            Write-Host "SUCCESS: Inventory saved to:" -ForegroundColor Green
+            Write-Host "  $OutputFile" -ForegroundColor White
             Write-Host "  Permissions: Could not restrict (run icacls manually)" -ForegroundColor Yellow
         }
+        $writeSuccess = $true
+    } catch {
+        Write-Host ""
+        Write-Host "ERROR: Failed to write output file" -ForegroundColor Red
+        Write-Host "  Path: $OutputFile" -ForegroundColor Yellow
+        Write-Host "  Error: $_" -ForegroundColor Yellow
     }
 }
 
